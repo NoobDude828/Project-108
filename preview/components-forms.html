@@ -1,0 +1,19 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css"><style>
+html,body{margin:0;padding:0;background:#FAF6ED;}
+.card{padding:18px 26px;display:flex;flex-direction:column;gap:14px;color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:.4rem}
+.field label{font-family:var(--font-utility);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+.field input,.field textarea{font-family:var(--font-body);font-size:1rem;color:var(--ink);background:white;border:1px solid rgba(74,26,44,.15);border-radius:4px;padding:.7rem .85rem;transition:border-color .15s, box-shadow .15s;outline:none}
+.field input:focus{border-color:var(--maroon);box-shadow:0 0 0 3px rgba(74,26,44,.12)}
+.row{display:flex;gap:10px}
+.radio{flex:1;background:white;border:1px solid rgba(74,26,44,.15);border-radius:4px;padding:.55rem .8rem;font-family:var(--font-body);font-size:.9rem;color:var(--ink);display:flex;align-items:center;gap:.5rem}
+.radio.on{border-color:var(--maroon);background:rgba(74,26,44,.04);color:var(--maroon);font-weight:500}
+.radio span.dot{width:12px;height:12px;border-radius:999px;border:1.5px solid #aaa;display:inline-block}
+.radio.on span.dot{border-color:var(--maroon);background:radial-gradient(var(--maroon) 35%, white 40%)}
+</style></head>
+<body><div class="card">
+<div class="field"><label>Email <span style="color:var(--gold)">*</span></label><input type="email" value="hello@gmc.bt"></div>
+<div class="field"><label>I would like to <span style="color:var(--gold)">*</span></label>
+  <div class="row"><div class="radio on"><span class="dot"></span>Become a Patron</div><div class="radio"><span class="dot"></span>Volunteer</div></div>
+</div>
+</div></body></html>
