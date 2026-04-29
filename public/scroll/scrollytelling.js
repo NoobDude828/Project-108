@@ -246,9 +246,9 @@
       if (tr) tr.style.setProperty("--p", clamp(p));
       // Measurement appears strong early (between 2 chortens), then scales down + fades as we pull back
       if (measure) {
-        const a = clamp((p - 0.05) / 0.12) * (1 - clamp((p - 0.75) / 0.2));
+        const a = clamp((p - 0.05) / 0.12) * (1 - clamp((p - 0.2) / 0.12));
         measure.style.setProperty("--p", a);
-        measure.style.setProperty("--zoom", clamp(p));
+        measure.style.setProperty("--zoom", 0);
       }
     },
   });
@@ -671,29 +671,8 @@
 
   /* ---------------- Init ---------------- */
   function init() {
-    // Mini chorten SVG used throughout (multiplication, spacing, stack, completion)
-    window.__chortenMiniSVG = `<svg viewBox="0 0 24 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <g fill="currentColor" stroke="none" style="color:var(--gold);">
-        <!-- flame & sun-moon -->
-        <path d="M12 3 q1.4 -1 1.4 -2.4 q0 1.6 -1.4 3.2 q-1.4 -1.6 -1.4 -3.2 q0 1.4 1.4 2.4 z"/>
-        <circle cx="12" cy="5.2" r=".9"/>
-        <!-- spire -->
-        <path d="M11 6 h2 l-.4 8.5 h-1.2 z"/>
-        <!-- parasol -->
-        <path d="M9.6 14.5 h4.8 l-.6 1.2 h-3.6 z"/>
-        <!-- dome / vase -->
-        <path d="M8.5 16 q3.5 -3 7 0 v6 h-7 z"/>
-        <!-- niche -->
-        <rect x="9.2" y="22" width="5.6" height="3"/>
-        <!-- stepped base -->
-        <rect x="8" y="25" width="8" height="3"/>
-        <rect x="7" y="28" width="10" height="3"/>
-        <rect x="6" y="31" width="12" height="4"/>
-        <rect x="5" y="35" width="14" height="5"/>
-        <!-- ground line -->
-        <rect x="3" y="40" width="18" height="1.2" opacity=".6"/>
-      </g>
-    </svg>`;
+    // Mini chorten image used throughout (multiplication, spacing, stack, completion)
+    window.__chortenMiniSVG = `<img src="/assets/chorten.png" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block;" />`;
 
     // Build dynamic content
     buildMultiplyGrid();
