@@ -303,13 +303,15 @@
       // Reference markers (Pyramid / Eiffel / Burj) — fixed Y on the column.
       // Positions correspond to: pyramid 9, eiffel 22, burj 55, top 108
       const refs = document.querySelectorAll(".scene-stack .stack-ref");
+      // Find the highest unit threshold the stack has crossed
+      const refUnits = Array.from(refs).map(
+        (r) => parseInt(r.dataset.unit, 10) || 0,
+      );
+      const activeUnit = refUnits.filter((u) => litCount >= u).pop() || null;
       refs.forEach((r) => {
         const u = parseInt(r.dataset.unit, 10) || 0;
-        const refY = u * 15; // matches column unit pitch
-        // The ref is anchored to the column, so it must move with it
-        r.style.setProperty("--y", refY + yPx);
-        // Light it up once the stack has reached this unit
-        r.classList.toggle("lit", litCount >= u);
+        // Only light the most recently crossed ref
+        r.classList.toggle("lit", u === activeUnit);
       });
 
       // Live counter

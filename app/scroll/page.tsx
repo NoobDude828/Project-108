@@ -1172,23 +1172,13 @@ export default function ScrollPage() {
               <div className="stack-ref" data-unit="9">
                 <span className="tick"></span>
                 <span className="ref-icon" aria-hidden="true">
-                  <svg viewBox="0 0 60 50">
-                    <polygon
-                      points="30,4 56,46 4,46"
-                      fill="rgba(200,166,99,.3)"
-                      stroke="#C8A663"
-                      strokeWidth="1.2"
-                    />
-                    <line
-                      x1="30"
-                      y1="4"
-                      x2="30"
-                      y2="46"
-                      stroke="#C8A663"
-                      strokeWidth=".6"
-                      strokeDasharray="2 2"
-                    />
-                  </svg>
+                  <img
+                    src="/assets/pyramid.png"
+                    alt=""
+                    width="160"
+                    height="220"
+                    style={{ objectFit: "contain" }}
+                  />
                 </span>
                 <span className="info">
                   <strong>Great Pyramid · 139 m</strong>9 chortens stacked
@@ -1197,15 +1187,13 @@ export default function ScrollPage() {
               <div className="stack-ref" data-unit="22">
                 <span className="tick"></span>
                 <span className="ref-icon" aria-hidden="true">
-                  <svg viewBox="0 0 40 80">
-                    <g fill="none" stroke="#C8A663" strokeWidth="1.2">
-                      <path d="M6 78 L20 4 L34 78" />
-                      <path d="M10 60 L30 60" />
-                      <path d="M13 40 L27 40" />
-                      <path d="M16 22 L24 22" />
-                      <path d="M11 60 L11 78 M29 60 L29 78" />
-                    </g>
-                  </svg>
+                  <img
+                    src="/assets/eiffel-tower.png"
+                    alt=""
+                    width="160"
+                    height="360"
+                    style={{ objectFit: "contain", marginLeft: "100px" }}
+                  />
                 </span>
                 <span className="info">
                   <strong>Eiffel Tower · 330 m</strong>22 chortens · the
@@ -1215,27 +1203,13 @@ export default function ScrollPage() {
               <div className="stack-ref" data-unit="55">
                 <span className="tick"></span>
                 <span className="ref-icon" aria-hidden="true">
-                  <svg viewBox="0 0 30 90">
-                    <g
-                      fill="rgba(200,166,99,.25)"
-                      stroke="#C8A663"
-                      strokeWidth="1"
-                    >
-                      <rect x="13" y="2" width="4" height="20" />
-                      <rect x="11" y="22" width="8" height="14" />
-                      <rect x="9" y="36" width="12" height="14" />
-                      <rect x="6" y="50" width="18" height="14" />
-                      <rect x="3" y="64" width="24" height="24" />
-                    </g>
-                    <line
-                      x1="15"
-                      y1="0"
-                      x2="15"
-                      y2="2"
-                      stroke="#C8A663"
-                      strokeWidth="1"
-                    />
-                  </svg>
+                  <img
+                    src="/assets/building.png"
+                    alt=""
+                    width="160"
+                    height="360"
+                    style={{ objectFit: "contain", marginLeft: "10px" }}
+                  />
                 </span>
                 <span className="info">
                   <strong>Burj Khalifa · 828 m</strong>55 chortens · nearly
@@ -1245,18 +1219,13 @@ export default function ScrollPage() {
               <div className="stack-ref" data-unit="108">
                 <span className="tick"></span>
                 <span className="ref-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 60">
-                    <g fill="#C8A663">
-                      <path d="M11 6 h2 l-.4 8.5 h-1.2 z" />
-                      <path d="M9.6 14.5 h4.8 l-.6 1.2 h-3.6 z" />
-                      <path d="M8.5 16 q3.5 -3 7 0 v6 h-7 z" />
-                      <rect x="9.2" y="22" width="5.6" height="3" />
-                      <rect x="8" y="25" width="8" height="3" />
-                      <rect x="7" y="28" width="10" height="3" />
-                      <rect x="6" y="31" width="12" height="4" />
-                      <rect x="5" y="35" width="14" height="5" />
-                    </g>
-                  </svg>
+                  <img
+                    src="/assets/chorten.png"
+                    alt=""
+                    width="160"
+                    height="220"
+                    style={{ objectFit: "contain", marginBottom: "2.8rem" }}
+                  />
                 </span>
                 <span className="info">
                   <strong>Project 108 · 1.62 km</strong>108 chortens · complete
