@@ -542,7 +542,10 @@
     const w = 1200,
       h = 700;
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    svg.setAttribute(
+      "preserveAspectRatio",
+      window.innerWidth <= 768 ? "xMidYMid meet" : "xMidYMid slice",
+    );
     // A graceful continuous curve with no sharp bends — uniform smooth control points
     const d = `M 30 ${h * 0.78}
                C 180 ${h * 0.74}, 280 ${h * 0.5}, 420 ${h * 0.52}

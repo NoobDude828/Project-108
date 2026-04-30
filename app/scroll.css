@@ -3538,6 +3538,16 @@ body.scrolled .scroll-hint {
     width: min(55vw, 138px);
     left: 49.9%;
   }
+  /* ── Scene 08 mobile — thicker river path ── */
+  .river-svg {
+    transform: scale(1.25);
+  }
+  .river-path {
+    stroke-width: 5;
+  }
+  .river-marker {
+    r: 5;
+  }
 }
 
 @media (max-width: 600px) {
