@@ -69,134 +69,7 @@ export default function ScrollPage() {
             </div>
             <div className="what-stage">
               <div className="what-chorten" aria-hidden="true">
-                <svg viewBox="0 0 200 520" xmlns="http://www.w3.org/2000/svg">
-                  <g
-                    fill="none"
-                    stroke="#C8A663"
-                    strokeWidth="1.4"
-                    strokeLinejoin="round"
-                  >
-                    <path
-                      d="M100 22 q9 -10 9 -22 q0 12 -9 24 q-9 -12 -9 -24 q0 12 9 22 z"
-                      fill="#C8A663"
-                      stroke="none"
-                    />
-                    <circle
-                      cx="100"
-                      cy="38"
-                      r="5"
-                      fill="#C8A663"
-                      stroke="none"
-                    />
-                    <path
-                      d="M93 50 a12 12 0 0 0 14 0"
-                      fill="none"
-                      stroke="#C8A663"
-                      strokeWidth="1.6"
-                    />
-                    <path
-                      d="M88 60 h24 l-1.5 7 h-21 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M86 70 h28 l-1.5 7 h-25 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M84 80 h32 l-1.5 7 h-29 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M82 90 h36 l-1.5 7 h-33 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M80 100 h40 l-1.5 7 h-37 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M78 110 h44 l-2 7 h-40 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M76 120 h48 l-2 7 h-44 z"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M68 132 h64 l-4 8 h-56 z"
-                      fill="rgba(200,166,99,.22)"
-                    />
-                    <rect
-                      x="78"
-                      y="142"
-                      width="44"
-                      height="14"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <path
-                      d="M58 158 q42 -36 84 0 v62 h-84 z"
-                      fill="rgba(200,166,99,.14)"
-                    />
-                    <rect
-                      x="72"
-                      y="222"
-                      width="56"
-                      height="22"
-                      fill="rgba(200,166,99,.18)"
-                    />
-                    <rect
-                      x="84"
-                      y="226"
-                      width="32"
-                      height="14"
-                      fill="rgba(74,26,46,.55)"
-                    />
-                    <rect
-                      x="62"
-                      y="246"
-                      width="76"
-                      height="18"
-                      fill="rgba(200,166,99,.16)"
-                    />
-                    <rect
-                      x="54"
-                      y="266"
-                      width="92"
-                      height="22"
-                      fill="rgba(200,166,99,.14)"
-                    />
-                    <rect
-                      x="46"
-                      y="290"
-                      width="108"
-                      height="26"
-                      fill="rgba(200,166,99,.12)"
-                    />
-                    <rect
-                      x="38"
-                      y="318"
-                      width="124"
-                      height="32"
-                      fill="rgba(200,166,99,.10)"
-                    />
-                    <rect
-                      x="28"
-                      y="352"
-                      width="144"
-                      height="46"
-                      fill="rgba(200,166,99,.08)"
-                    />
-                    <line
-                      x1="10"
-                      y1="402"
-                      x2="190"
-                      y2="402"
-                      stroke="#C8A663"
-                      strokeOpacity=".5"
-                      strokeWidth="1"
-                    />
-                  </g>
-                </svg>
+                <img src="/assets/chorten-front.png" alt="" />
               </div>
               <div className="what-truths">
                 <p className="truth t1">
@@ -1222,8 +1095,8 @@ export default function ScrollPage() {
                   <img
                     src="/assets/chorten.png"
                     alt=""
-                    width="160"
-                    height="220"
+                    // width="90"
+                    // height="130"
                     style={{ objectFit: "contain", marginBottom: "2.8rem" }}
                   />
                 </span>
