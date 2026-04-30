@@ -3008,8 +3008,8 @@ body.scrolled .scroll-hint {
     height: 280vh;
   }
   .multiply-stage {
-    top: 12vh;
-    bottom: 12vh;
+    top: 16vh;
+    bottom: 16vh;
   }
   .chorten-grid {
     grid-template-columns: repeat(9, 1fr);
