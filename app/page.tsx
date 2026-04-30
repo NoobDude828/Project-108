@@ -140,6 +140,12 @@ export default function ScrollPage() {
                   src="/assets/6.png"
                   alt=""
                 />
+                <img
+                  className="assy-part"
+                  data-part="7"
+                  src="/assets/7.png"
+                  alt=""
+                />
               </div>
             </div>
             <div className="assembly-labels">
@@ -244,132 +250,19 @@ export default function ScrollPage() {
                 <div className="scale-ground"></div>
                 <div className="scale-yaxis" aria-hidden="true"></div>
                 <div className="scale-fig fig-person" data-fig="1">
-                  <svg viewBox="0 0 60 175" preserveAspectRatio="xMidYMax meet">
-                    <g fill="rgba(74,26,46,0.85)">
-                      <circle cx="30" cy="22" r="14" />
-                      <path d="M30 36 q-12 0 -14 14 v60 h6 v55 h6 v-55 h4 v55 h6 v-55 h6 v-60 q-2 -14 -14 -14 z" />
-                    </g>
-                  </svg>
+                  <img src="/assets/person.png" alt="" />
                   <span className="lbl">
                     <strong>1.75 m</strong>Person
                   </span>
                 </div>
                 <div className="scale-fig fig-building" data-fig="2">
-                  <svg
-                    viewBox="0 0 200 1000"
-                    preserveAspectRatio="xMidYMax meet"
-                  >
-                    <g
-                      fill="rgba(74,26,46,0.55)"
-                      stroke="rgba(74,26,46,0.85)"
-                      strokeWidth="2"
-                    >
-                      <rect x="20" y="80" width="160" height="920" />
-                      <path
-                        d="M20 80 L100 20 L180 80 Z"
-                        fill="rgba(74,26,46,0.85)"
-                      />
-                    </g>
-                    <g fill="rgba(250,246,237,0.92)">
-                      <rect x="40" y="160" width="32" height="48" />
-                      <rect x="84" y="160" width="32" height="48" />
-                      <rect x="128" y="160" width="32" height="48" />
-                      <rect x="40" y="430" width="32" height="48" />
-                      <rect x="84" y="430" width="32" height="48" />
-                      <rect x="128" y="430" width="32" height="48" />
-                      <rect x="40" y="700" width="32" height="48" />
-                      <rect x="84" y="700" width="32" height="48" />
-                      <rect x="128" y="700" width="32" height="48" />
-                    </g>
-                    <g stroke="rgba(74,26,46,0.4)" strokeWidth="1">
-                      <line x1="20" y1="320" x2="180" y2="320" />
-                      <line x1="20" y1="590" x2="180" y2="590" />
-                    </g>
-                  </svg>
+                  <img src="/assets/building2.png" alt="" />
                   <span className="lbl">
                     <strong>~10 m</strong>Three storeys
                   </span>
                 </div>
                 <div className="scale-fig fig-chorten" data-fig="3">
-                  <svg
-                    viewBox="0 0 240 1500"
-                    preserveAspectRatio="xMidYMax meet"
-                  >
-                    <g
-                      fill="none"
-                      stroke="#C8A663"
-                      strokeWidth="2.5"
-                      strokeLinejoin="round"
-                    >
-                      <path
-                        d="M120 30 q14 -10 14 -28 q0 18 -14 36 q-14 -18 -14 -36 q0 18 14 28 z"
-                        fill="#C8A663"
-                      />
-                      <circle cx="120" cy="62" r="10" fill="#C8A663" />
-                      <path d="M104 84 a16 16 0 0 1 32 0 z" fill="#C8A663" />
-                      <path
-                        d="M108 100 h24 l-4 240 h-16 z"
-                        fill="rgba(200,166,99,0.2)"
-                      />
-                      <path
-                        d="M86 360 h68 l-10 30 h-48 z"
-                        fill="rgba(200,166,99,0.22)"
-                      />
-                      <path
-                        d="M70 400 q50 -50 100 0 v200 h-100 z"
-                        fill="rgba(200,166,99,0.18)"
-                      />
-                      <rect
-                        x="92"
-                        y="600"
-                        width="56"
-                        height="60"
-                        fill="rgba(200,166,99,0.32)"
-                      />
-                      <rect
-                        x="62"
-                        y="660"
-                        width="116"
-                        height="80"
-                        fill="rgba(200,166,99,0.16)"
-                      />
-                      <rect
-                        x="48"
-                        y="740"
-                        width="144"
-                        height="100"
-                        fill="rgba(200,166,99,0.14)"
-                      />
-                      <rect
-                        x="32"
-                        y="840"
-                        width="176"
-                        height="130"
-                        fill="rgba(200,166,99,0.12)"
-                      />
-                      <rect
-                        x="16"
-                        y="970"
-                        width="208"
-                        height="170"
-                        fill="rgba(200,166,99,0.10)"
-                      />
-                      <rect
-                        x="0"
-                        y="1140"
-                        width="240"
-                        height="220"
-                        fill="rgba(200,166,99,0.10)"
-                      />
-                      <line
-                        x1="0"
-                        y1="1360"
-                        x2="240"
-                        y2="1360"
-                        strokeWidth="3"
-                      />
-                    </g>
-                  </svg>
+                  <img src="/assets/chorten2.png" alt="" />
                   <span className="lbl">
                     <strong>15 m</strong>One Jangchub Chorten
                   </span>
@@ -378,10 +271,10 @@ export default function ScrollPage() {
                   <span className="tick" style={{ bottom: "11.7%" }}>
                     <em>1.75 m</em>
                   </span>
-                  <span className="tick" style={{ bottom: "66.7%" }}>
+                  <span className="tick" style={{ bottom: "67.5%" }}>
                     <em>10 m</em>
                   </span>
-                  <span className="tick" style={{ bottom: "100%" }}>
+                  <span className="tick" style={{ bottom: "88%" }}>
                     <em>15 m</em>
                   </span>
                 </div>

@@ -712,41 +712,48 @@ body.scrolled .scroll-hint {
   bottom: var(--img-bottom, 0%);
 }
 .assembly-img-stack img[data-part="1"] {
-  --img-bottom: 8%;
+  --img-bottom: 10%;
 }
 .assembly-img-stack img[data-part="2"] {
-  --img-bottom: 15.5%;
+  --img-bottom: 17.5%;
   width: 80%;
   height: 80%;
-  left: 11%;
+  left: 11.5%;
   right: 10%;
 }
 .assembly-img-stack img[data-part="3"] {
-  --img-bottom: 31%;
-  width: 60%;
+  --img-bottom: 33.8%;
+  width: 69%;
   height: 70%;
-  left: 23%;
+  left: 17%;
   right: 15%;
 }
 .assembly-img-stack img[data-part="4"] {
-  --img-bottom: 49.1%;
-  width: 32%;
-  height: 40%;
-  left: 34%;
-  right: 20%;
+  --img-bottom: 36.5%;
+  width: 19%;
+  height: 70%;
+  left: 42.4%;
+  right: 15%;
 }
 .assembly-img-stack img[data-part="5"] {
-  --img-bottom: 64%;
-  width: 24%;
-  height: 55%;
-  left: 38.5%;
-  right: 22.5%;
+  --img-bottom: 50.4%;
+  width: 22%;
+  height: 40%;
+  left: 40.1%;
+  right: 20%;
 }
 .assembly-img-stack img[data-part="6"] {
-  --img-bottom: 69.4%;
+  --img-bottom: 60%;
+  width: 22%;
+  height: 55%;
+  left: 40.5%;
+  right: 22.5%;
+}
+.assembly-img-stack img[data-part="7"] {
+  --img-bottom: 64.9%;
   width: 15%;
   height: 50%;
-  left: 43.3%;
+  left: 44.5%;
   right: 25%;
 }
 /* Each assembly part is positioned via transform; --p (0..1) controls reveal */
@@ -888,10 +895,10 @@ body.scrolled .scroll-hint {
 }
 .scale-scrolly {
   width: 100%;
-  max-width: 1340px;
+  max-width: 1280px;
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 4rem;
+  grid-template-columns: 1fr 2.1fr;
+  gap: 3rem;
   align-items: center;
   --p: 0;
 }
@@ -900,9 +907,9 @@ body.scrolled .scroll-hint {
   background: #fff;
   border: 1px solid rgba(74, 26, 46, 0.1);
   border-radius: 6px;
-  height: 76vh;
-  min-height: 500px;
-  padding: 2.4rem 3rem 3rem;
+  height: 57vh;
+  min-height: 370px;
+  padding: 1.7rem 2.1rem 2.1rem;
   overflow: visible;
 }
 .scale-ground {
@@ -928,15 +935,7 @@ body.scrolled .scroll-hint {
   transition: transform 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
 }
 .scale-yaxis::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -3px;
-  width: 7px;
-  height: 7px;
-  border-top: 1px solid rgba(74, 26, 46, 0.5);
-  border-left: 1px solid rgba(74, 26, 46, 0.5);
-  transform: rotate(45deg);
+  content: none;
 }
 .scale-scrolly[data-stage="1"] .scale-ground,
 .scale-scrolly[data-stage="2"] .scale-ground,
@@ -963,6 +962,13 @@ body.scrolled .scroll-hint {
 }
 .scale-fig svg {
   display: block;
+}
+.scale-fig img {
+  display: block;
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
 }
 .scale-fig .lbl {
   position: absolute;
@@ -995,16 +1001,16 @@ body.scrolled .scroll-hint {
   width: auto;
 }
 .fig-person {
-  left: 14%;
+  left: 8%;
   height: calc((100% - 5rem) * 0.117);
 }
 .fig-building {
-  left: 34%;
+  left: 20%;
   height: calc((100% - 5rem) * 0.667);
 }
 .fig-chorten {
-  right: 10%;
-  height: calc(100% - 5rem);
+  right: 6rem;
+  height: calc((100% - 5rem) * 0.88);
 }
 .fig-chorten .lbl strong {
   color: var(--gold);
@@ -1404,6 +1410,26 @@ body.scrolled .scroll-hint {
     bottom: 10vh;
   }
 }
+
+@media (min-width: 1600px) {
+  .scale-scrolly {
+    max-width: 1500px;
+    grid-template-columns: 1fr 2.4fr;
+  }
+  .scale-scrolly .scale-art {
+    height: 62vh;
+    min-height: 420px;
+    padding: 2rem 2.4rem 2.4rem;
+  }
+  .scale-yaxis {
+    right: 2.8rem;
+  }
+  .fig-chorten {
+    right: 7rem;
+    bottom: 2.5rem;
+  }
+}
+
 .chorten-grid {
   display: grid;
   grid-template-columns: repeat(18, 1fr);
