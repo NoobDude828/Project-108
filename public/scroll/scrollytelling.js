@@ -609,7 +609,10 @@
     const w = 1200,
       h = 700;
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+    svg.setAttribute(
+      "preserveAspectRatio",
+      window.innerWidth <= 768 ? "xMidYMid meet" : "xMidYMid slice",
+    );
     const ns = "http://www.w3.org/2000/svg";
     // Graceful corridor curve — same shape as river-svg
     const d = `M 30 ${h * 0.78}

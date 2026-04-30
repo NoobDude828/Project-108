@@ -3588,6 +3588,17 @@ body.scrolled .scroll-hint {
   .river-marker {
     r: 5;
   }
+
+  /* ── Scene 12 mobile — volunteers SVG ── */
+  .vol-svg {
+    transform: translateY(8vh);
+  }
+  .vol-site {
+    r: 4;
+  }
+  .vol-flow {
+    r: 12;
+  }
 }
 
 @media (max-width: 600px) {
