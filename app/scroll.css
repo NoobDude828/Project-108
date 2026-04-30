@@ -3511,6 +3511,7 @@ body.scrolled .scroll-hint {
   }
   .assy-item .desc {
     font-size: 0.68rem;
+    padding-bottom: 0.6rem;
   }
 }
 
