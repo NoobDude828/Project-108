@@ -3526,6 +3526,14 @@ body.scrolled .scroll-hint {
     width: min(90vw, 520px);
     height: min(55vh, 340px);
   }
+  /* ── Scene 07 mobile — shift chorten row left ── */
+  .spacing-row {
+    left: 22%;
+    gap: 55vw;
+  }
+  .spacing-row .pair {
+    gap: 55vw;
+  }
 }
 
 @media (max-width: 600px) {
