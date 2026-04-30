@@ -3450,7 +3450,7 @@ body.scrolled .scroll-hint {
     align-self: end;
     justify-self: start;
     padding-bottom: 1.5rem;
-    transform: translateY(6rem);
+    transform: translateY(3rem);
   }
   .truth.t1::before {
     margin-left: 0;
@@ -3461,7 +3461,7 @@ body.scrolled .scroll-hint {
     text-align: right;
     align-self: end;
     padding-bottom: 1.5rem;
-    transform: translateY(7.2rem);
+    transform: translateY(4.2rem);
   }
   .truth.t2::before {
     margin-left: auto;
@@ -3473,7 +3473,7 @@ body.scrolled .scroll-hint {
     text-align: left;
     align-self: start;
     margin-top: -3rem;
-    transform: translateY(-6rem);
+    transform: translateY(-1rem);
   }
   .truth.t3::before {
     margin-left: 0;
@@ -3484,7 +3484,7 @@ body.scrolled .scroll-hint {
     text-align: right;
     align-self: start;
     margin-top: -3rem;
-    transform: translateY(-6rem);
+    transform: translateY(-1rem);
   }
   .truth.t4::before {
     margin-left: auto;
