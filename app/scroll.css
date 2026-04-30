@@ -3536,7 +3536,7 @@ body.scrolled .scroll-hint {
   }
   .spacing-measure {
     width: min(55vw, 138px);
-    left: 48%;
+    left: 51%;
   }
 }
 
