@@ -3007,6 +3007,10 @@ body.scrolled .scroll-hint {
   .scene-multiply {
     height: 280vh;
   }
+  .multiply-stage {
+    top: 12vh;
+    bottom: 12vh;
+  }
   .chorten-grid {
     grid-template-columns: repeat(9, 1fr);
     gap: 0.4rem;
@@ -3516,6 +3520,11 @@ body.scrolled .scroll-hint {
   .assy-item .desc {
     font-size: 0.68rem;
     padding-bottom: 0.6rem;
+  }
+  /* ── Scene 05 mobile — enlarge om.png vis ── */
+  [data-chap="C"] .vis {
+    width: min(90vw, 520px);
+    height: min(55vh, 340px);
   }
 }
 
