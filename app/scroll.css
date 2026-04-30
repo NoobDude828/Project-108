@@ -2713,6 +2713,7 @@ body.scrolled .scroll-hint {
 
 /* ─────────────────────── Footer ─────────────────────── */
 .colophon {
+  position: relative;
   background: #0a0307;
   color: rgba(242, 233, 216, 0.5);
   padding: 3rem 1.5rem 2rem;
@@ -2806,6 +2807,53 @@ body.scrolled .scroll-hint {
   max-width: 72rem;
   margin: 0 auto;
   opacity: 0.55;
+}
+.colo-top {
+  position: absolute;
+  bottom: 10rem;
+  right: 8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(200, 166, 99, 0.4);
+  background: rgba(200, 166, 99, 0.08);
+  color: var(--gold-bright);
+  border-radius: 2rem;
+  padding: 0.5rem 1rem 0.5rem 0.8rem;
+  font-family: var(--font-utility);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.colo-top__arrow {
+  font-size: 1rem;
+  line-height: 1;
+}
+.colo-top__lbl {
+  letter-spacing: 0.2em;
+}
+.colo-top:hover {
+  background: rgba(200, 166, 99, 0.18);
+  border-color: var(--gold-bright);
+}
+@media (max-width: 768px) {
+  .colo-top {
+    bottom: 11.5rem;
+    right: 1.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.6rem 0.7rem;
+    border-radius: 0.6rem;
+    font-size: 0.5rem;
+  }
+  .colo-top__arrow {
+    font-size: 1.1rem;
+  }
 }
 @media (max-width: 880px) {
   .colo-grid {
@@ -3578,6 +3626,56 @@ body.scrolled .scroll-hint {
     width: min(55vw, 138px);
     left: 49.9%;
   }
+
+  /* ── Scene 10 mobile ── */
+  .time-foot {
+    font-size: clamp(0.75rem, 3.5vw, 0.95rem);
+    margin-top: 2rem;
+  }
+
+  /* ── Scene 11 mobile — manpower ── */
+  .scene-manpower .stage__inner {
+    padding: 3rem 1rem 2rem;
+    justify-content: flex-start;
+    overflow-y: auto;
+  }
+  .manpower-head {
+    margin-bottom: 1rem;
+    margin-top: 1.2rem;
+  }
+  .manpower-head h2 {
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
+  }
+  .manpower-head .kicker {
+    font-size: 0.62rem;
+  }
+  .manpower-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.8rem;
+    padding: 0.7rem 0;
+  }
+  .manpower-row .lbl {
+    grid-column: 1 / -1;
+    font-size: 0.95rem;
+  }
+  .manpower-row .bar {
+    grid-column: 1 / -1;
+    height: 10px;
+  }
+  .manpower-row .num,
+  .manpower-row .dur {
+    font-size: 0.6rem;
+    text-align: left;
+  }
+  .manpower-row .num strong,
+  .manpower-row .dur strong {
+    font-size: 0.85rem;
+  }
+  .manpower-foot {
+    font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+    margin-top: 4.5rem;
+  }
+
   /* ── Scene 08 mobile — thicker river path ── */
   .river-svg {
     transform: none;
@@ -3598,6 +3696,48 @@ body.scrolled .scroll-hint {
   }
   .vol-flow {
     r: 12;
+  }
+
+  /* ── Scene 15 mobile — invitation ── */
+  .scene-invitation .stage__inner {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding: 3rem 1rem 2rem;
+  }
+  .inv-block {
+    text-align: left;
+  }
+  .inv-block .small-num {
+    font-size: clamp(0.6rem, 3vw, 0.85rem);
+  }
+  .inv-block h2 {
+    font-size: clamp(1.2rem, 5.5vw, 1.6rem);
+  }
+  .inv-lede {
+    font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+  }
+  .inv-cards {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    margin: 0.8rem 0 0.8rem;
+  }
+  .inv-card .lbl {
+    font-size: 0.55rem;
+  }
+  .inv-card .ttl {
+    font-size: clamp(1rem, 4.5vw, 1.3rem);
+  }
+  .inv-card .amt strong {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+  }
+  .inv-card .body {
+    font-size: clamp(0.7rem, 3vw, 0.85rem);
+  }
+  .inv-meta-grid {
+    font-size: clamp(0.65rem, 2.8vw, 0.8rem);
+  }
+  .inv-meta {
+    font-size: clamp(0.6rem, 2.5vw, 0.75rem);
   }
 }
 

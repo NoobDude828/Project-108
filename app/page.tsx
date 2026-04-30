@@ -1262,6 +1262,15 @@ export default function ScrollPage() {
           <p className="row">A cinematic scrollytelling experience</p>
           <p className="row">Project 108 · Gelephu Mindfulness City · Bhutan</p>
         </div>
+        <button
+          type="button"
+          className="colo-top"
+          aria-label="Back to top"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <span className="colo-top__arrow">↑</span>
+          <span className="colo-top__lbl">Go to top</span>
+        </button>
       </footer>
 
       {/* Sign-up form modal */}
