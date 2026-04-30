@@ -3026,12 +3026,52 @@ body.scrolled .scroll-hint {
     left: 50%;
     transform: translateX(-50%);
   }
+  .stack-ref .ref-icon {
+    width: 150px;
+    height: 240px;
+  }
+  .stack-ref[data-unit="108"] .ref-icon {
+    width: 140px;
+    height: 190px;
+  }
+  .stack-ref .info {
+    font-size: 0.55rem;
+  }
+  .stack-ref .info strong {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+  }
+  .stack-ref[data-unit="22"] .ref-icon img {
+    margin-left: 50 !important;
+  }
+  .stack-ref[data-unit="55"] .ref-icon {
+    width: 200px;
+    height: 290px;
+  }
   .stack-counter {
-    top: 5rem;
+    top: 12rem;
     right: 1rem;
   }
   .stack-final {
-    right: 1rem;
+    top: auto;
+    bottom: 8vh;
+    right: 50%;
+    transform: translateX(50%);
+    text-align: center;
+  }
+  .stack-final .num {
+    font-size: clamp(2.2rem, 9vw, 3rem);
+  }
+  .stack-final .lbl {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    margin-top: 0.4rem;
+  }
+  .stack-final .desc {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    margin-top: 0.8rem;
+    max-width: 25ch;
   }
   .truth.t1,
   .truth.t3 {
