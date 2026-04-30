@@ -10,9 +10,9 @@ export default function ScrollPage() {
       {/* Top status bar */}
       <header className="status" role="banner">
         <span className="brand">Project 108 · Bhutan · 1 November 2026</span>
-        <Link className="skip" href="/brochure">
-          View as brochure →
-        </Link>
+        <button type="button" className="skip" data-open-form="patron">
+          Take Part →
+        </button>
       </header>
 
       {/* Persistent scene caption */}
@@ -1302,14 +1302,15 @@ export default function ScrollPage() {
       >
         <div className="form-modal__backdrop" data-close-form="true"></div>
         <div className="form-modal__sheet">
-          <button
-            type="button"
+          <span
             className="form-modal__close"
+            role="button"
             aria-label="Close"
+            tabIndex={0}
             data-close-form="true"
           >
             ×
-          </button>
+          </span>
           <p className="form-modal__lbl">Project 108 · Bhutan</p>
           <h3 className="form-modal__ttl" id="form-title">
             Take <em>part</em>.
