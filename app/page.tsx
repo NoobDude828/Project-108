@@ -103,170 +103,44 @@ export default function ScrollPage() {
         <div className="stage">
           <div className="stage__inner">
             <div className="assembly-stage">
-              <svg
-                className="assembly-svg"
-                viewBox="0 0 220 540"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="goldFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stopColor="#E2C788" />
-                    <stop offset="1" stopColor="#C8A663" />
-                  </linearGradient>
-                </defs>
-                <g className="assy-part" data-part="1">
-                  <rect
-                    x="38"
-                    y="430"
-                    width="144"
-                    height="46"
-                    fill="rgba(200,166,99,.18)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                  <line
-                    x1="20"
-                    y1="478"
-                    x2="200"
-                    y2="478"
-                    stroke="#C8A663"
-                    strokeWidth="1"
-                    opacity=".55"
-                  />
-                </g>
-                <g className="assy-part" data-part="2">
-                  <rect
-                    x="48"
-                    y="396"
-                    width="124"
-                    height="32"
-                    fill="rgba(200,166,99,.20)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x="56"
-                    y="368"
-                    width="108"
-                    height="26"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x="64"
-                    y="344"
-                    width="92"
-                    height="22"
-                    fill="rgba(200,166,99,.24)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x="72"
-                    y="324"
-                    width="76"
-                    height="18"
-                    fill="rgba(200,166,99,.26)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                </g>
-                <g className="assy-part" data-part="3">
-                  <path
-                    d="M68 322 q42 -42 84 0 v-62 q-42 -32 -84 0 z"
-                    fill="rgba(200,166,99,.18)"
-                    stroke="#C8A663"
-                    strokeWidth="1.4"
-                  />
-                </g>
-                <g className="assy-part" data-part="4">
-                  <rect
-                    x="82"
-                    y="244"
-                    width="56"
-                    height="22"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                  <rect
-                    x="94"
-                    y="248"
-                    width="32"
-                    height="14"
-                    fill="rgba(74,26,46,.7)"
-                    stroke="#C8A663"
-                    strokeWidth=".9"
-                  />
-                </g>
-                <g className="assy-part" data-part="5">
-                  <path
-                    d="M86 234 h48 l-2 -7 h-44 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M88 220 h44 l-2 -7 h-40 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M90 206 h40 l-1.5 -7 h-37 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M92 192 h36 l-1.5 -7 h-33 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M94 178 h32 l-1.5 -7 h-29 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M96 164 h28 l-1.5 -7 h-25 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                  <path
-                    d="M98 150 h24 l-1.5 -7 h-21 z"
-                    fill="rgba(200,166,99,.22)"
-                    stroke="#C8A663"
-                    strokeWidth="1.1"
-                  />
-                </g>
-                <g className="assy-part" data-part="6">
-                  <path
-                    d="M78 142 h64 l-4 -8 h-56 z"
-                    fill="url(#goldFill)"
-                    stroke="#C8A663"
-                    strokeWidth="1.2"
-                  />
-                </g>
-                <g className="assy-part" data-part="7">
-                  <path
-                    d="M93 122 a14 14 0 0 1 14 0"
-                    fill="none"
-                    stroke="#C8A663"
-                    strokeWidth="1.6"
-                  />
-                  <circle cx="100" cy="108" r="5" fill="#E2C788" />
-                  <path
-                    d="M100 92 q9 -10 9 -22 q0 12 -9 24 q-9 -12 -9 -24 q0 12 9 22 z"
-                    fill="#E2C788"
-                  />
-                </g>
-              </svg>
+              <div className="assembly-img-stack" aria-hidden="true">
+                <img
+                  className="assy-part"
+                  data-part="1"
+                  src="/assets/1.png"
+                  alt=""
+                />
+                <img
+                  className="assy-part"
+                  data-part="2"
+                  src="/assets/2.png"
+                  alt=""
+                />
+                <img
+                  className="assy-part"
+                  data-part="3"
+                  src="/assets/3.png"
+                  alt=""
+                />
+                <img
+                  className="assy-part"
+                  data-part="4"
+                  src="/assets/4.png"
+                  alt=""
+                />
+                <img
+                  className="assy-part"
+                  data-part="5"
+                  src="/assets/5.png"
+                  alt=""
+                />
+                <img
+                  className="assy-part"
+                  data-part="6"
+                  src="/assets/6.png"
+                  alt=""
+                />
+              </div>
             </div>
             <div className="assembly-labels">
               <p className="kicker">The architectural elevation</p>
