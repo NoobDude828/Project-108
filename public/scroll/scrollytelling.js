@@ -450,8 +450,12 @@
       if (light) light.style.setProperty("--p", clamp(p));
       // Light each chorten as the wave passes
       const chortens = document.querySelectorAll(".compl-chorten");
-      const litCount = Math.floor(clamp(p * 1.05) * chortens.length);
-      chortens.forEach((c, i) => c.classList.toggle("lit", i < litCount));
+      const perRow = 36;
+      const litCols = Math.floor(clamp(p * 1.05) * perRow);
+      chortens.forEach((c) => {
+        const col = parseInt(c.dataset.index) % perRow;
+        c.classList.toggle("lit", col < litCols);
+      });
       if (copy) copy.style.setProperty("--p", clamp((p - 0.15) / 0.2));
     },
   });
@@ -644,11 +648,17 @@
   function buildCompletionTrack() {
     const track = document.querySelector(".scene-completion .compl-track");
     if (!track) return;
-    const html = [];
-    for (let i = 0; i < 108; i++) {
-      html.push(`<div class="compl-chorten">${window.__chortenMiniSVG}</div>`);
+    const rows = 3;
+    const perRow = 36; // 3 × 36 = 108
+    let html = "";
+    for (let r = 0; r < rows; r++) {
+      html += `<div class="compl-row">`;
+      for (let i = 0; i < perRow; i++) {
+        html += `<div class="compl-chorten" data-index="${r * perRow + i}">${window.__chortenMiniSVG}</div>`;
+      }
+      html += `</div>`;
     }
-    track.innerHTML = html.join("");
+    track.innerHTML = html;
   }
 
   /* ---------------- Why-108 dots ---------------- */

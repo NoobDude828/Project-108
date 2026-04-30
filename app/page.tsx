@@ -368,6 +368,7 @@ export default function ScrollPage() {
               </div>
               <div className="scale-art" aria-hidden="true">
                 <div className="scale-ground"></div>
+                <div className="scale-yaxis" aria-hidden="true"></div>
                 <div className="scale-fig fig-person" data-fig="1">
                   <svg viewBox="0 0 60 175" preserveAspectRatio="xMidYMax meet">
                     <g fill="rgba(74,26,46,0.85)">
@@ -1353,7 +1354,7 @@ export default function ScrollPage() {
               <div className="compl-light" aria-hidden="true"></div>
               <div className="compl-river" aria-hidden="true"></div>
               <div className="compl-track" aria-hidden="true"></div>
-              <div className="compl-ground" aria-hidden="true"></div>
+              {/* <div className="compl-ground" aria-hidden="true"></div> */}
               <div className="compl-copy">
                 <h2>
                   108 chortens. <em>One day</em>.<br />
