@@ -3534,6 +3534,10 @@ body.scrolled .scroll-hint {
   .spacing-row .pair {
     gap: 55vw;
   }
+  .spacing-measure {
+    width: min(55vw, 132px);
+    left: 50.9%;
+  }
 }
 
 @media (max-width: 600px) {
