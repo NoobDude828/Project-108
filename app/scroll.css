@@ -1288,27 +1288,36 @@ body.scrolled .scroll-hint {
     #3a1424 0%,
     var(--maroon-deeper) 80%
   );
-  flex-direction: column;
   overflow: hidden;
 }
 .multiply-stage {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 8vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+@media (min-width: 1600px) {
+  .multiply-stage {
+    top: 0;
+    bottom: 9vh;
+  }
 }
 .chorten-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: clamp(0.4rem, 0.9vw, 1rem);
-  width: min(94%, 1100px);
-  margin-bottom: 14vh;
+  grid-template-columns: repeat(18, 1fr);
+  gap: 0;
+  width: 100%;
+  padding: 0;
 }
 .cg-cell {
-  aspect-ratio: 1/2;
+  aspect-ratio: 1/1;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   opacity: 0;
   transform: translateY(20px) scale(0.6);
@@ -1329,14 +1338,17 @@ body.scrolled .scroll-hint {
   display: block;
 }
 .scene-multiply .cg-cell img {
-  width: 40% !important;
+  width: 55% !important;
   height: auto !important;
   object-fit: contain !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
 }
 
 .multiply-copy {
   position: absolute;
-  bottom: 8%;
+  bottom: 4vh;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;

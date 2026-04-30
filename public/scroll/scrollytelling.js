@@ -464,8 +464,8 @@
   function buildMultiplyGrid() {
     const grid = document.querySelector(".scene-multiply .chorten-grid");
     if (!grid) return;
-    const cols = 12,
-      rows = 9; // 108 cells
+    const cols = 18,
+      rows = 6; // 108 cells
     const cx = (cols - 1) / 2,
       cy = (rows - 1) / 2;
     const cells = [];
@@ -476,6 +476,13 @@
         if (r === Math.floor(cy) && c === Math.floor(cx))
           cell.classList.add("center");
         cell.innerHTML = window.__chortenMiniSVG;
+        // Random positional offset on the img inside the cell (no rotation, stays upright)
+        const img = cell.querySelector("img");
+        if (img) {
+          const rx = (Math.random() - 0.5) * 50; // ±25% horizontal
+          const ry = (Math.random() - 0.5) * 50; // ±25% vertical
+          img.style.transform = `translate(${rx}%, ${ry}%)`;
+        }
         // Distance from centre with slight jitter to break perfect rings
         const dx = c - cx,
           dy = r - cy;
