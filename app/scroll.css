@@ -3492,13 +3492,10 @@ body.scrolled .scroll-hint {
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
   .assembly-img-stack {
-    transform: translateY(-11vh) scale(1.25);
+    transform: translateY(-8vh) scale(1.25);
   }
   .assembly-labels {
-    transform: translateY(-8vh);
-  }
-  .assy-item {
-    margin-bottom: 0.09rem;
+    transform: translateY(-5vh);
   }
   /* ── Scene 04 mobile — shift building left ── */
   .fig-building {
