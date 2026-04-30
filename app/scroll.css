@@ -3492,7 +3492,7 @@ body.scrolled .scroll-hint {
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
   .assembly-img-stack {
-    transform: translateY(-10vh);
+    transform: translateY(-8vh) scale(1.25);
   }
   .assembly-labels {
     transform: translateY(-8vh);
@@ -3504,6 +3504,13 @@ body.scrolled .scroll-hint {
   /* ── Scene 04 mobile — shift building left ── */
   .fig-chorten {
     left: 36%;
+  }
+  /* ── Scene 03 mobile — smaller label text ── */
+  .assy-item .ttl {
+    font-size: 0.75rem;
+  }
+  .assy-item .desc {
+    font-size: 0.68rem;
   }
 }
 
