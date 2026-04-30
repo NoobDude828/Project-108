@@ -2574,7 +2574,7 @@ body.scrolled .scroll-hint {
 
 /* ─────────────────────── Scene 14 — Invitation ─────────────────────── */
 .scene-invitation {
-  height: 160vh;
+  height: 220vh;
 }
 .scene-invitation .stage__inner {
   background:
@@ -2584,8 +2584,10 @@ body.scrolled .scroll-hint {
       transparent 60%
     ),
     var(--maroon-deeper);
-  padding: 0 1.5rem;
+  padding: 2.5rem 1.5rem;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .inv-block {
   width: 100%;
@@ -2595,19 +2597,19 @@ body.scrolled .scroll-hint {
 }
 .inv-block .small-num {
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 6vw, 4.4rem);
+  font-size: clamp(1.6rem, 3.5vw, 2.6rem);
   color: var(--gold-bright);
   line-height: 1;
-  margin: 0 0 1.4rem;
+  margin: 0 0 0.6rem;
   font-feature-settings: "onum";
 }
 .inv-block h2 {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(2rem, 4.2vw, 3.2rem);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
   line-height: 1.15;
   color: var(--cream);
-  margin: 0 0 1.6rem;
+  margin: 0 0 0.8rem;
   text-wrap: balance;
 }
 .inv-block h2 em {
@@ -2617,13 +2619,13 @@ body.scrolled .scroll-hint {
 .inv-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.4rem;
-  margin: 2.8rem 0 2rem;
+  gap: 1rem;
+  margin: 1.2rem 0 1rem;
   text-align: left;
 }
 .inv-card {
   border: 1px solid var(--gold-faint);
-  padding: 2rem;
+  padding: 1.2rem;
   background: rgba(200, 166, 99, 0.04);
 }
 .inv-card .lbl {
@@ -2648,10 +2650,10 @@ body.scrolled .scroll-hint {
 }
 .inv-card .body {
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.5;
   color: rgba(242, 233, 216, 0.78);
-  margin: 0 0 1.4rem;
+  margin: 0 0 0.8rem;
 }
 .inv-card .btn {
   font-family: var(--font-utility);
@@ -2684,7 +2686,7 @@ body.scrolled .scroll-hint {
 }
 
 .inv-meta {
-  margin-top: 2.6rem;
+  margin-top: 1rem;
   font-family: var(--font-utility);
   font-size: 0.62rem;
   letter-spacing: 0.32em;
