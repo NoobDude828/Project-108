@@ -3489,6 +3489,25 @@ body.scrolled .scroll-hint {
   .truth.t4::before {
     margin-left: auto;
   }
+
+  /* ── Scene 03 mobile — shift chorten layers up ── */
+  .assembly-img-stack {
+    transform: translateY(-11vh) scale(1.25);
+  }
+  .assembly-labels {
+    transform: translateY(-8vh);
+  }
+  .assy-item {
+    margin-bottom: 0.09rem;
+  }
+  /* ── Scene 04 mobile — shift building left ── */
+  .fig-building {
+    left: 10%;
+  }
+  /* ── Scene 04 mobile — shift building left ── */
+  .fig-chorten {
+    left: 36%;
+  }
 }
 
 @media (max-width: 600px) {

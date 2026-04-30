@@ -465,41 +465,14 @@ export default function ScrollPage() {
                       viewBox="0 0 520 280"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <g
-                        stroke="#C8A663"
-                        strokeWidth="1"
-                        fill="none"
-                        opacity=".7"
-                      >
-                        <rect
-                          x="220"
-                          y="80"
-                          width="80"
-                          height="120"
-                          transform="rotate(-9 260 140)"
-                        />
-                        <rect
-                          x="220"
-                          y="80"
-                          width="80"
-                          height="120"
-                          transform="rotate(-3 260 140)"
-                        />
-                        <rect
-                          x="220"
-                          y="80"
-                          width="80"
-                          height="120"
-                          transform="rotate(3 260 140)"
-                        />
-                        <rect
-                          x="220"
-                          y="80"
-                          width="80"
-                          height="120"
-                          transform="rotate(9 260 140)"
-                        />
-                      </g>
+                      <image
+                        href="/assets/om.png"
+                        x="140"
+                        y="30"
+                        width="240"
+                        height="220"
+                        preserveAspectRatio="xMidYMid meet"
+                      />
                       <g
                         fill="#E2C788"
                         fontFamily="Cormorant Garamond, serif"
