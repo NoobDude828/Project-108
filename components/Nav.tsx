@@ -28,7 +28,7 @@ export default function Nav() {
             <a href="#take-part">Take Part</a>
           </li>
         </ul>
-        <a className="p108-nav__scroll-link" href="/scroll">
+        <a className="p108-nav__scroll-link" href="/108">
           View as scroll ↗
         </a>
         <button className="p108-nav__cta" onClick={() => openModal("patron")}>

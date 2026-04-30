@@ -314,6 +314,11 @@
         r.classList.toggle("lit", u === activeUnit);
       });
 
+      // Hide the stack column whenever any reference card is visible
+      if (col) {
+        col.style.opacity = activeUnit !== null ? "0" : "";
+      }
+
       // Live counter
       if (counter) {
         counter.style.setProperty("--p", clamp((p - 0.04) / 0.15));

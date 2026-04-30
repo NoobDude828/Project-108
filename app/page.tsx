@@ -1208,7 +1208,7 @@ export default function ScrollPage() {
                     alt=""
                     width="160"
                     height="360"
-                    style={{ objectFit: "contain", marginLeft: "100px" }}
+                    style={{ objectFit: "contain" }}
                   />
                 </span>
                 <span className="info">
