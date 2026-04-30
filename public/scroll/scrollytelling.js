@@ -243,11 +243,30 @@
     update(p) {
       const tr = document.querySelector(".scene-spacing .spacing-track");
       const measure = document.querySelector(".scene-spacing .spacing-measure");
-      if (tr) tr.style.setProperty("--p", clamp(p));
-      // Measurement appears strong early (between 2 chortens), then scales down + fades as we pull back
+
+      // Three phases:
+      // 0.00 → 0.35 : chortens zoom in (approach each other)
+      // 0.35 → 0.65 : HOLD position — 108 m line appears
+      // 0.65 → 1.00 : 108 m line fades, zoom-out resumes
+      let trackP;
+      if (p < 0.35) {
+        // Approach: advance to ~45% of max zoom
+        trackP = clamp(p / 0.35) * 0.45;
+      } else if (p < 0.65) {
+        // Pause: freeze position
+        trackP = 0.45;
+      } else {
+        // Resume: continue from 45% to 100%
+        trackP = 0.45 + clamp((p - 0.65) / 0.35) * 0.55;
+      }
+      if (tr) tr.style.setProperty("--p", trackP);
+
+      // 108 m measure line: fades in at pause start, holds, fades out as zoom resumes
       if (measure) {
-        const a = clamp((p - 0.05) / 0.12) * (1 - clamp((p - 0.2) / 0.12));
-        measure.style.setProperty("--p", a);
+        const fadeIn = clamp((p - 0.32) / 0.08); // 0.32 → 0.40
+        const fadeOut = 1 - clamp((p - 0.6) / 0.08); // 0.60 → 0.68
+        const measureP = Math.min(fadeIn, fadeOut);
+        measure.style.setProperty("--p", measureP);
         measure.style.setProperty("--zoom", 0);
       }
     },

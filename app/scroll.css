@@ -1406,7 +1406,7 @@ body.scrolled .scroll-hint {
 .spacing-row {
   position: absolute;
   bottom: 2%;
-  left: 28%;
+  left: 33%;
   transform: translateX(-50%) scale(calc(1 - var(--p) * 0.8));
   transform-origin: bottom center;
   display: flex;
@@ -1432,10 +1432,10 @@ body.scrolled .scroll-hint {
 .spacing-measure {
   position: absolute;
   bottom: 4%;
-  left: 51%;
+  left: 49.8%;
   transform: translateX(-50%) scale(calc(1 - var(--zoom, 0) * 0.55));
   transform-origin: center;
-  width: min(60vw, 500px);
+  width: min(30vw, 362px);
   text-align: center;
   --p: 0;
   --zoom: 0;
@@ -1444,6 +1444,15 @@ body.scrolled .scroll-hint {
     opacity 0.3s ease,
     transform 0.15s linear;
   pointer-events: none;
+}
+@media (min-width: 1600px) {
+  .spacing-row {
+    left: 30%;
+  }
+  .spacing-measure {
+    left: 50.35%;
+    width: min(30vw, 460px);
+  }
 }
 .spacing-measure .line {
   display: flex;
