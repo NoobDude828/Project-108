@@ -1292,10 +1292,10 @@ body.scrolled .scroll-hint {
 }
 .multiply-stage {
   position: absolute;
-  top: 0;
+  top: 12vh;
   left: 0;
   right: 0;
-  bottom: 8vh;
+  bottom: 12vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1303,34 +1303,31 @@ body.scrolled .scroll-hint {
 }
 @media (min-width: 1600px) {
   .multiply-stage {
-    top: 0;
-    bottom: 9vh;
+    top: 6vh;
+    bottom: 10vh;
   }
 }
 .chorten-grid {
   display: grid;
   grid-template-columns: repeat(18, 1fr);
-  gap: 0;
+  gap: clamp(0.3rem, 0.5vw, 0.6rem);
   width: 100%;
-  padding: 0;
+  padding: 0 1.5vw;
 }
 .cg-cell {
-  aspect-ratio: 1/1;
+  aspect-ratio: 1/2;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   opacity: 0;
-  transform: translateY(20px) scale(0.6);
-  transition:
-    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .cg-cell.lit {
   opacity: 1;
-  transform: translateY(0) scale(1);
 }
 .cg-cell.lit.center {
-  transform: translateY(0) scale(1.1);
+  opacity: 1;
 }
 .cg-cell svg {
   width: 60%;
@@ -1342,7 +1339,6 @@ body.scrolled .scroll-hint {
   height: auto !important;
   object-fit: contain !important;
   display: block !important;
-  padding: 0 !important;
   margin: 0 auto !important;
 }
 
