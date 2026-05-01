@@ -3638,21 +3638,13 @@ body.scrolled .scroll-hint {
   }
 
   /* ── Scene 11 mobile — manpower ── */
-  .scene-manpower {
-    height: auto;
-  }
   .scene-manpower .stage {
-    position: relative;
-    height: auto;
     overflow: visible;
   }
   .scene-manpower .stage__inner {
-    position: relative;
-    inset: auto;
-    height: auto;
     overflow: visible;
+    padding: 3rem 1rem 2rem;
     justify-content: flex-start;
-    padding: 3rem 1rem 3rem;
   }
   .manpower-head {
     margin-bottom: 1rem;
