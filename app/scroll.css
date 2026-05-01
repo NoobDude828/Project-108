@@ -3640,10 +3640,15 @@ body.scrolled .scroll-hint {
   /* ── Scene 11 mobile — manpower ── */
   .scene-manpower .stage {
     overflow: visible;
+    height: auto;
+    min-height: 100vh;
   }
   .scene-manpower .stage__inner {
+    position: relative;
+    inset: auto;
+    height: auto;
     overflow: visible;
-    padding: 3rem 1rem 2rem;
+    padding: 3rem 1rem 3rem;
     justify-content: flex-start;
   }
   .manpower-head {
