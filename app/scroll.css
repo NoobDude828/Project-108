@@ -3634,10 +3634,21 @@ body.scrolled .scroll-hint {
   }
 
   /* ── Scene 11 mobile — manpower ── */
+  .scene-manpower {
+    height: auto;
+  }
+  .scene-manpower .stage {
+    position: relative;
+    height: auto;
+    overflow: visible;
+  }
   .scene-manpower .stage__inner {
-    padding: 3rem 1rem 2rem;
+    position: relative;
+    inset: auto;
+    height: auto;
+    overflow: visible;
     justify-content: flex-start;
-    overflow-y: auto;
+    padding: 3rem 1rem 3rem;
   }
   .manpower-head {
     margin-bottom: 1rem;
@@ -3673,7 +3684,7 @@ body.scrolled .scroll-hint {
   }
   .manpower-foot {
     font-size: clamp(0.75rem, 3.5vw, 0.9rem);
-    margin-top: 4.5rem;
+    margin-top: 1.5rem;
   }
 
   /* ── Scene 08 mobile — thicker river path ── */
