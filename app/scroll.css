@@ -3096,13 +3096,16 @@ body.scrolled .scroll-hint {
     width: 200px;
     height: 290px;
   }
+  .stack-ref[data-unit="55"] {
+    transform: translate(-50%, calc(-50% - 3rem));
+  }
   .stack-counter {
     top: 12rem;
     right: 1rem;
   }
   .stack-final {
     top: auto;
-    bottom: 8vh;
+    bottom: 5vh;
     right: 50%;
     transform: translateX(50%);
     text-align: center;
@@ -3119,7 +3122,7 @@ body.scrolled .scroll-hint {
     font-size: 0.75rem;
     line-height: 1.6;
     margin-top: 0.8rem;
-    max-width: 25ch;
+    max-width: 40ch;
   }
   .truth.t1,
   .truth.t3 {
