@@ -3097,7 +3097,8 @@ body.scrolled .scroll-hint {
     height: 290px;
   }
   .stack-ref[data-unit="55"] {
-    transform: translate(-50%, calc(-50% - 3rem));
+    top: 44%;
+    transform: translateX(-50%);
   }
   .stack-counter {
     top: 12rem;
