@@ -46,6 +46,14 @@
 
   /* ---------------- Scene-specific setup ---------------- */
 
+  // Scene 01 — Title
+  registerScene({
+    selector: ".scene-title",
+    label: "Project 108",
+    num: "01 / 15",
+    act: "I — The Sacred Object",
+  });
+
   // Scene 02 — What is a chorten?
   registerScene({
     selector: ".scene-what",
