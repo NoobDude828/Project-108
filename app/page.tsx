@@ -473,6 +473,14 @@ export default function ScrollPage() {
                         height="220"
                         preserveAspectRatio="xMidYMid meet"
                       />
+                      <image
+                        href="/assets/polygon.png"
+                        x="85"
+                        y="13"
+                        width="360"
+                        height="264"
+                        preserveAspectRatio="xMidYMid meet"
+                      />
                       <g
                         fill="#E2C788"
                         fontFamily="Cormorant Garamond, serif"
