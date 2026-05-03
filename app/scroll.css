@@ -2833,6 +2833,64 @@ body.scrolled .scroll-hint {
   margin: 0 auto;
   opacity: 0.55;
 }
+/* ── Floating back-to-top button ── */
+@keyframes float-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.float-top-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 1.5rem;
+  z-index: 9999;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 166, 99, 0.55);
+  background: rgba(10, 3, 7, 0.72);
+  color: var(--gold-bright);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.35s ease,
+    background 0.2s;
+  animation: float-bounce 2.4s ease-in-out infinite;
+}
+
+.float-top-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.float-top-btn:hover {
+  background: rgba(200, 166, 99, 0.18);
+  border-color: var(--gold-bright);
+}
+
+@media (max-width: 768px) {
+  .float-top-btn {
+    bottom: 1.5rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.1rem;
+  }
+}
+
 .colo-top {
   position: absolute;
   bottom: 10rem;

@@ -713,6 +713,12 @@
     if (scrollY > 50) document.body.classList.add("scrolled");
     else document.body.classList.remove("scrolled");
 
+    // Show floating back-to-top button after scrolling past the first viewport
+    const floatBtn = document.getElementById("float-top-btn");
+    if (floatBtn) {
+      floatBtn.classList.toggle("visible", scrollY > window.innerHeight * 0.8);
+    }
+
     // For each scene, compute progress through its scrollable region.
     // Pinned region: scene's bounding-rect top is between 0 and -(scene.height - vh).
     let activeIdx = 0;
