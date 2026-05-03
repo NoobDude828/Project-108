@@ -1031,13 +1031,13 @@ export default function ScrollPage() {
                   <strong>1 day</strong>voluntary
                 </span>
               </div>
-              <p className="manpower-foot">
+              {/* <p className="manpower-foot">
                 Every person on this list was there for a wage, a duty, or an
                 order.
                 <br />
                 On 1 November 2026, every person is there for a{" "}
                 <em>greater calling</em>.
-              </p>
+              </p> */}
             </div>
           </div>
         </div>

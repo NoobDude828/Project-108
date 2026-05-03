@@ -293,8 +293,14 @@
       if (path) path.style.setProperty("--p", clamp((p - 0.15) / 0.55));
       // Markers light along path
       const markers = document.querySelectorAll(".scene-river .river-marker");
+      const isMobile = window.innerWidth <= 768;
       const litCount = Math.floor(clamp((p - 0.35) / 0.55) * markers.length);
-      markers.forEach((m, i) => m.classList.toggle("lit", i < litCount));
+      markers.forEach((m, i) =>
+        m.classList.toggle(
+          "lit",
+          isMobile ? i < litCount : i >= markers.length - litCount,
+        ),
+      );
     },
   });
 
@@ -550,15 +556,23 @@
     const w = 1200,
       h = 700;
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    const isMobile = window.innerWidth <= 768;
     svg.setAttribute(
       "preserveAspectRatio",
-      window.innerWidth <= 768 ? "xMidYMid meet" : "xMidYMid slice",
+      isMobile ? "xMidYMid meet" : "xMidYMid slice",
     );
-    // A graceful continuous curve with no sharp bends — uniform smooth control points
-    const d = `M 30 ${h * 0.78}
-               C 180 ${h * 0.74}, 280 ${h * 0.5}, 420 ${h * 0.52}
-               C 560 ${h * 0.54}, 660 ${h * 0.66}, 800 ${h * 0.52}
-               C 940 ${h * 0.4}, 1040 ${h * 0.36}, ${w - 30} ${h * 0.34}`;
+    // Mobile path is rebuilt from scratch to match rectification3's trajectory;
+    // desktop keeps the existing upper-left bend composition.
+    const d = isMobile
+      ? `M -40 ${h * 0.56}
+        C 95 ${h * 0.6}, 250 ${h * 0.67}, 400 ${h * 0.78}
+        C 520 ${h * 0.88}, 600 ${h * 0.98}, 660 ${h * 1.08}
+        C 730 ${h * 1.19}, 805 ${h * 1.31}, 900 ${h * 1.37}
+        C 980 ${h * 1.42}, 1080 ${h * 1.47}, ${w + 110} ${h * 1.49}`
+      : `M ${w - 560} ${h * 0.76}
+        C ${w - 600} ${h * 0.74}, ${w - 660} ${h * 0.64}, ${w - 800} ${h * 0.52}
+        C ${w - 900} ${h * 0.43}, ${w - 965} ${h * 0.4}, ${w - 1015} ${h * 0.36}
+        C ${w - 1060} ${h * 0.32}, ${w - 1085} ${h * 0.28}, ${w - 1035} ${h * 0.27}`;
     const ns = "http://www.w3.org/2000/svg";
     const path = document.createElementNS(ns, "path");
     path.setAttribute("d", d);
@@ -568,19 +582,23 @@
     path.setAttribute("stroke-dasharray", len);
     path.style.setProperty("--len", len);
     const styleNode = document.createElement("style");
-    styleNode.textContent = `.scene-river .river-path{stroke-dasharray:${len};stroke-dashoffset:calc(${len} * (1 - var(--p,0)))}`;
+    styleNode.textContent = `.scene-river .river-path{stroke-dasharray:${len};stroke-dashoffset:calc(${isMobile ? "" : "-"}${len} * (1 - var(--p,0)))}`;
     document.head.appendChild(styleNode);
 
-    // Place exactly 108 markers along the path
-    for (let i = 0; i < 108; i++) {
-      const t = i / 107;
+    // Place fewer chorten markers along the river path.
+    const riverMarkerCount = isMobile ? 20 : 35;
+    const markerSize = isMobile ? 58 : 18;
+    for (let i = 0; i < riverMarkerCount; i++) {
+      const t = i / (riverMarkerCount - 1);
       const pt = path.getPointAtLength(t * len);
-      const c = document.createElementNS(ns, "circle");
-      c.setAttribute("cx", pt.x.toFixed(1));
-      c.setAttribute("cy", pt.y.toFixed(1));
-      c.setAttribute("r", "3");
-      c.setAttribute("class", "river-marker");
-      svg.appendChild(c);
+      const m = document.createElementNS(ns, "image");
+      m.setAttribute("href", "/assets/chorten.png");
+      m.setAttribute("x", (pt.x - markerSize / 2).toFixed(1));
+      m.setAttribute("y", (pt.y - markerSize / 2).toFixed(1));
+      m.setAttribute("width", String(markerSize));
+      m.setAttribute("height", String(markerSize));
+      m.setAttribute("class", "river-marker");
+      svg.appendChild(m);
     }
   }
 
