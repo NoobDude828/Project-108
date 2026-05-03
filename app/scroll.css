@@ -909,8 +909,8 @@ body.scrolled .scroll-hint {
 }
 .scale-scrolly .scale-art {
   position: relative;
-  background: #fff;
-  border: 1px solid rgba(74, 26, 46, 0.1);
+  background: transparent;
+  border: none;
   border-radius: 6px;
   height: 57vh;
   min-height: 370px;
@@ -923,7 +923,7 @@ body.scrolled .scroll-hint {
   right: 2.8rem;
   bottom: 2.4rem;
   height: 1px;
-  background: rgba(74, 26, 46, 0.5);
+  background: rgba(200, 166, 99, 0.4);
   transform: scaleX(0);
   transform-origin: right center;
   transition: transform 2.4s cubic-bezier(0.22, 1, 0.36, 1);
@@ -934,7 +934,7 @@ body.scrolled .scroll-hint {
   bottom: 2.4rem;
   top: 2.4rem;
   width: 1px;
-  background: rgba(74, 26, 46, 0.5);
+  background: rgba(200, 166, 99, 0.4);
   transform: scaleY(0);
   transform-origin: bottom center;
   transition: transform 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;

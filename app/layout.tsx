@@ -24,6 +24,23 @@ export default function RootLayout({
         <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+        {/* Purge all browser caches on every page load 
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('caches' in window) {
+                caches.keys().then(function(names) {
+                  names.forEach(function(name) { caches.delete(name); });
+                });
+              }
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  regs.forEach(function(reg) { reg.unregister(); });
+                });
+              }
+            `,
+          }}
+        /> */}
       </head>
       <body>{children}</body>
     </html>
