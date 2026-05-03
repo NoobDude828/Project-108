@@ -2500,6 +2500,12 @@ body.scrolled .scroll-hint {
   width: 100%;
   --p: 0;
 }
+
+@media (min-width: 769px) {
+  .compl-track {
+    bottom: 24%;
+  }
+}
 .compl-row {
   display: flex;
   align-items: flex-end;
@@ -2508,7 +2514,7 @@ body.scrolled .scroll-hint {
 }
 .compl-chorten {
   flex: 0 0 auto;
-  width: clamp(14px, 2vw, 28px);
+  width: clamp(18px, 2.6vw, 36px);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -3708,6 +3714,23 @@ body.scrolled .scroll-hint {
   }
   .vol-flow {
     r: 12;
+  }
+
+  /* ── Scene 13 mobile — larger completion chortens ── */
+  .compl-mountains {
+    transform: translateY(6vh);
+  }
+  .compl-copy {
+    top: 21%;
+  }
+  .compl-track {
+    bottom: 26%;
+  }
+  .compl-chorten {
+    width: clamp(27px, 7vw, 49px);
+  }
+  .compl-row {
+    gap: clamp(1rem, 3.4vw, 2rem);
   }
 
   /* ── Scene 15 mobile — invitation ── */
