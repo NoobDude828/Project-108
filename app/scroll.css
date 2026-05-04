@@ -2695,6 +2695,8 @@ body.scrolled .status .brand {
   border: 1px solid var(--gold-faint);
   padding: 1.2rem;
   background: rgba(200, 166, 99, 0.04);
+  display: flex;
+  flex-direction: column;
 }
 .inv-card .lbl {
   font-family: var(--font-utility);
@@ -2734,6 +2736,8 @@ body.scrolled .status .brand {
   border-radius: 999px;
   background: var(--gold);
   color: var(--maroon-deep);
+  margin-top: auto;
+  align-self: flex-start;
   transition:
     background 0.25s,
     transform 0.25s;
@@ -2741,16 +2745,6 @@ body.scrolled .status .brand {
 .inv-card .btn:hover {
   background: var(--gold-warm);
   transform: translateY(-1px);
-}
-.inv-card.ghost .btn {
-  background: transparent;
-  color: var(--cream);
-  border: 1px solid var(--gold-faint);
-}
-.inv-card.ghost .btn:hover {
-  border-color: var(--gold-bright);
-  color: var(--gold-bright);
-  background: transparent;
 }
 
 .inv-meta {
