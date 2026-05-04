@@ -670,6 +670,7 @@ body.scrolled .status .brand {
   height: 100%;
   max-height: 100%;
   width: auto;
+  transform: translateY(-5.5vh);
   aspect-ratio: 220 / 540;
 }
 .assembly-img-stack img.assy-part {

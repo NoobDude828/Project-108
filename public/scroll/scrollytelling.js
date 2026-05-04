@@ -148,23 +148,18 @@
         ["D", 0.6, 0.75],
         ["E", 0.78, 0.98],
       ];
-      let anchorP = 1;
+      let anchorP = 0;
       let anchorS = 1;
       let activeChap = null;
       ranges.forEach(([id, a, b]) => {
         const inside = p >= a && p <= b;
         if (inside) activeChap = id;
-        // Within a chapter, suppress the anchor (chapter visuals take over).
-        if (inside) anchorP = 0.15;
       });
 
-      // First & last beats: anchor is large + bold
+      // Only show anchor before the first chapter
       if (p < 0.05) {
         anchorP = 1;
         anchorS = 1;
-      } else if (p > 0.98) {
-        anchorP = 1;
-        anchorS = 1.1;
       }
 
       const anchor = document.querySelector(".why-anchor");
