@@ -15,12 +15,6 @@ export default function ScrollPage() {
         </button>
       </header>
 
-      {/* Persistent scene caption */}
-      <div className="caption-bar" aria-live="polite">
-        <span className="num">01 / 15</span>
-        <span className="lbl">Project 108</span>
-      </div>
-
       {/* Bottom progress rail */}
       <div className="rail" aria-hidden="true">
         <div className="rail__fill"></div>
@@ -51,9 +45,6 @@ export default function ScrollPage() {
             </div>
           </div>
         </div>
-        <div className="scroll-hint" aria-hidden="true">
-          Scroll
-        </div>
       </section>
 
       {/* SCENE 02 — WHAT IS A CHORTEN? */}
@@ -73,12 +64,11 @@ export default function ScrollPage() {
               </div>
               <div className="what-truths">
                 <p className="truth t1">
-                  No one <em>lives</em> in it.
+                  A gift that <em>radiates merit</em>
+                  <br />
+                  to all who pass it by.
                 </p>
                 <p className="truth t2">
-                  No one <em>worships</em> inside it.
-                </p>
-                <p className="truth t3">
                   A sealed structure, filled with{" "}
                   <em>
                     prayers,
@@ -86,11 +76,6 @@ export default function ScrollPage() {
                     blessings, and sacred texts
                   </em>
                   .
-                </p>
-                <p className="truth t4">
-                  A gift that <em>radiates merit</em>
-                  <br />
-                  to all who pass it by.
                 </p>
               </div>
             </div>

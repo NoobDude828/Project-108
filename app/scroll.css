@@ -79,6 +79,11 @@ a {
 }
 .status .brand {
   color: var(--gold-bright);
+  transition: opacity 0.5s;
+}
+body.scrolled .status .brand {
+  opacity: 0;
+  pointer-events: none;
 }
 .status .skip {
   pointer-events: auto;
@@ -130,54 +135,10 @@ a {
   pointer-events: none;
   mix-blend-mode: difference;
 }
-.caption-bar .num {
-  color: var(--gold-bright);
-  margin-right: 0.7rem;
-}
 .caption-bar .act {
   color: rgba(242, 233, 216, 0.4);
   margin-left: 0.7rem;
   font-size: 0.55rem;
-}
-
-.scroll-hint {
-  position: fixed;
-  bottom: 2.4rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 98;
-  font-family: var(--font-utility);
-  font-size: 0.625rem;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: rgba(242, 233, 216, 0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.7rem;
-  transition: opacity 0.6s;
-  pointer-events: none;
-}
-.scroll-hint::after {
-  content: "";
-  width: 1px;
-  height: 36px;
-  background: linear-gradient(180deg, var(--gold-bright), transparent);
-  animation: dripDown 1.8s ease-in-out infinite;
-}
-@keyframes dripDown {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scaleY(0.6);
-  }
-  50% {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-}
-body.scrolled .scroll-hint {
-  opacity: 0;
 }
 
 /* Act marker (appears when entering a new act) */
@@ -319,13 +280,25 @@ body.scrolled .scroll-hint {
 }
 .title-eyebrow {
   font-family: var(--font-utility);
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   letter-spacing: 0.5em;
   text-transform: uppercase;
   color: var(--gold-bright);
   margin-bottom: 2.5rem;
   opacity: 0;
   animation: fadeUp 1.2s 0.6s ease-out forwards;
+  /* Desktop: shift left and down */
+  position: relative;
+  left: -12rem;
+  top: 5rem;
+}
+
+@media (max-width: 768px) {
+  .title-eyebrow {
+    left: -4rem;
+    top: 3.5rem;
+    font-size: 0.55rem;
+  }
 }
 .title-numeral {
   font-family: var(--font-display);
@@ -514,20 +487,12 @@ body.scrolled .scroll-hint {
   justify-self: start;
   text-align: left;
 }
-.truth.t3 {
-  grid-column: 1;
-  grid-row: 2;
-  justify-self: end;
-  text-align: right;
-}
-.truth.t3::before {
-  margin-left: auto;
-}
-.truth.t4 {
-  grid-column: 3;
-  grid-row: 2;
-  justify-self: start;
-  text-align: left;
+
+@media (min-width: 769px) {
+  .truth.t1,
+  .truth.t2 {
+    margin-top: 12rem;
+  }
 }
 .truth em {
   color: var(--gold-bright);
@@ -3104,9 +3069,6 @@ body.scrolled .scroll-hint {
     min-height: 80vh;
     padding: 6rem 0;
   }
-  .scroll-hint {
-    display: none;
-  }
   .what-chorten,
   .scale-art,
   .assy-part,
@@ -3233,12 +3195,8 @@ body.scrolled .scroll-hint {
     max-width: 40ch;
   }
   .truth.t1,
-  .truth.t3 {
+  .truth.t2 {
     padding-right: 1rem;
-  }
-  .truth.t2,
-  .truth.t4 {
-    padding-left: 1rem;
   }
   .truth {
     font-size: 1rem;
@@ -3607,7 +3565,7 @@ body.scrolled .scroll-hint {
   .what-stage {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
     align-items: end;
     column-gap: 6vw;
     row-gap: 0;
@@ -3616,7 +3574,7 @@ body.scrolled .scroll-hint {
   .what-chorten {
     position: relative;
     grid-column: 1 / -1;
-    grid-row: 2;
+    grid-row: 1;
     height: 62vh;
     min-width: unset;
     margin-top: 0;
@@ -3646,52 +3604,36 @@ body.scrolled .scroll-hint {
     width: 18px;
     margin-bottom: 0.5rem;
   }
-  /* top row sits flush against the chorten bottom — align-items: end on row 1 */
+  /* both truths below the chorten, each in its own row */
   .truth.t1 {
-    grid-column: 1;
-    grid-row: 1;
+    grid-column: 1 / -1;
+    grid-row: 2;
     text-align: left;
-    align-self: end;
+    align-self: start;
     justify-self: start;
-    padding-bottom: 1.5rem;
-    transform: translateY(3rem);
+    padding-bottom: 0;
+    padding-top: 1rem;
+    padding-left: 2rem;
+    transform: translateY(-9rem);
   }
   .truth.t1::before {
     margin-left: 0;
+    margin-right: auto;
   }
   .truth.t2 {
-    grid-column: 2;
-    grid-row: 1;
-    text-align: right;
-    align-self: end;
-    padding-bottom: 1.5rem;
-    transform: translateY(4.2rem);
-  }
-  .truth.t2::before {
-    margin-left: auto;
-  }
-  /* bottom row sits flush against the chorten top */
-  .truth.t3 {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 3;
     text-align: left;
     align-self: start;
-    margin-top: -3rem;
-    transform: translateY(-1rem);
+    justify-self: start;
+    padding-left: 2rem;
+    padding-bottom: 0;
+    padding-top: 0.5rem;
+    transform: translateY(-10rem);
   }
-  .truth.t3::before {
+  .truth.t2::before {
     margin-left: 0;
-  }
-  .truth.t4 {
-    grid-column: 2;
-    grid-row: 3;
-    text-align: right;
-    align-self: start;
-    margin-top: -3rem;
-    transform: translateY(-1rem);
-  }
-  .truth.t4::before {
-    margin-left: auto;
+    margin-right: auto;
   }
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
