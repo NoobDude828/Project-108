@@ -3638,10 +3638,10 @@ body.scrolled .status .brand {
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
   .assembly-img-stack {
-    transform: translateY(-12vh) scale(1);
+    transform: translateY(-13vh) scale(1);
   }
   .assembly-labels {
-    transform: translateY(-8vh);
+    transform: translateY(-10vh);
     overflow: visible;
   }
   .scene-assembly .stage__inner {
@@ -3656,6 +3656,9 @@ body.scrolled .status .brand {
     left: 36%;
   }
   /* ── Scene 03 mobile — smaller label text ── */
+  .assy-item {
+    padding: 0.65rem 0;
+  }
   .assy-item .ttl {
     font-size: 0.75rem;
   }
