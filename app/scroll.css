@@ -33,6 +33,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  overscroll-behavior: none;
 }
 html {
   -webkit-text-size-adjust: 100%;
@@ -3270,7 +3271,7 @@ body.scrolled .scroll-hint {
 .form-modal__sheet {
   position: relative;
   width: min(720px, calc(100vw - 2rem));
-  max-height: calc(100vh - 3rem);
+  /* max-height: calc(100vh - 3rem); */
   max-height: calc(100dvh - 3rem);
   overflow-y: auto;
   background:
