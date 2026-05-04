@@ -704,10 +704,23 @@
     wrap.innerHTML = html.join("");
   }
 
+  /* ---------------- Stable viewport height ---------------- */
+  // Chrome mobile changes window.innerHeight when its address bar shows/hides,
+  // causing scroll progress to jump. We lock vh at the smallest observed value
+  // and only update on an actual orientation/resize event after a debounce.
+  let stableVH = window.innerHeight;
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      stableVH = window.innerHeight;
+    }, 200);
+  });
+
   /* ---------------- Main scroll loop ---------------- */
   function tick() {
     const scrollY = window.scrollY || window.pageYOffset;
-    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    const docH = document.documentElement.scrollHeight - stableVH;
     if (railFill) railFill.style.width = clamp(scrollY / docH) * 100 + "%";
 
     if (scrollY > 50) document.body.classList.add("scrolled");
@@ -716,7 +729,7 @@
     // Show floating back-to-top button after scrolling past the first viewport
     const floatBtn = document.getElementById("float-top-btn");
     if (floatBtn) {
-      floatBtn.classList.toggle("visible", scrollY > window.innerHeight * 0.8);
+      floatBtn.classList.toggle("visible", scrollY > stableVH * 0.8);
     }
 
     // For each scene, compute progress through its scrollable region.
@@ -725,22 +738,19 @@
     sceneDefs.forEach((s, i) => {
       const r = s.el.getBoundingClientRect();
       const sceneH = s.el.offsetHeight;
-      const vh = window.innerHeight;
+      const vh = stableVH;
       // Progress: how far past the top we are, vs how much can be travelled.
       const travelled = -r.top;
       const travel = Math.max(1, sceneH - vh);
       const p = clamp(travelled / travel);
       s.update(p);
       // Active scene = the one whose stage is currently pinned (top<=0<bottom)
-      if (
-        r.top <= window.innerHeight * 0.5 &&
-        r.bottom > window.innerHeight * 0.5
-      ) {
+      if (r.top <= stableVH * 0.5 && r.bottom > stableVH * 0.5) {
         activeIdx = i;
       }
       // Mark scenes that are fully past so their absolute children (e.g. stack-final)
       // don't bleed into following scenes.
-      const isPast = r.bottom < window.innerHeight * 0.5;
+      const isPast = r.bottom < stableVH * 0.5;
       s.el.classList.toggle("is-past", isPast);
     });
     setActiveScene(activeIdx);
