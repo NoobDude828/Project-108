@@ -3638,7 +3638,7 @@ body.scrolled .status .brand {
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
   .assembly-img-stack {
-    transform: translateY(-8vh) scale(1.25);
+    transform: translateY(-12vh) scale(1);
   }
   .assembly-labels {
     transform: translateY(-8vh);
