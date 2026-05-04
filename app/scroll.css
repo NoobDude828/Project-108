@@ -3784,7 +3784,7 @@ body.scrolled .scroll-hint {
 
   /* ── Scene 08 mobile — shift and rotate river line ── */
   .river-svg {
-    transform: translate(-1%, 19%) rotate(8deg);
+    transform: translate(-1%, 19%) rotate(9deg);
     transform-origin: 50% 50%;
   }
 
