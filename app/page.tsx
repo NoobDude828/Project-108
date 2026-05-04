@@ -467,10 +467,10 @@ export default function ScrollPage() {
                     >
                       <image
                         href="/assets/om.png"
-                        x="140"
-                        y="30"
-                        width="240"
-                        height="220"
+                        x="175"
+                        y="65"
+                        width="155"
+                        height="140"
                         preserveAspectRatio="xMidYMid meet"
                       />
                       <image
