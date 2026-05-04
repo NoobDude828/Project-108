@@ -3646,6 +3646,7 @@ body.scrolled .status .brand {
   }
   .scene-assembly .stage__inner {
     overflow: visible;
+    padding-top: 6rem;
   }
   /* ── Scene 04 mobile — shift building left ── */
   .fig-building {
