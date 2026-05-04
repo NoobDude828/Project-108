@@ -948,9 +948,8 @@ export default function ScrollPage() {
                 </div>
               </div>
               <p className="time-foot">
-                In Vajrayana Buddhism, when intention, action, and awareness are{" "}
-                <em>perfectly aligned</em>, transformation can occur within a
-                single moment. The coordinated act is the spiritual point.
+                In Vajrayana Buddhism, <em>aligned intention and action</em> can
+                transform a single moment. The act itself is the offering.
               </p>
             </div>
           </div>
