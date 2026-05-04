@@ -15,41 +15,154 @@ export default function SceneWhy() {
               <article className="why-chapter" data-chap="A">
                 <div className="vis" aria-hidden="true">
                   <svg viewBox="0 0 520 280" xmlns="http://www.w3.org/2000/svg">
-                    <g fill="rgba(255,255,255,0.5)">
-                      <circle cx="40" cy="40" r=".8" />
-                      <circle cx="120" cy="80" r=".6" />
-                      <circle cx="180" cy="30" r=".6" />
-                      <circle cx="280" cy="70" r=".7" />
-                      <circle cx="380" cy="40" r=".5" />
-                      <circle cx="450" cy="110" r=".6" />
-                      <circle cx="80" cy="220" r=".5" />
-                      <circle cx="500" cy="240" r=".5" />
+                    {/* Stars — varied sizes and brightness */}
+                    <g fill="white">
+                      <circle cx="22" cy="18" r="1.2" opacity=".9" />
+                      <circle cx="90" cy="12" r=".7" opacity=".6" />
+                      <circle cx="155" cy="22" r=".5" opacity=".5" />
+                      <circle cx="210" cy="8" r=".9" opacity=".8" />
+                      <circle cx="310" cy="18" r=".6" opacity=".6" />
+                      <circle cx="365" cy="30" r="1.0" opacity=".7" />
+                      <circle cx="430" cy="14" r=".5" opacity=".5" />
+                      <circle cx="498" cy="38" r=".8" opacity=".7" />
+                      <circle cx="478" cy="72" r=".5" opacity=".4" />
+                      <circle cx="340" cy="56" r=".6" opacity=".5" />
+                      <circle cx="240" cy="48" r=".4" opacity=".4" />
+                      <circle cx="130" cy="58" r=".7" opacity=".6" />
+                      <circle cx="55" cy="70" r=".5" opacity=".5" />
+                      <circle cx="18" cy="200" r=".8" opacity=".6" />
+                      <circle cx="68" cy="245" r=".5" opacity=".4" />
+                      <circle cx="160" cy="260" r=".6" opacity=".5" />
+                      <circle cx="310" cy="252" r=".7" opacity=".6" />
+                      <circle cx="420" cy="240" r=".5" opacity=".4" />
+                      <circle cx="505" cy="220" r=".9" opacity=".7" />
+                      <circle cx="490" cy="260" r=".4" opacity=".4" />
                     </g>
+
+                    {/* Orbital rings — very faint ellipses around Sun */}
+                    <ellipse
+                      cx="60"
+                      cy="140"
+                      rx="80"
+                      ry="22"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth=".4"
+                      opacity=".18"
+                    />
+                    <ellipse
+                      cx="60"
+                      cy="140"
+                      rx="130"
+                      ry="35"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth=".4"
+                      opacity=".14"
+                    />
+                    <ellipse
+                      cx="60"
+                      cy="140"
+                      rx="210"
+                      ry="55"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth=".4"
+                      opacity=".12"
+                    />
+                    <ellipse
+                      cx="60"
+                      cy="140"
+                      rx="340"
+                      ry="80"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth=".4"
+                      opacity=".10"
+                    />
+                    <ellipse
+                      cx="60"
+                      cy="140"
+                      rx="440"
+                      ry="100"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth=".4"
+                      opacity=".08"
+                    />
+
+                    {/* Sun — glow layers + body */}
                     <circle
                       cx="60"
                       cy="140"
-                      r="42"
+                      r="72"
+                      fill="#E2C788"
+                      opacity=".04"
+                    />
+                    <circle
+                      cx="60"
+                      cy="140"
+                      r="58"
+                      fill="#E2C788"
+                      opacity=".10"
+                    />
+                    <circle
+                      cx="60"
+                      cy="140"
+                      r="48"
                       fill="#E2C788"
                       opacity=".9"
                     />
+
+                    {/* Mercury — small, inner orbit */}
                     <circle
-                      cx="60"
-                      cy="140"
-                      r="60"
-                      fill="none"
-                      stroke="#E2C788"
-                      strokeWidth="1"
+                      cx="138"
+                      cy="118"
+                      r="4"
+                      fill="#B8A070"
+                      opacity=".85"
+                    />
+
+                    {/* Venus — medium, second orbit */}
+                    <circle
+                      cx="188"
+                      cy="165"
+                      r="7"
+                      fill="#D4B870"
+                      opacity=".8"
+                    />
+
+                    {/* Earth */}
+                    <circle cx="270" cy="140" r="14" fill="#C8A663" />
+                    {/* Earth highlight */}
+                    <circle
+                      cx="265"
+                      cy="135"
+                      r="5"
+                      fill="#E2C788"
                       opacity=".25"
                     />
-                    <circle cx="270" cy="140" r="14" fill="#C8A663" />
+
+                    {/* Moon */}
                     <circle
                       cx="380"
                       cy="140"
                       r="6"
                       fill="rgba(242,233,216,.85)"
                     />
+
+                    {/* Mars — outer, slightly above baseline */}
+                    <circle
+                      cx="462"
+                      cy="112"
+                      r="8"
+                      fill="#B87050"
+                      opacity=".8"
+                    />
+
+                    {/* 108 measurement lines */}
                     <line
-                      x1="100"
+                      x1="106"
                       y1="140"
                       x2="258"
                       y2="140"
@@ -61,15 +174,17 @@ export default function SceneWhy() {
                     <line
                       x1="284"
                       y1="140"
-                      x2="372"
+                      x2="374"
                       y2="140"
                       stroke="#C8A663"
                       strokeWidth="1"
                       strokeDasharray="3 4"
                       opacity=".7"
                     />
+
+                    {/* Labels */}
                     <text
-                      x="180"
+                      x="182"
                       y="130"
                       textAnchor="middle"
                       fill="#C8A663"
@@ -80,7 +195,7 @@ export default function SceneWhy() {
                       ≈ 108 SOLAR DIAMETERS
                     </text>
                     <text
-                      x="328"
+                      x="329"
                       y="130"
                       textAnchor="middle"
                       fill="#C8A663"
@@ -89,6 +204,52 @@ export default function SceneWhy() {
                       letterSpacing="2"
                     >
                       ≈ 108 LUNAR Ø
+                    </text>
+
+                    {/* Planet labels */}
+                    <text
+                      x="138"
+                      y="110"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".55"
+                    >
+                      Mercury
+                    </text>
+                    <text
+                      x="188"
+                      y="180"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".55"
+                    >
+                      Venus
+                    </text>
+                    <text
+                      x="270"
+                      y="162"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".6"
+                    >
+                      Earth
+                    </text>
+                    <text
+                      x="462"
+                      y="126"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".55"
+                    >
+                      Mars
                     </text>
                   </svg>
                 </div>
