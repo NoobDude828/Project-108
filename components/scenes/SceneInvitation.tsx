@@ -4,7 +4,6 @@ export default function SceneInvitation() {
       <div className="stage">
         <div className="stage__inner">
           <div className="inv-block">
-            <p className="small-num">15 / 15 · An invitation</p>
             <h2>
               Two ways to <em>take part</em>.
             </h2>

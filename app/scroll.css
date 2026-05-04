@@ -3363,6 +3363,10 @@ body.scrolled .status .brand {
   padding-bottom: 2rem;
   border-bottom: 1px solid rgba(200, 166, 99, 0.1);
 }
+.form-modal__lede em {
+  color: var(--gold-bright);
+  font-style: italic;
+}
 .form-modal__form {
   display: flex;
   flex-direction: column;
@@ -3393,6 +3397,27 @@ body.scrolled .status .brand {
 .form-row--phone .field:not(.field--cc) {
   flex: 1;
 }
+.form-row--nationality {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  border: none;
+  padding: 0;
+  margin-bottom: 1.2rem;
+}
+.form-row--nationality + .form-row--choice {
+  margin-top: 0;
+}
+.form-row__legend {
+  font-family: var(--font-utility);
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(242, 233, 216, 0.5);
+  margin-bottom: 0.6rem;
+  display: block;
+  grid-column: 1 / -1;
+}
 .form-row--choice {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3400,7 +3425,7 @@ body.scrolled .status .brand {
 }
 .choice {
   cursor: pointer;
-  display: block;
+  display: flex;
 }
 .choice input {
   position: absolute;
@@ -3408,7 +3433,10 @@ body.scrolled .status .brand {
   pointer-events: none;
 }
 .choice__box {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
   padding: 0.9rem 1.1rem;
   border: 1px solid rgba(200, 166, 99, 0.2);
   background: rgba(200, 166, 99, 0.05);
@@ -3912,5 +3940,19 @@ body.scrolled .status .brand {
   }
   .form-row--choice {
     grid-template-columns: 1fr;
+  }
+  /* Buttons side by side on mobile */
+  .form-actions {
+    flex-direction: row;
+    justify-content: stretch;
+  }
+  .form-actions .btn {
+    flex: 1;
+    text-align: center;
+  }
+  /* Larger select option text on mobile */
+  .field select,
+  .field select option {
+    font-size: 1rem;
   }
 }
