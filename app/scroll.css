@@ -3614,7 +3614,7 @@ body.scrolled .status .brand {
     padding-bottom: 0;
     padding-top: 1rem;
     padding-left: 2rem;
-    transform: translateY(-9rem);
+    transform: translateY(-5rem);
   }
   .truth.t1::before {
     margin-left: 0;
@@ -3629,7 +3629,7 @@ body.scrolled .status .brand {
     padding-left: 2rem;
     padding-bottom: 0;
     padding-top: 0.5rem;
-    transform: translateY(-10rem);
+    transform: translateY(-5rem);
   }
   .truth.t2::before {
     margin-left: 0;
