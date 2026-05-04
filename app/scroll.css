@@ -2192,6 +2192,12 @@ body.scrolled .scroll-hint {
   width: 100%;
   max-width: 920px;
 }
+
+@media (min-width: 769px) {
+  .manpower-block {
+    margin-top: -12vh;
+  }
+}
 .manpower-head {
   text-align: center;
   margin-bottom: 3rem;
