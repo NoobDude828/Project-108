@@ -246,31 +246,67 @@
     update(p) {
       const tr = document.querySelector(".scene-spacing .spacing-track");
       const measure = document.querySelector(".scene-spacing .spacing-measure");
+      const total = document.querySelector(".scene-spacing .spacing-total");
+      const row = document.querySelector(".scene-spacing .spacing-row");
+      const chortens = row ? row.querySelectorAll(".chorten-mini") : [];
+      const N = chortens.length; // 108
 
-      // Three phases:
-      // 0.00 → 0.35 : chortens zoom in (approach each other)
-      // 0.35 → 0.65 : HOLD position — 108 m line appears
-      // 0.65 → 1.00 : 108 m line fades, zoom-out resumes
+      // Four phases:
+      // 0.00 → 0.25 : zoom in to center 2 chortens
+      // 0.25 → 0.45 : HOLD — show center 4, 108 m line appears between middle 2
+      // 0.45 → 0.75 : reveal all 108 chortens from sides, gap shrinks
+      // 0.75 → 1.00 : HOLD — all 108 shown, ~11.7km line appears across full row
       let trackP;
-      if (p < 0.35) {
-        // Approach: advance to ~45% of max zoom
-        trackP = clamp(p / 0.35) * 0.45;
-      } else if (p < 0.65) {
-        // Pause: freeze position
-        trackP = 0.45;
+      if (p < 0.25) {
+        trackP = clamp(p / 0.25) * 0.45;
+      } else if (p < 0.45) {
+        trackP = 0.45; // first hold
+      } else if (p < 0.75) {
+        trackP = 0.45 + clamp((p - 0.45) / 0.3) * 0.55;
       } else {
-        // Resume: continue from 45% to 100%
-        trackP = 0.45 + clamp((p - 0.65) / 0.35) * 0.55;
+        trackP = 1.0; // second hold — fully zoomed out
       }
       if (tr) tr.style.setProperty("--p", trackP);
 
-      // 108 m measure line: fades in at pause start, holds, fades out as zoom resumes
+      // Reveal chortens symmetrically from center outward
+      let revealRadius;
+      if (p < 0.25) {
+        revealRadius = 1; // show center 2
+      } else if (p < 0.45) {
+        revealRadius = 2; // show center 4 (first hold)
+      } else {
+        const t = clamp((p - 0.45) / 0.3);
+        revealRadius = 2 + t * (N / 2 - 2); // 2 → 54 (all)
+      }
+      chortens.forEach((c, i) => {
+        const dist = Math.abs(i - (N / 2 - 0.5));
+        c.style.setProperty("--vis", dist < revealRadius ? 1 : 0);
+      });
+
+      // Gap: 38vw through first hold, then shrinks, stays at 1vw after
+      let gapVw;
+      if (p < 0.45) {
+        gapVw = 38;
+      } else {
+        const t = clamp((p - 0.45) / 0.3);
+        gapVw = 38 - t * 37; // 38vw → 1vw
+      }
+      if (row) row.style.setProperty("--gap", gapVw + "vw");
+
+      // 108 m measure line: fades in during first hold, fades out as zoom resumes
       if (measure) {
-        const fadeIn = clamp((p - 0.32) / 0.08); // 0.32 → 0.40
-        const fadeOut = 1 - clamp((p - 0.6) / 0.08); // 0.60 → 0.68
-        const measureP = Math.min(fadeIn, fadeOut);
-        measure.style.setProperty("--p", measureP);
-        measure.style.setProperty("--zoom", 0);
+        const fadeIn = clamp((p - 0.27) / 0.06);
+        const fadeOut = 1 - clamp((p - 0.42) / 0.06);
+        const measureVis = Math.min(fadeIn, fadeOut);
+        measure.style.setProperty("--vis", measureVis);
+        measure.style.setProperty("--p", trackP);
+      }
+
+      // ~11.7 km total line: fades in during second hold
+      if (total) {
+        const fadeIn = clamp((p - 0.78) / 0.08);
+        const fadeOut = 1 - clamp((p - 0.96) / 0.04);
+        total.style.setProperty("--vis", Math.min(fadeIn, fadeOut));
       }
     },
   });
@@ -536,9 +572,9 @@
   function buildSpacingTrack() {
     const track = document.querySelector(".scene-spacing .spacing-row");
     if (!track) return;
-    // Render ~25 chortens to suggest the procession; CSS scales the row
+    // Render all 108 chortens; CSS zooms out to reveal the full procession
     const html = [];
-    for (let i = 0; i < 27; i++) {
+    for (let i = 0; i < 108; i++) {
       html.push(`<div class="chorten-mini">${window.__chortenMiniSVG}</div>`);
     }
     track.innerHTML = html.join("");

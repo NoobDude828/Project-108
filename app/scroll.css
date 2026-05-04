@@ -1474,7 +1474,7 @@ body.scrolled .status .brand {
 
 /* ─────────────────────── Scene 07 — 108 m apart ─────────────────────── */
 .scene-spacing {
-  height: 440vh;
+  height: 580vh;
 }
 .scene-spacing .stage__inner {
   background: linear-gradient(
@@ -1508,23 +1508,26 @@ body.scrolled .status .brand {
 .spacing-row {
   position: absolute;
   bottom: 2%;
-  left: 33%;
-  transform: translateX(-50%) scale(calc(1 - var(--p) * 0.8));
+  left: 50%;
+  transform: translateX(-50%) scale(calc(1 - var(--p) * 0.904));
   transform-origin: bottom center;
   display: flex;
-  gap: 38vw;
+  gap: var(--gap, 38vw);
   transition: transform 0.15s linear;
   width: max-content;
 }
 .spacing-row .pair {
   display: flex;
-  gap: 38vw;
+  gap: var(--gap, 38vw);
   align-items: flex-end;
   position: relative;
 }
 .spacing-row .chorten-mini {
   width: 110px;
   height: auto;
+  opacity: var(--vis, 0);
+  transition: opacity 0.4s ease;
+  flex-shrink: 0;
 }
 @media (min-width: 900px) {
   .spacing-row .chorten-mini {
@@ -1534,26 +1537,19 @@ body.scrolled .status .brand {
 .spacing-measure {
   position: absolute;
   bottom: 4%;
-  left: 49.8%;
-  transform: translateX(-50%) scale(calc(1 - var(--zoom, 0) * 0.55));
-  transform-origin: center;
-  width: min(30vw, 362px);
+  left: 50%;
+  transform: translateX(-50%) scale(calc(1 - var(--p, 0) * 0.88));
+  transform-origin: bottom center;
+  width: 38vw;
   text-align: center;
   --p: 0;
-  --zoom: 0;
-  opacity: var(--p);
-  transition:
-    opacity 0.3s ease,
-    transform 0.15s linear;
+  opacity: var(--vis, 0);
+  transition: opacity 0.3s ease;
   pointer-events: none;
 }
 @media (min-width: 1600px) {
-  .spacing-row {
-    left: 30%;
-  }
   .spacing-measure {
-    left: 50.35%;
-    width: min(30vw, 460px);
+    width: 38vw;
   }
 }
 .spacing-measure .line {
@@ -1591,6 +1587,55 @@ body.scrolled .status .brand {
   z-index: 2;
 }
 .spacing-measure .lbl em {
+  font-style: italic;
+  color: var(--cream);
+}
+.spacing-total {
+  position: absolute;
+  bottom: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96vw;
+  text-align: center;
+  opacity: var(--vis, 0);
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.spacing-total .line {
+  display: flex;
+  align-items: center;
+  height: 1px;
+  background: var(--gold);
+  position: relative;
+}
+.spacing-total .line::before,
+.spacing-total .line::after {
+  content: "";
+  width: 1px;
+  height: 14px;
+  background: var(--gold);
+  position: absolute;
+  top: -7px;
+}
+.spacing-total .line::before {
+  left: 0;
+}
+.spacing-total .line::after {
+  right: 0;
+}
+.spacing-total .lbl {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  color: var(--gold-bright);
+  background: var(--maroon-deep);
+  padding: 0 1rem;
+  display: inline-block;
+  margin-bottom: 0.4em;
+  position: relative;
+  z-index: 2;
+}
+.spacing-total .lbl em {
   font-style: italic;
   color: var(--cream);
 }
@@ -3675,11 +3720,11 @@ body.scrolled .status .brand {
   }
   /* ── Scene 07 mobile — shift chorten row left ── */
   .spacing-row {
-    left: 23%;
-    gap: 55vw;
+    left: 50%;
+    gap: 5vw;
   }
   .spacing-row .pair {
-    gap: 55vw;
+    gap: 5vw;
   }
   .spacing-measure {
     width: min(55vw, 138px);

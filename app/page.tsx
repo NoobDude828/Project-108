@@ -715,6 +715,12 @@ export default function ScrollPage() {
                   </span>
                   <span className="line" aria-hidden="true"></span>
                 </div>
+                <div className="spacing-total">
+                  <span className="lbl">
+                    ~11.7<em> km</em>
+                  </span>
+                  <span className="line" aria-hidden="true"></span>
+                </div>
               </div>
             </div>
           </div>
