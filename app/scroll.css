@@ -1359,7 +1359,8 @@ body.scrolled .status .brand {
 
 @media (max-width: 768px) {
   .dots-field {
-    margin-left: -8.5%;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
