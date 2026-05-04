@@ -37,6 +37,12 @@ export default function SceneWhy() {
                       <circle cx="420" cy="240" r=".5" opacity=".4" />
                       <circle cx="505" cy="220" r=".9" opacity=".7" />
                       <circle cx="490" cy="260" r=".4" opacity=".4" />
+                      {/* Extra stars on left side */}
+                      <circle cx="8" cy="90" r=".9" opacity=".7" />
+                      <circle cx="14" cy="140" r=".5" opacity=".5" />
+                      <circle cx="6" cy="170" r=".7" opacity=".6" />
+                      <circle cx="20" cy="230" r=".6" opacity=".5" />
+                      <circle cx="38" cy="260" r=".8" opacity=".6" />
                     </g>
 
                     {/* Orbital rings — very faint ellipses around Sun */}
@@ -114,6 +120,18 @@ export default function SceneWhy() {
                       opacity=".9"
                     />
 
+                    <text
+                      x="60"
+                      y="96"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".6"
+                    >
+                      Sun
+                    </text>
+
                     {/* Mercury — small, inner orbit */}
                     <circle
                       cx="138"
@@ -151,6 +169,18 @@ export default function SceneWhy() {
                       fill="rgba(242,233,216,.85)"
                     />
 
+                    <text
+                      x="380"
+                      y="153"
+                      textAnchor="middle"
+                      fill="#C8A663"
+                      fontFamily="Inter Tight, sans-serif"
+                      fontSize="7"
+                      opacity=".55"
+                    >
+                      Moon
+                    </text>
+
                     {/* Mars — outer, slightly above baseline */}
                     <circle
                       cx="462"
@@ -158,6 +188,110 @@ export default function SceneWhy() {
                       r="8"
                       fill="#B87050"
                       opacity=".8"
+                    />
+
+                    {/* Left-side planets — on the left arcs of orbital ellipses, overflow:visible shows them */}
+                    {/* Stars spread across the left field */}
+                    <circle cx="-25" cy="72" r="1" fill="#fff" opacity=".55" />
+                    <circle cx="-80" cy="55" r=".8" fill="#fff" opacity=".45" />
+                    <circle
+                      cx="-130"
+                      cy="68"
+                      r="1.1"
+                      fill="#fff"
+                      opacity=".4"
+                    />
+                    <circle
+                      cx="-200"
+                      cy="82"
+                      r=".7"
+                      fill="#fff"
+                      opacity=".35"
+                    />
+                    <circle cx="-250" cy="108" r="1" fill="#fff" opacity=".4" />
+                    <circle
+                      cx="-280"
+                      cy="138"
+                      r=".9"
+                      fill="#fff"
+                      opacity=".35"
+                    />
+                    <circle
+                      cx="-260"
+                      cy="168"
+                      r=".7"
+                      fill="#fff"
+                      opacity=".3"
+                    />
+                    <circle
+                      cx="-220"
+                      cy="195"
+                      r="1.1"
+                      fill="#fff"
+                      opacity=".35"
+                    />
+                    <circle
+                      cx="-160"
+                      cy="215"
+                      r=".8"
+                      fill="#fff"
+                      opacity=".4"
+                    />
+                    <circle cx="-90" cy="222" r="1" fill="#fff" opacity=".45" />
+                    <circle cx="-40" cy="205" r=".7" fill="#fff" opacity=".4" />
+                    <circle
+                      cx="-170"
+                      cy="100"
+                      r=".6"
+                      fill="#fff"
+                      opacity=".35"
+                    />
+                    <circle cx="-240" cy="55" r=".8" fill="#fff" opacity=".3" />
+                    <circle cx="-310" cy="130" r="1" fill="#fff" opacity=".3" />
+                    <circle
+                      cx="-300"
+                      cy="170"
+                      r=".7"
+                      fill="#fff"
+                      opacity=".25"
+                    />
+                    <circle cx="-110" cy="42" r=".9" fill="#fff" opacity=".4" />
+
+                    {/* Orbit 1 (rx=80,ry=22) θ=175°: x≈-20, y≈142 */}
+                    <circle
+                      cx="-20"
+                      cy="142"
+                      r="4"
+                      fill="#B8A070"
+                      opacity=".8"
+                    />
+
+                    {/* Orbit 2 (rx=130,ry=35) θ=165°: x≈-66, y≈149 */}
+                    <circle
+                      cx="-66"
+                      cy="149"
+                      r="6"
+                      fill="#9CA870"
+                      opacity=".75"
+                    />
+
+                    {/* Orbit 3 (rx=210,ry=55) θ=160°: x≈-137, y≈159 */}
+                    <circle
+                      cx="-137"
+                      cy="159"
+                      r="9"
+                      fill="#C8A870"
+                      opacity=".7"
+                    />
+                    <ellipse
+                      cx="-137"
+                      cy="159"
+                      rx="15"
+                      ry="4"
+                      fill="none"
+                      stroke="#C8A663"
+                      strokeWidth="1.2"
+                      opacity=".45"
                     />
 
                     {/* 108 measurement lines */}
@@ -206,29 +340,7 @@ export default function SceneWhy() {
                       ≈ 108 LUNAR Ø
                     </text>
 
-                    {/* Planet labels */}
-                    <text
-                      x="138"
-                      y="110"
-                      textAnchor="middle"
-                      fill="#C8A663"
-                      fontFamily="Inter Tight, sans-serif"
-                      fontSize="7"
-                      opacity=".55"
-                    >
-                      Mercury
-                    </text>
-                    <text
-                      x="188"
-                      y="180"
-                      textAnchor="middle"
-                      fill="#C8A663"
-                      fontFamily="Inter Tight, sans-serif"
-                      fontSize="7"
-                      opacity=".55"
-                    >
-                      Venus
-                    </text>
+                    {/* Planet labels — Earth only */}
                     <text
                       x="270"
                       y="162"
@@ -239,17 +351,6 @@ export default function SceneWhy() {
                       opacity=".6"
                     >
                       Earth
-                    </text>
-                    <text
-                      x="462"
-                      y="126"
-                      textAnchor="middle"
-                      fill="#C8A663"
-                      fontFamily="Inter Tight, sans-serif"
-                      fontSize="7"
-                      opacity=".55"
-                    >
-                      Mars
                     </text>
                   </svg>
                 </div>
