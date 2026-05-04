@@ -268,12 +268,16 @@
       }
       if (tr) tr.style.setProperty("--p", trackP);
 
+      // Gap: 38vw desktop / 40vw mobile through first hold, then shrinks to 1vw
+      const isMobile = window.innerWidth <= 768;
+      const maxGap = isMobile ? 65 : 38;
+
       // Reveal chortens symmetrically from center outward
       let revealRadius;
       if (p < 0.25) {
         revealRadius = 1; // show center 2
       } else if (p < 0.45) {
-        revealRadius = 2; // show center 4 (first hold)
+        revealRadius = isMobile ? 1 : 2; // mobile: keep 2; desktop: show 4
       } else {
         const t = clamp((p - 0.45) / 0.3);
         revealRadius = 2 + t * (N / 2 - 2); // 2 → 54 (all)
@@ -283,13 +287,12 @@
         c.style.setProperty("--vis", dist < revealRadius ? 1 : 0);
       });
 
-      // Gap: 38vw through first hold, then shrinks, stays at 1vw after
       let gapVw;
       if (p < 0.45) {
-        gapVw = 38;
+        gapVw = maxGap;
       } else {
         const t = clamp((p - 0.45) / 0.3);
-        gapVw = 38 - t * 37; // 38vw → 1vw
+        gapVw = maxGap - t * (maxGap - 1); // maxGap → 1vw
       }
       if (row) row.style.setProperty("--gap", gapVw + "vw");
 

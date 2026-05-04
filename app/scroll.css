@@ -3721,13 +3721,13 @@ body.scrolled .status .brand {
   /* ── Scene 07 mobile — shift chorten row left ── */
   .spacing-row {
     left: 50%;
-    gap: 5vw;
+    gap: var(--gap, 65vw);
   }
   .spacing-row .pair {
-    gap: 5vw;
+    gap: var(--gap, 65vw);
   }
   .spacing-measure {
-    width: min(55vw, 138px);
+    width: var(--gap, 65vw);
     left: 49.9%;
   }
 
