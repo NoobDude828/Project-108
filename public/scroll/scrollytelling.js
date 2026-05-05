@@ -377,59 +377,58 @@
 
       if (col._sgCount !== count) {
         const prev = col._sgCount || 0;
-        col._sgCount = count;
+        // Throttle: add/remove at most 1 unit per frame to avoid reflow bursts
+        const step =
+          count > prev ? Math.min(count, prev + 1) : Math.max(count, prev - 1);
+        col._sgCount = step;
+        const stepCount = step;
 
         // Update column height
-        col.style.maxHeight = colH + "px";
+        const stepColH = Math.min(stepCount * 381, maxColH);
+        const stepUnitH = Math.max(2, (stepColH - (stepCount - 1)) / stepCount);
+        col.style.maxHeight = stepColH + "px";
 
-        if (count > prev) {
-          // Forward: new chortens drop onto the top
-          for (let i = prev; i < count; i++) {
-            const div = document.createElement("div");
-            div.className = "sg-unit sg-unit--new";
-            div.style.height = unitH.toFixed(2) + "px";
-            div.innerHTML = `<img src="/assets/chorten.png" alt="" />`;
-            col.prepend(div);
-            div.addEventListener(
+        if (step > prev) {
+          // Forward: new chorten fades in (opacity only — no translate to avoid layout conflict)
+          const div = document.createElement("div");
+          div.className = "sg-unit sg-unit--new";
+          div.style.height = stepUnitH.toFixed(2) + "px";
+          div.innerHTML = `<img src="/assets/chorten.png" alt="" />`;
+          col.prepend(div);
+          div.addEventListener(
+            "animationend",
+            () => div.classList.remove("sg-unit--new"),
+            { once: true },
+          );
+        } else {
+          // Reverse: top unit lifts off
+          const top = col.children[0];
+          if (top) {
+            top.classList.add("sg-unit--remove");
+            top.addEventListener(
               "animationend",
-              () => div.classList.remove("sg-unit--new"),
+              () => {
+                if (top.parentNode) top.parentNode.removeChild(top);
+              },
               { once: true },
             );
           }
-        } else {
-          // Reverse: top unit lifts off, rest removed immediately
-          const removeCount = prev - count;
-          Array.from(col.children)
-            .slice(0, removeCount)
-            .forEach((u, idx) => {
-              if (idx === 0) {
-                u.classList.add("sg-unit--remove");
-                u.addEventListener(
-                  "animationend",
-                  () => {
-                    if (u.parentNode) u.parentNode.removeChild(u);
-                  },
-                  { once: true },
-                );
-              } else {
-                if (u.parentNode) u.parentNode.removeChild(u);
-              }
-            });
         }
 
-        // Resize all remaining units to new height — suppress transition so
-        // the height snap is instant (no competing motion with the drop-in anim)
-        const units = Array.from(col.children);
-        units.forEach((u) => (u.style.transition = "none"));
-        col.offsetHeight; // force reflow
-        units.forEach((u) => {
+        // Resize remaining units — instant on forward (no competing layout),
+        // smooth on reverse
+        const isForward = step > prev;
+        Array.from(col.children).forEach((u) => {
           if (!u.classList.contains("sg-unit--remove")) {
-            u.style.height = unitH.toFixed(2) + "px";
+            u.style.transition = isForward ? "none" : "height 0.25s ease";
+            u.style.height = stepUnitH.toFixed(2) + "px";
           }
         });
-        requestAnimationFrame(() =>
-          units.forEach((u) => (u.style.transition = "")),
-        );
+        if (isForward) {
+          requestAnimationFrame(() =>
+            Array.from(col.children).forEach((u) => (u.style.transition = "")),
+          );
+        }
       }
 
       // Landmarks — updated every tick

@@ -2042,7 +2042,7 @@ body.scrolled .status .brand {
 
 /* ── chorten column ── */
 .sg-col {
-  width: min(140px, 18vw);
+  width: min(220px, 26vw);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -2068,11 +2068,9 @@ body.scrolled .status .brand {
 @keyframes sg-drop-in {
   from {
     opacity: 0;
-    transform: translateY(-28px) scaleY(1.15);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 @keyframes sg-lift-off {
@@ -2086,7 +2084,7 @@ body.scrolled .status .brand {
   }
 }
 .sg-unit--new {
-  animation: sg-drop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: sg-drop-in 0.3s ease forwards;
 }
 .sg-unit--remove {
   animation: sg-lift-off 0.3s ease forwards;
