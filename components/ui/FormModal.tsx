@@ -108,20 +108,33 @@ export default function FormModal() {
               </fieldset> */}
 
               {nationality === "bhutanese" ? (
-                /* Bhutanese flow — CID only */
-                <label className="field">
-                  <span className="field__lbl">
-                    Citizenship Identity Card number
-                  </span>
-                  <input
-                    type="text"
-                    name="cid"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    placeholder="11-digit CID number"
-                    required
-                  />
-                </label>
+                /* Bhutanese flow — CID + phone */
+                <>
+                  <label className="field">
+                    <span className="field__lbl">
+                      Citizenship Identity Card number
+                    </span>
+                    <input
+                      type="text"
+                      name="cid"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="11-digit CID number"
+                      required
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field__lbl">Phone number</span>
+                    <input
+                      type="tel"
+                      name="phone"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="+975 -- --- ---"
+                      required
+                    />
+                  </label>
+                </>
               ) : (
                 /* Non-Bhutanese flow — full form */
                 <>
