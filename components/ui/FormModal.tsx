@@ -120,19 +120,27 @@ export default function FormModal() {
                       inputMode="numeric"
                       autoComplete="off"
                       placeholder="11-digit CID number"
+                      pattern="\d{11}"
+                      maxLength={11}
+                      title="CID must be exactly 11 digits"
                       required
                     />
                   </label>
                   <label className="field">
                     <span className="field__lbl">Phone number</span>
-                    <input
-                      type="tel"
-                      name="phone"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      placeholder="+975 -- --- ---"
-                      required
-                    />
+                    <span className="field__prefix-row">
+                      <span className="field__prefix" aria-hidden="true">
+                        +975
+                      </span>
+                      <input
+                        type="tel"
+                        name="phone"
+                        inputMode="numeric"
+                        autoComplete="tel-national"
+                        placeholder="17 123 456"
+                        required
+                      />
+                    </span>
                   </label>
                 </>
               ) : (
@@ -195,6 +203,13 @@ export default function FormModal() {
 
           {nationality && (
             <>
+              {/* Server-side error slot — populated by form.js on 400/500 responses. */}
+              <p
+                className="form-modal__error"
+                role="alert"
+                aria-live="polite"
+                hidden
+              ></p>
               <div className="form-actions">
                 <button
                   type="button"
