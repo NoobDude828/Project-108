@@ -1413,36 +1413,45 @@ body.scrolled .status .brand {
   }
 }
 
-.chorten-grid {
+/* `.multiply-grid` (not `.chorten-grid`) so scrollytelling.js's `querySelector(".scene-multiply .chorten-grid")`
+   returns null and its buildMultiplyGrid no-ops. Same reason for `.mg-cell` instead of `.cg-cell`:
+   keeps our cells out of the framework's per-frame `querySelectorAll(".scene-multiply .cg-cell")`. */
+.multiply-grid {
+  position: absolute;
+  inset: 0;
   display: grid;
   grid-template-columns: repeat(18, 1fr);
-  gap: clamp(0.3rem, 0.5vw, 0.6rem);
-  width: 100%;
-  padding: 0 1.5vw;
+  grid-template-rows: repeat(6, 1fr);
+  /* No gap/padding so cell centres land at exact fractions of grid (8.5/18, 2.5/6),
+     which the static translate (2.78vw, 6.33vh) is calibrated against. Any non-zero
+     gap or padding shifts the centre cell by small amounts and breaks the alignment. */
+  gap: 0;
+  padding: 0;
+  /* Camera zoom-out — the whole grid shrinks from 12× to 1× across the scroll.
+     Origin pinned to cell (8,2). Dynamic translate (driven from JS) keeps the centre
+     cell at viewport centre at high scales and fades to zero at scale 1, so the final
+     symmetric layout fits all 6 rows in the stage with no bottom clipping. */
+  transform: translate3d(var(--grid-tx, 2.78vw), var(--grid-ty, 6.33vh), 0)
+             scale(var(--grid-scale, 12));
+  transform-origin: 47.22% 41.67%;
+  backface-visibility: hidden;
 }
-.cg-cell {
-  aspect-ratio: 1/2;
+.mg-cell {
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Crisp per-cell fade so the 1-by-1 centre-out reveal reads as discrete pops
+     rather than a smeared wave (cells tick in roughly every 6vh of scroll). */
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.cg-cell.lit {
+.mg-cell.lit {
   opacity: 1;
 }
-.cg-cell.lit.center {
-  opacity: 1;
-}
-.cg-cell svg {
-  width: 60%;
-  height: auto;
-  display: block;
-}
-.scene-multiply .cg-cell img {
-  width: 55% !important;
-  height: auto !important;
+.scene-multiply .mg-cell img {
+  width: 80% !important;
+  height: 80% !important;
   object-fit: contain !important;
   display: block !important;
   margin: 0 auto !important;
@@ -3118,7 +3127,7 @@ body.scrolled .status .brand {
   .assy-part,
   .assy-item,
   .why-chapter,
-  .cg-cell,
+  .mg-cell,
   .spacing-row,
   .spacing-measure,
   .river-photo,
@@ -3172,12 +3181,22 @@ body.scrolled .status .brand {
     top: 16vh;
     bottom: 16vh;
   }
-  .chorten-grid {
+  /* Mobile uses a 9×12 layout — buildMultiplyGrid reads window.innerWidth and builds
+     the matching cell count + .center idx (row 5, col 4 → idx 49). Origin and translate
+     below put that cell at viewport centre at high scale, just like the desktop pair does
+     for cell (8,2). */
+  .multiply-grid {
     grid-template-columns: repeat(9, 1fr);
-    gap: 0.4rem;
-  }
-  .chorten-grid .cg-cell:nth-child(n + 109) {
-    display: none;
+    grid-template-rows: repeat(12, 1fr);
+    /* Match desktop: zero gap/padding so cell centres land at exact fractions. */
+    gap: 0;
+    padding: 0;
+    /* Cell (5,4) centre is at 50% / 45.83% of grid → translate y by 2.84vh at
+       scale 18 to land at stage centre (50vh) on the 68vh mobile stage. JS fades
+       it to 0 at scale 1 so all 12 rows fit without bottom clipping. */
+    transform: translate3d(0, var(--grid-ty, 2.84vh), 0)
+               scale(var(--grid-scale, 18));
+    transform-origin: 50% 45.83%;
   }
   .stack-column {
     left: 18%;

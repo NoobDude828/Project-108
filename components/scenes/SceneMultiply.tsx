@@ -1,10 +1,12 @@
+import SceneMultiplyController from "./SceneMultiply.original";
+
 export default function SceneMultiply() {
   return (
     <section className="scene scene-multiply" id="scene-multiply">
       <div className="stage">
         <div className="stage__inner">
           <div className="multiply-stage">
-            <div className="chorten-grid" aria-hidden="true"></div>
+            <div className="multiply-grid" aria-hidden="true"></div>
           </div>
           <div className="multiply-kicker">
             <p className="kicker">From one to one hundred and eight</p>
@@ -15,6 +17,9 @@ export default function SceneMultiply() {
           </div>
         </div>
       </div>
+      {/* All multiply-scene behavior lives in this client controller — keeps
+          /public/scroll/scrollytelling.js merge-safe for the rest of the team. */}
+      <SceneMultiplyController />
     </section>
   );
 }
