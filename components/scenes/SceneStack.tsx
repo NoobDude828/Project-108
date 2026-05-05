@@ -6,104 +6,61 @@ export default function SceneStack() {
       <section className="scene scene-stack" id="scene-stack">
         <div className="stage">
           <div className="stage__inner">
-            <div className="stack-stage">
-              <div className="stack-sky" aria-hidden="true"></div>
-              <div className="stack-stars" aria-hidden="true"></div>
-              <div className="stack-intro">
+            <div className="sg-stage">
+              <div className="sg-tally">
                 <p className="kicker">If stacked vertically</p>
-                <h2>
-                  The procession would <em>rise into the sky</em>.
-                </h2>
-                <p className="stack-sub">
-                  108 chortens at fifteen metres each — 1.62 km of sacred
-                  presence.
-                </p>
-              </div>
-              <div className="stack-column" aria-hidden="true"></div>
-              <div className="stack-ref" data-unit="9">
-                <span className="tick"></span>
-                <span className="ref-icon" aria-hidden="true">
-                  <img
-                    src="/assets/pyramid.png"
-                    alt=""
-                    width="160"
-                    height="220"
-                    style={{ objectFit: "contain" } as React.CSSProperties}
-                  />
-                </span>
-                <span className="info">
-                  <strong>Great Pyramid · 139 m</strong>9 chortens stacked
+                <span className="sg-m">15 m</span>
+                <span className="sg-n-row">
+                  <span className="sg-n">1</span>
+                  <span className="sg-denom"> chortens stacked</span>
                 </span>
               </div>
-              <div className="stack-ref" data-unit="22">
-                <span className="tick"></span>
-                <span className="ref-icon" aria-hidden="true">
-                  <img
-                    src="/assets/eiffel-tower.png"
-                    alt=""
-                    width="160"
-                    height="360"
-                    style={
-                      {
-                        objectFit: "contain",
-                        marginLeft: "100px",
-                      } as React.CSSProperties
-                    }
-                  />
-                </span>
-                <span className="info">
-                  <strong>Eiffel Tower · 330 m</strong>22 chortens · the
-                  procession passes Paris
-                </span>
-              </div>
-              <div className="stack-ref" data-unit="55">
-                <span className="tick"></span>
-                <span className="ref-icon" aria-hidden="true">
-                  <img
-                    src="/assets/building.png"
-                    alt=""
-                    width="160"
-                    height="360"
-                    style={{ objectFit: "contain" } as React.CSSProperties}
-                  />
-                </span>
-                <span className="info">
-                  <strong>Burj Khalifa · 828 m</strong>55 chortens · nearly
-                  twice exceeded
-                </span>
-              </div>
-              <div className="stack-ref" data-unit="108">
-                <span className="tick"></span>
-                <span className="ref-icon" aria-hidden="true">
-                  <img
-                    src="/assets/chorten.png"
-                    alt=""
-                    style={
-                      {
-                        objectFit: "contain",
-                        marginBottom: "2.8rem",
-                      } as React.CSSProperties
-                    }
-                  />
-                </span>
-                <span className="info">
-                  <strong>Project 108 · 1.62 km</strong>108 chortens · complete
-                </span>
-              </div>
-              <div className="stack-final">
-                <p className="num">1.62 km</p>
-                <p className="lbl">Combined height</p>
-                <p className="desc">
-                  Nearly twice the Burj Khalifa. Roughly five Eiffel Towers.
-                  More than eleven Great Pyramids — in fifteen-metre offerings.
-                </p>
+              <div className="sg-row">
+                <div className="sg-landmarks" aria-hidden="true">
+                  <div className="sg-landmark" data-id="pyramid">
+                    <div className="sg-ruler">
+                      <span className="sg-ruler__line"></span>
+                      <span className="sg-ruler__label">
+                        <strong>~10 chortens</strong>
+                        <span>138.5 m</span>
+                      </span>
+                    </div>
+                    <img src="/assets/pyramid.png" alt="" />
+                  </div>
+                  <div className="sg-landmark" data-id="eiffel">
+                    <div className="sg-ruler">
+                      <span className="sg-ruler__line"></span>
+                      <span className="sg-ruler__label">
+                        <strong>22 chortens</strong>
+                        <span>330 m</span>
+                      </span>
+                    </div>
+                    <img src="/assets/eiffel-tower.png" alt="" />
+                  </div>
+                  <div className="sg-landmark" data-id="burj">
+                    <div className="sg-ruler">
+                      <span className="sg-ruler__line"></span>
+                      <span className="sg-ruler__label">
+                        <strong>55 chortens</strong>
+                        <span>828 m</span>
+                      </span>
+                    </div>
+                    <img src="/assets/building.png" alt="" />
+                  </div>
+                </div>
+                <div className="sg-col-wrap" aria-hidden="true">
+                  <div className="sg-col-ruler">
+                    <span className="sg-col-ruler__line"></span>
+                    <span className="sg-col-ruler__label">
+                      <strong>108 chortens stacked</strong>
+                      <span>1.62 km</span>
+                    </span>
+                  </div>
+                  <div className="sg-col"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="stack-counter" aria-hidden="true">
-          <p className="h">0 m</p>
-          <p className="l">Stacked height</p>
         </div>
       </section>
     </>

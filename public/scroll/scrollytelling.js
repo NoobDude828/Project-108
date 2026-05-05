@@ -341,68 +341,166 @@
   // Scene 09 — Stacked height (1.62 km)
   registerScene({
     selector: ".scene-stack",
-    label: "Stacked height: 1.62 km",
+    label: "Stacked: 1 → 108 chortens",
     num: "09 / 15",
     act: "IV — The Scale of the Offering",
     update(p) {
-      const col = document.querySelector(".scene-stack .stack-column");
-      const intro = document.querySelector(".scene-stack .stack-intro");
-      const finalEl = document.querySelector(".scene-stack .stack-final");
-      const counter = document.querySelector(".stack-counter");
-      const units = document.querySelectorAll(".scene-stack .stack-unit");
+      const col = document.querySelector(".scene-stack .sg-col-wrap .sg-col");
+      const nEl = document.querySelector(".scene-stack .sg-n");
+      const mEl = document.querySelector(".scene-stack .sg-m");
+      const stage = document.querySelector(".scene-stack .sg-stage");
+      if (!col) return;
 
-      // Light units sequentially
-      const N = units.length;
-      const litCount = Math.floor(clamp((p - 0.03) / 0.85) * N);
-      units.forEach((u, i) => u.classList.toggle("lit", i < litCount));
-
-      // Translate the column upward as it fills, faster as we approach end.
-      // Each unit is ~14px tall; total internal height ≈ N * 15.
-      // We want the *top* of the stack to stay visible — so as the stack
-      // grows, the column translates upward enough to keep the topmost unit
-      // near the top of the viewport.
-      const colTotal = N * 15; // px (matches CSS)
-      const visibleH = window.innerHeight * 0.82;
-      const overshoot = Math.max(0, colTotal - visibleH);
-      const yPx = -overshoot * clamp((p - 0.15) / 0.7);
-      if (col) col.style.setProperty("--y", yPx);
-
-      // Reference markers (Pyramid / Eiffel / Burj) — fixed Y on the column.
-      // Positions correspond to: pyramid 9, eiffel 22, burj 55, top 108
-      const refs = document.querySelectorAll(".scene-stack .stack-ref");
-      // Find the highest unit threshold the stack has crossed
-      const refUnits = Array.from(refs).map(
-        (r) => parseInt(r.dataset.unit, 10) || 0,
+      // Phase map (scene is 2200vh):
+      // 0.00 → 0.65 : stacking 1 → 108              (≈ 1430vh — slow build)
+      // 0.65 → 0.75 : HOLD — 108 done, nothing changes (≈ 220vh — pause)
+      // 0.75 → 0.88 : rulers fade in                 (≈ 286vh — measured reveal)
+      // 0.88 → 1.00 : hold everything shown           (≈ 264vh — linger)
+      const count = Math.max(
+        1,
+        Math.min(108, Math.round(1 + clamp(p / 0.65) * 107)),
       );
-      const activeUnit = refUnits.filter((u) => litCount >= u).pop() || null;
-      refs.forEach((r) => {
-        const u = parseInt(r.dataset.unit, 10) || 0;
-        // Only light the most recently crossed ref
-        r.classList.toggle("lit", u === activeUnit);
-      });
 
-      // Hide the stack column whenever any reference card is visible
-      if (col) {
-        col.style.opacity = activeUnit !== null ? "0" : "";
+      // Rulers fade: 0 at p=0.75, fully in at p=0.88
+      const holdP = clamp((p - 0.75) / 0.13);
+
+      // Column height — computed every tick so landmarks share same unitH
+      const stageH =
+        (col.parentElement &&
+          col.parentElement.parentElement &&
+          col.parentElement.parentElement.offsetHeight) ||
+        window.innerHeight;
+      const maxColH = stageH * 0.88;
+      const idealH = count * 381; // 380px max unit + 1px gap
+      const colH = Math.min(idealH, maxColH);
+      const unitH = Math.max(2, (colH - (count - 1)) / count);
+
+      if (col._sgCount !== count) {
+        const prev = col._sgCount || 0;
+        col._sgCount = count;
+
+        // Update column height
+        col.style.maxHeight = colH + "px";
+
+        if (count > prev) {
+          // Forward: new chortens drop onto the top
+          for (let i = prev; i < count; i++) {
+            const div = document.createElement("div");
+            div.className = "sg-unit sg-unit--new";
+            div.style.height = unitH.toFixed(2) + "px";
+            div.innerHTML = `<img src="/assets/chorten.png" alt="" />`;
+            col.prepend(div);
+            div.addEventListener(
+              "animationend",
+              () => div.classList.remove("sg-unit--new"),
+              { once: true },
+            );
+          }
+        } else {
+          // Reverse: top unit lifts off, rest removed immediately
+          const removeCount = prev - count;
+          Array.from(col.children)
+            .slice(0, removeCount)
+            .forEach((u, idx) => {
+              if (idx === 0) {
+                u.classList.add("sg-unit--remove");
+                u.addEventListener(
+                  "animationend",
+                  () => {
+                    if (u.parentNode) u.parentNode.removeChild(u);
+                  },
+                  { once: true },
+                );
+              } else {
+                if (u.parentNode) u.parentNode.removeChild(u);
+              }
+            });
+        }
+
+        // Resize all remaining units to new height — suppress transition so
+        // the height snap is instant (no competing motion with the drop-in anim)
+        const units = Array.from(col.children);
+        units.forEach((u) => (u.style.transition = "none"));
+        col.offsetHeight; // force reflow
+        units.forEach((u) => {
+          if (!u.classList.contains("sg-unit--remove")) {
+            u.style.height = unitH.toFixed(2) + "px";
+          }
+        });
+        requestAnimationFrame(() =>
+          units.forEach((u) => (u.style.transition = "")),
+        );
       }
 
-      // Live counter
-      if (counter) {
-        counter.style.setProperty("--p", clamp((p - 0.04) / 0.15));
-        const h = counter.querySelector(".h");
-        if (h) {
-          const meters = Math.floor(litCount * 15);
-          if (meters >= 1000) {
-            h.textContent = (meters / 1000).toFixed(2) + " km";
+      // Landmarks — updated every tick
+      // aspect = imageW/imageH (measured from actual PNG files)
+      const SG_LANDMARKS = [
+        { id: "pyramid", trigger: 15, chortens: 10, aspect: 1.377 },
+        { id: "eiffel", trigger: 27, chortens: 22, aspect: 0.686 },
+        { id: "burj", trigger: 60, chortens: 55, aspect: 0.444 },
+      ];
+      // Hide the entire landmarks container until the first landmark is due —
+      // otherwise flex gap takes space and off-centres the chorten column
+      const sgLandmarks = document.querySelector(".scene-stack .sg-landmarks");
+      if (sgLandmarks) {
+        sgLandmarks.style.display = count >= 15 ? "" : "none";
+      }
+      SG_LANDMARKS.forEach(({ id, trigger, chortens, aspect }) => {
+        const el = document.querySelector(
+          `.scene-stack .sg-landmark[data-id="${id}"]`,
+        );
+        if (!el) return;
+        if (count >= trigger) {
+          const h = (chortens * unitH).toFixed(2);
+          const w = (chortens * unitH * aspect).toFixed(2);
+          if (!el._sgVisible) {
+            el._sgVisible = true;
+            el.style.height = h + "px";
+            el.style.width = w + "px";
+            setTimeout(() => {
+              if (el._sgVisible) el.classList.add("sg-landmark--entering");
+            }, 300);
+            el.addEventListener(
+              "animationend",
+              () => {
+                el.classList.remove("sg-landmark--entering");
+              },
+              { once: true },
+            );
           } else {
-            h.textContent = meters + " m";
+            // Live update — no transition, tracks unitH each tick
+            el.style.height = h + "px";
+            el.style.width = w + "px";
+          }
+        } else {
+          if (el._sgVisible) {
+            el._sgVisible = false;
+            el.classList.add("sg-landmark--leaving");
+            el.addEventListener(
+              "animationend",
+              () => {
+                el.classList.remove("sg-landmark--leaving");
+                el.style.width = "0px";
+                el.style.height = "0px";
+              },
+              { once: true },
+            );
           }
         }
-      }
+      });
 
-      // Intro fades out, final reveal fades in
-      if (intro) intro.style.setProperty("--p", clamp(1 - (p - 0.25) / 0.2));
-      if (finalEl) finalEl.style.setProperty("--p", clamp((p - 0.82) / 0.12));
+      // Rulers: fade in during hold phase (p 0.75 → 0.88)
+      document.querySelectorAll(".scene-stack .sg-ruler").forEach((r) => {
+        r.style.opacity = holdP;
+      });
+      const colRuler = document.querySelector(".scene-stack .sg-col-ruler");
+      if (colRuler) colRuler.style.opacity = holdP;
+      if (nEl) nEl.textContent = count;
+      if (mEl) {
+        const meters = count * 15;
+        mEl.textContent =
+          meters >= 1000 ? (meters / 1000).toFixed(2) + " km" : meters + " m";
+      }
     },
   });
 

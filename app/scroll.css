@@ -1432,7 +1432,7 @@ body.scrolled .status .brand {
      cell at viewport centre at high scales and fades to zero at scale 1, so the final
      symmetric layout fits all 6 rows in the stage with no bottom clipping. */
   transform: translate3d(var(--grid-tx, 2.78vw), var(--grid-ty, 6.33vh), 0)
-             scale(var(--grid-scale, 12));
+    scale(var(--grid-scale, 12));
   transform-origin: 47.22% 41.67%;
   backface-visibility: hidden;
 }
@@ -1794,244 +1794,302 @@ body.scrolled .status .brand {
 
 /* ─────────────────────── Scene 09 — 1.62 km stack ─────────────────────── */
 .scene-stack {
-  height: 680vh;
+  height: 2200vh;
 }
 .scene-stack .stage__inner {
   background: linear-gradient(180deg, #0a0307 0%, #1a0710 50%, #3a1424 100%);
   padding: 0;
   align-items: stretch;
 }
-.stack-stage {
+
+/* ── sg-stage layout ── */
+.sg-stage {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-}
-.stack-sky {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(
-      ellipse at 80% 0%,
-      rgba(200, 166, 99, 0.06) 0%,
-      transparent 60%
-    ),
-    linear-gradient(180deg, #0a0307 0%, #1a0710 60%, #3a1424 100%);
-}
-.stack-stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.stack-star {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  box-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
-}
-
-/* The vertical stack column — translates upward as scroll progresses */
-.stack-column {
-  position: absolute;
-  left: 30%;
-  bottom: 6%;
-  width: 120px;
-  --y: 0;
-  transform: translateY(calc(var(--y) * 1px));
-  will-change: transform;
-}
-.stack-unit {
-  width: 100%;
-  margin: 0 auto 1px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.stack-unit.lit {
-  opacity: 1;
-}
-.stack-unit svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Reference markers (Pyramid, Eiffel, Burj) — also part of the moving column */
-@keyframes stack-ref-enter {
-  from {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% + 40px));
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-.stack-ref {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, calc(-50% + 40px));
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-  font-family: var(--font-utility);
-  color: rgba(242, 233, 216, 0.6);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  white-space: nowrap;
 }
-.stack-ref.lit {
-  animation: stack-ref-enter 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.sg-tally {
+  position: absolute;
+  top: 3rem;
+  left: 6%;
+  z-index: 3;
+  text-align: left;
 }
-.stack-ref[data-unit="9"] {
-  gap: 0rem;
+.sg-tally .kicker {
+  margin-bottom: 0.5rem;
 }
-.stack-ref .tick {
-  display: none;
-}
-.stack-ref .ref-icon {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 240px;
-  height: 380px;
-  flex-shrink: 0;
-}
-.stack-ref .ref-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.stack-ref[data-unit="108"] .ref-icon {
-  width: 220px;
-  height: 300px;
-}
-.stack-ref[data-unit="108"] .ref-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.stack-ref .info {
-  font-size: 0.7rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  text-align: center;
-}
-.stack-ref .info strong {
+.sg-m {
   display: block;
   font-family: var(--font-display);
   font-style: italic;
-  font-weight: 400;
-  color: var(--gold-bright);
-  font-size: 1.3rem;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  margin-bottom: 0.6rem;
-}
-
-/* Persistent counter top-right */
-.stack-counter {
-  position: fixed;
-  top: 6.5rem;
-  right: 1.5rem;
-  z-index: 5;
-  text-align: right;
-  pointer-events: none;
-  --p: 0;
-  opacity: var(--p);
-  transition: opacity 0.3s ease;
-}
-.stack-counter .h {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.4rem);
-  color: var(--gold-bright);
   font-weight: 300;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  color: var(--gold-bright);
   line-height: 1;
   font-feature-settings: "onum";
 }
-.stack-counter .l {
+.sg-n-row {
+  display: block;
   font-family: var(--font-utility);
-  font-size: 0.6rem;
-  letter-spacing: 0.3em;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(242, 233, 216, 0.55);
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
 }
-
-.stack-intro {
-  position: absolute;
-  top: 8%;
-  left: 6%;
-  z-index: 3;
-  --p: 1;
-  opacity: var(--p);
-  transition: opacity 0.35s ease;
-  width: min(90%, 30rem);
-}
-.stack-intro .kicker {
-  margin-bottom: 1rem;
-}
-.stack-intro h2 {
+.sg-n {
   font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  color: var(--cream);
   font-style: italic;
-  line-height: 1.2;
-  margin: 0;
-}
-.stack-intro h2 em {
-  color: var(--gold-bright);
-}
-
-/* Hide stack-final once the user has scrolled past the stack scene */
-.scene.is-past .stack-final,
-.scene.is-past .stack-counter {
-  opacity: 0 !important;
-  visibility: hidden;
+  font-size: 1.1rem;
+  color: var(--cream);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
-.stack-final {
+/* ── row holds landmarks + chorten column ── */
+.sg-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5rem;
+  padding-bottom: 4rem;
+  overflow: visible;
+}
+
+/* ── landmark images ── */
+.sg-landmarks {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8.5rem;
+  flex-shrink: 0;
+}
+.sg-landmark {
+  overflow: visible;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  position: relative;
+}
+.sg-landmark img {
+  object-fit: fill;
+  width: 100%;
+  height: 100%;
+}
+@keyframes sg-landmark-grow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sg-landmark-shrink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.sg-landmark--entering {
+  animation: sg-landmark-grow 0.8s ease forwards;
+}
+.sg-landmark--leaving {
+  animation: sg-landmark-shrink 0.35s ease forwards;
+}
+
+/* Landmark rulers (left side of each landmark image) */
+.sg-ruler {
   position: absolute;
-  top: 70%;
-  right: 2%;
-  transform: translateY(-30%);
+  left: -1.6rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+.sg-ruler__line {
+  width: 2px;
+  background: rgba(200, 166, 99, 0.6);
+  flex-shrink: 0;
+  position: relative;
+  align-self: stretch;
+}
+.sg-ruler__line::before,
+.sg-ruler__line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 8px;
+  height: 2px;
+  background: rgba(200, 166, 99, 0.9);
+}
+.sg-ruler__line::before {
+  top: 0;
+}
+.sg-ruler__line::after {
+  bottom: 0;
+}
+.sg-ruler__label {
+  order: -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  white-space: nowrap;
   text-align: right;
-  z-index: 3;
-  --p: 0;
-  opacity: var(--p);
-  transition: opacity 0.5s ease;
 }
-.stack-final .num {
+.sg-ruler__label strong {
   font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(4rem, 9vw, 7rem);
-  color: var(--gold);
-  line-height: 0.9;
-  font-feature-settings: "onum";
-  margin: 0;
-  letter-spacing: -0.02em;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: var(--gold-bright);
+  line-height: 1.2;
+  display: block;
 }
-.stack-final .lbl {
+.sg-ruler__label span {
   font-family: var(--font-utility);
   font-size: 0.7rem;
-  letter-spacing: 0.36em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(242, 233, 216, 0.55);
-  margin-top: 0.8rem;
+  color: rgba(242, 233, 216, 0.6);
+  display: block;
 }
-.stack-final .desc {
+
+/* ── chorten column wrapper ── */
+.sg-col-wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+/* Column ruler — left side of chorten stack */
+.sg-col-ruler {
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+.sg-col-ruler__line {
+  width: 2px;
+  background: rgba(200, 166, 99, 0.6);
+  flex-shrink: 0;
+  position: relative;
+  align-self: stretch;
+}
+.sg-col-ruler__line::before,
+.sg-col-ruler__line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 8px;
+  height: 2px;
+  background: rgba(200, 166, 99, 0.9);
+}
+.sg-col-ruler__line::before {
+  top: 0;
+}
+.sg-col-ruler__line::after {
+  bottom: 0;
+}
+.sg-col-ruler__label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  text-align: right;
+  order: -1;
+}
+.sg-col-ruler__label strong {
   font-family: var(--font-display);
   font-style: italic;
-  color: var(--cream);
-  margin-top: 1.6rem;
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-  max-width: 28ch;
-  line-height: 2;
+  font-weight: 400;
+  font-size: 0.95rem;
+  color: var(--gold-bright);
+  line-height: 1.2;
+  display: block;
+}
+.sg-col-ruler__label span {
+  font-family: var(--font-utility);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(242, 233, 216, 0.6);
+  display: block;
+}
+
+/* ── chorten column ── */
+.sg-col {
+  width: min(140px, 18vw);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  gap: 1px;
+  max-height: 0;
+  transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sg-unit {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.35s ease;
+}
+.sg-unit img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+@keyframes sg-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-28px) scaleY(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sg-lift-off {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-32px) scaleY(0.85);
+  }
+}
+.sg-unit--new {
+  animation: sg-drop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.sg-unit--remove {
+  animation: sg-lift-off 0.3s ease forwards;
 }
 
 /* ─────────────────────── Scene 10 — Time of construction ─────────────────────── */
@@ -3195,7 +3253,7 @@ body.scrolled .status .brand {
        scale 18 to land at stage centre (50vh) on the 68vh mobile stage. JS fades
        it to 0 at scale 1 so all 12 rows fit without bottom clipping. */
     transform: translate3d(0, var(--grid-ty, 2.84vh), 0)
-               scale(var(--grid-scale, 18));
+      scale(var(--grid-scale, 18));
     transform-origin: 50% 45.83%;
   }
   .stack-column {
