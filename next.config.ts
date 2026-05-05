@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// Read from env so dev can disable the prefix (see .env.development) while production keeps /108.
+const envBasePath = process.env.BASE_PATH;
+const basePath = envBasePath !== undefined ? envBasePath : "/108";
+
 const nextConfig: NextConfig = {
-  basePath: "/108",
+  ...(basePath ? { basePath } : {}),
   turbopack: {
     root: __dirname,
   },
