@@ -3981,3 +3981,148 @@ body.scrolled .status .brand {
     font-size: 1rem;
   }
 }
+
+/* ─────────────────────── Scene 09 — SceneStack mobile ─────────────────────── */
+@media (max-width: 760px) {
+  .scene-stack .sg-stage {
+    padding-top: 0;
+  }
+
+  /* Chorten column: absolutely pinned, right position driven by JS each frame */
+  .sg-col-wrap {
+    position: absolute;
+    bottom: 3rem;
+    right: 4%; /* overridden by JS inline style on mobile */
+  }
+  .sg-col {
+    width: min(90px, 20vw);
+  }
+
+  /* Hide col-ruler on mobile — tally already shows “108 chortens stacked” */
+  .sg-col-ruler {
+    display: none;
+  }
+
+  /* Row: landmarks pushed right to sit directly beside the pinned column */
+  .sg-row {
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 0 calc(min(90px, 20vw) + 0.6rem) 3rem 4%;
+    gap: 0.6rem;
+    overflow: visible;
+  }
+  .sg-landmarks {
+    gap: 0.4rem;
+    flex-shrink: 1;
+  }
+
+  /* Tally */
+  .sg-tally {
+    top: 2rem;
+    left: 5%;
+  }
+  .sg-tally .kicker {
+    font-size: 0.58rem;
+    margin-bottom: 0.4rem;
+  }
+  .sg-m {
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
+  }
+  .sg-n-row {
+    font-size: 0.56rem;
+  }
+
+  /* Slide-up entrance on mobile — overrides the desktop fade-only keyframe */
+  @keyframes sg-landmark-grow-mobile {
+    from {
+      opacity: 0;
+      transform: translateY(60px) scaleY(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleY(1);
+    }
+  }
+  .sg-landmark--entering {
+    animation: sg-landmark-grow-mobile 1.1s cubic-bezier(0.16, 1, 0.3, 1)
+      forwards;
+    transform-origin: bottom center;
+  }
+  /* Stagger: each landmark enters slightly after the previous */
+  .sg-landmark:nth-child(1).sg-landmark--entering {
+    animation-delay: 0ms;
+  }
+  .sg-landmark:nth-child(2).sg-landmark--entering {
+    animation-delay: 120ms;
+  }
+  .sg-landmark:nth-child(3).sg-landmark--entering {
+    animation-delay: 240ms;
+  }
+
+  /* Ruler: float above the landmark, centred — stays inside the stage */
+  .sg-ruler {
+    left: 50%;
+    top: auto;
+    bottom: 100%;
+    width: max-content;
+    height: auto;
+    transform: translateX(-50%);
+    flex-direction: column; /* label on top, line below pointing down */
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0 0 0.3rem;
+  }
+  .sg-ruler__line {
+    width: 2px;
+    height: 0.8rem;
+    align-self: center;
+  }
+  .sg-ruler__line::before,
+  .sg-ruler__line::after {
+    display: none;
+  }
+  .sg-ruler__label {
+    order: -1;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .sg-ruler__label strong {
+    font-size: 0.56rem;
+  }
+  .sg-ruler__label span {
+    display: none;
+  }
+}
+
+/* ─────────────────────── Scene 12 — Volunteers mobile ─────────────────────── */
+@media (max-width: 760px) {
+  .vol-copy {
+    top: 8%;
+    left: 4%;
+    width: min(92%, 28rem);
+  }
+  .vol-copy .kicker {
+    font-size: 0.58rem;
+    margin-bottom: 1rem;
+  }
+  .vol-copy h2 {
+    font-size: clamp(1.4rem, 5.5vw, 2rem);
+  }
+  .vol-copy p {
+    font-size: 0.88rem;
+    max-width: 100%;
+    margin-top: 0.8rem;
+  }
+  .vol-counter {
+    bottom: 8%;
+    right: 4%;
+  }
+  .vol-counter .num {
+    font-size: clamp(2.2rem, 10vw, 3.5rem);
+  }
+  .vol-counter .denom {
+    font-size: 0.55rem;
+    letter-spacing: 0.24em;
+    margin-top: 0.5rem;
+  }
+}
