@@ -591,8 +591,8 @@
         denomEl.innerHTML = `volunteers · <strong>40,000</strong> across <strong>108</strong> sites`;
 
       // Init: size canvas, load SVG image, pre-compute positions
-      if (!canvas._volInit || canvas._volInit !== 14) {
-        canvas._volInit = 14;
+      if (!canvas._volInit || canvas._volInit !== 17) {
+        canvas._volInit = 17;
         canvas._rendered = 0;
         const ctx2 = canvas.getContext("2d");
         if (ctx2) ctx2.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
@@ -604,31 +604,34 @@
         canvas.height = H;
 
         const isMobile = W < 600;
-        const HAND_W = isMobile ? 38 : 56;
+        const HAND_W = isMobile ? 36 : 56;
         const HAND_H = Math.round(HAND_W * (685.18 / 1028.19));
 
-        // Text zone boundaries — adjusted per viewport
-        // On mobile: vol-copy is top:8%, left:4%, width≈92% → covers nearly full width
+        // Text zone boundaries
+        // Mobile: vol-copy is top:8%, left:4%, width≈92%
+        //   — text (kicker+h2+paragraph) ends at roughly 50% height on a phone
+        // Desktop: copy block is top-left ~30% width, ~62% height
         const copyX1 = 0;
         const copyY1 = 0;
-        const copyX2 = isMobile ? W * 0.96 : W * 0.3;
-        const copyY2 = isMobile ? H * 0.72 : H * 0.62;
-        // Counter core (the actual number text box)
-        const ctrCoreX1 = isMobile ? W * 0.28 : W * 0.72;
-        const ctrCoreY1 = isMobile ? H * 0.83 : H * 0.78;
+        const copyX2 = isMobile ? W * 0.85 : W * 0.3;
+        const copyY2 = isMobile ? H * 0.38 : H * 0.62;
+        // Counter core — the actual number text (bottom-right)
+        // Mobile: counter is bottom:8%, right:4%; num is ~10vw font
+        const ctrCoreX1 = isMobile ? W * 0.22 : W * 0.72;
+        const ctrCoreY1 = isMobile ? H * 0.84 : H * 0.78;
         const ctrX2 = W;
         const ctrY2 = H;
-        // Fringe zone around counter
-        const ctrFringeX1 = isMobile ? W * 0.1 : W * 0.42;
-        const ctrFringeY1 = isMobile ? H * 0.73 : H * 0.66;
+        // Fringe zone around counter (allow a small cluster)
+        const ctrFringeX1 = isMobile ? W * 0.05 : W * 0.42;
+        const ctrFringeY1 = isMobile ? H * 0.76 : H * 0.66;
 
-        // Allow max 2 hands in copy zone, 14 in counter fringe, 0 in core
+        // Allow max 8 hands in copy zone on mobile (sparse overlay looks good), 2 on desktop
         let copyCount = 0,
           ctrFringeCount = 0;
 
         function isBlocked(cx, cy) {
           if (cx > copyX1 && cx < copyX2 && cy > copyY1 && cy < copyY2) {
-            if (copyCount >= 2) return true;
+            if (copyCount >= (isMobile ? 8 : 2)) return true;
             copyCount++;
           }
           // Hard block: the actual counter text box
