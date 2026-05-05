@@ -4,11 +4,7 @@ export default function SceneVolunteers() {
       <div className="stage">
         <div className="stage__inner">
           <div className="vol-stage">
-            <svg
-              className="vol-svg"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            ></svg>
+            <canvas className="vol-canvas" aria-hidden="true"></canvas>
             <div className="vol-copy">
               <p className="kicker">Zhābto · voluntary communal work</p>
               <h2>

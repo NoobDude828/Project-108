@@ -2426,68 +2426,18 @@ body.scrolled .status .brand {
   height: 100%;
   overflow: hidden;
 }
-.vol-svg {
+.vol-canvas {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
-}
-.vol-site {
-  fill: rgba(200, 166, 99, 0.18);
-  transition: fill 0.4s ease;
-}
-.vol-site.active {
-  fill: var(--gold-bright);
-  filter: drop-shadow(0 0 8px rgba(200, 166, 99, 0.6));
-}
-.vol-flow {
-  fill: none;
-  stroke: var(--gold-bright);
-  stroke-width: 0.8;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    opacity 0.6s ease,
-    r 0.6s ease;
-}
-.vol-flow.active {
-  opacity: 0.45;
-  animation: volPulse 3s ease-out infinite;
-}
-@keyframes volPulse {
-  0% {
-    r: 6;
-    opacity: 0.55;
-  }
-  100% {
-    r: 36;
-    opacity: 0;
-  }
-}
-.vol-particle {
-  fill: var(--gold-warm);
-  opacity: 0;
-}
-.vol-particle.active {
-  opacity: 0.9;
-  animation: flowParticle 4s linear infinite;
-}
-@keyframes flowParticle {
-  from {
-    offset-distance: 0%;
-  }
-  to {
-    offset-distance: 100%;
-  }
+  z-index: 1;
 }
 
 .vol-copy {
   position: absolute;
   top: 10%;
   left: 6%;
-  z-index: 3;
+  z-index: 4;
   width: min(90%, 28rem);
 }
 .vol-copy h2 {
@@ -2515,7 +2465,7 @@ body.scrolled .status .brand {
   position: absolute;
   bottom: 6%;
   right: 6%;
-  z-index: 3;
+  z-index: 4;
   text-align: right;
 }
 .vol-counter .num {

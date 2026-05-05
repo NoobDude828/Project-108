@@ -538,47 +538,222 @@
     },
   });
 
-  // Scene 12 — 40,000 volunteers activate 108 sites
+  // Scene 12 — 40,000 volunteers
   registerScene({
     selector: ".scene-volunteers",
     label: "Forty thousand · one hundred and eight",
     num: "12 / 15",
     act: "V — The Human Achievement",
     update(p) {
-      const sites = document.querySelectorAll(".vol-site");
-      const flows = document.querySelectorAll(".vol-flow");
-      const N = sites.length;
-      const litCount = Math.floor(clamp((p - 0.05) / 0.85) * N);
-      sites.forEach((s, i) => {
-        // Activate clusters: 1, then 5, then 20, then 60, then all
-        s.classList.toggle("active", i < litCount);
-      });
-      const fLit = Math.floor(clamp((p - 0.15) / 0.65) * flows.length);
-      flows.forEach((f, i) => f.classList.toggle("active", i < fLit));
+      const canvas = document.querySelector(".scene-volunteers .vol-canvas");
+      if (!canvas) return;
+
+      const TARGET = 40000;
+      const HAND_COUNT = 650;
+      const t = clamp((p - 0.05) / 0.9);
+      const count = Math.round(t * TARGET);
+      // handsToShow scales with t so the last hand appears exactly at 40,000
+      const poolSize = canvas._positions
+        ? canvas._positions.length
+        : HAND_COUNT;
+      const handsToShow = count >= TARGET ? poolSize : Math.floor(t * poolSize);
 
       // Counter
       const counterNum = document.querySelector(".vol-counter .num");
-      if (counterNum) {
-        const peopleTarget = 40000;
-        const sitesActive = Math.min(N, litCount);
-        // Show people OR sites depending on phase
-        if (p < 0.55) {
-          counterNum.textContent = sitesActive;
-          counterNum.dataset.label = "sites lit";
-        } else {
-          // Tween up to 40,000 in the second half
-          const t = clamp((p - 0.55) / 0.4);
-          const v = Math.floor(easeOut(t) * peopleTarget);
-          counterNum.textContent = v.toLocaleString();
-        }
-      }
       const denomEl = document.querySelector(".vol-counter .denom");
-      if (denomEl) {
-        denomEl.innerHTML =
-          p < 0.55
-            ? `<strong>108</strong> sites · across the corridor`
-            : `volunteers · <strong>40,000</strong> across <strong>108</strong> sites`;
+      if (counterNum) counterNum.textContent = count.toLocaleString();
+      if (denomEl)
+        denomEl.innerHTML = `volunteers · <strong>40,000</strong> across <strong>108</strong> sites`;
+
+      // Init: size canvas, load SVG image, pre-compute positions
+      if (!canvas._volInit || canvas._volInit !== 13) {
+        canvas._volInit = 13;
+        canvas._rendered = 0;
+        const ctx2 = canvas.getContext("2d");
+        if (ctx2) ctx2.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
+
+        const stage = canvas.parentElement;
+        const W = stage.offsetWidth;
+        const H = stage.offsetHeight;
+        canvas.width = W;
+        canvas.height = H;
+
+        const HAND_W = 56;
+        const HAND_H = Math.round(HAND_W * (685.18 / 1028.19));
+
+        // Text zone boundaries — generous padding so hands don't sit on text
+        // top-left: kicker + h2 + paragraph block
+        const copyX1 = 0;
+        const copyY1 = 0;
+        const copyX2 = W * 0.3;
+        const copyY2 = H * 0.62;
+        // bottom-right: counter — tight core stays clear, fringe allows a cluster
+        const ctrCoreX1 = W * 0.72;
+        const ctrCoreY1 = H * 0.78;
+        const ctrX2 = W;
+        const ctrY2 = H;
+        // wider fringe: extends well left of the counter number
+        const ctrFringeX1 = W * 0.42;
+        const ctrFringeY1 = H * 0.66;
+
+        // Allow max 2 hands in copy zone, 14 in counter fringe, 0 in core
+        let copyCount = 0,
+          ctrFringeCount = 0;
+
+        function isBlocked(cx, cy) {
+          if (cx > copyX1 && cx < copyX2 && cy > copyY1 && cy < copyY2) {
+            if (copyCount >= 2) return true;
+            copyCount++;
+          }
+          // Hard block: the actual counter text box
+          if (cx > ctrCoreX1 && cx < ctrX2 && cy > ctrCoreY1 && cy < ctrY2)
+            return true;
+          // Pocket zone: small gap just left of counter (circled region)
+          const pocketX1 = W * 0.48,
+            pocketX2 = W * 0.68;
+          const pocketY1 = H * 0.63,
+            pocketY2 = H * 0.85;
+          // we allow it — just don't block it, so hands fall here naturally
+          // Soft cluster zone to the left of the counter (excluding the pocket)
+          if (
+            cx > ctrFringeX1 &&
+            cx < ctrCoreX1 &&
+            cy > ctrFringeY1 &&
+            cy < ctrY2
+          ) {
+            // the pocket is free; only gate the rest of the fringe
+            const inPocket =
+              cx > pocketX1 && cx < pocketX2 && cy > pocketY1 && cy < pocketY2;
+            if (!inPocket) {
+              if (ctrFringeCount >= 14) return true;
+              ctrFringeCount++;
+            }
+          }
+          return false;
+        }
+
+        // Seeded PRNG
+        let seed = 0xdeadbeef;
+        function rand() {
+          seed |= 0;
+          seed = (seed + 0x6d2b79f5) | 0;
+          let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        }
+
+        const positions = [];
+        const baseMinDist = HAND_W * 1.25;
+        let attempts = 0;
+
+        while (positions.length < HAND_COUNT && attempts < HAND_COUNT * 120) {
+          attempts++;
+          const x = rand() * (W - HAND_W);
+          const y = rand() * (H - HAND_H);
+          const cx = x + HAND_W / 2;
+          const cy = y + HAND_H / 2;
+
+          if (isBlocked(cx, cy)) continue;
+
+          // Variable spacing: tighter in the open right half, slightly looser overall
+          const densityFactor = cx > W * 0.5 ? 0.9 : 1.15;
+          const minD = baseMinDist * densityFactor;
+          const minD2 = minD * minD;
+
+          let tooClose = false;
+          for (let k = 0; k < positions.length; k++) {
+            const dx = positions[k].x - x;
+            const dy = positions[k].y - y;
+            if (dx * dx + dy * dy < minD2) {
+              tooClose = true;
+              break;
+            }
+          }
+          if (tooClose) continue;
+
+          // Opacity: fade near text zones so the edge feels soft, not cut
+          let alpha = 0.5 + rand() * 0.42;
+          const edgeCopy = Math.max(
+            0,
+            Math.min(1, (copyX2 - cx) / (HAND_W * 2)),
+          );
+          const edgeCtr = Math.max(
+            0,
+            Math.min(1, (cx - ctrFringeX1) / (HAND_W * 2)),
+          );
+          const edgeTop = Math.max(
+            0,
+            Math.min(1, (copyY2 - cy) / (HAND_H * 2)),
+          );
+          alpha *= 1 - edgeCopy * edgeTop * 0.5;
+          alpha *= 1 - edgeCtr * 0.3;
+
+          // Scale: slightly larger in centre of screen for depth illusion
+          const distFromCentre =
+            Math.hypot(cx - W / 2, cy - H / 2) / Math.hypot(W / 2, H / 2);
+          const scale = 0.6 + (1 - distFromCentre * 0.4) * 0.7 * rand();
+
+          const rot = (rand() - 0.5) * 56;
+
+          positions.push({
+            x,
+            y,
+            rot,
+            scale,
+            alpha: Math.max(0.35, Math.min(0.92, alpha)),
+          });
+        }
+
+        canvas._positions = positions;
+        canvas._handW = HAND_W;
+        canvas._handH = HAND_H;
+
+        const img = new Image();
+        img.onload = () => {
+          canvas._img = img;
+        };
+        img.src = "/assets/2Hand.svg";
       }
+
+      if (!canvas._img || !canvas._positions) return;
+
+      const rendered = canvas._rendered;
+      if (handsToShow === rendered) return;
+
+      const ctx = canvas.getContext("2d");
+      const positions = canvas._positions;
+      const W = canvas.width;
+      const H = canvas.height;
+      const hw = canvas._handW;
+      const hh = canvas._handH;
+
+      function drawHand(ctx, img, pos, hw, hh) {
+        const { x, y, rot, scale, alpha } = pos;
+        const w = hw * scale;
+        const h = hh * scale;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x + w / 2, y + h / 2);
+        ctx.rotate((rot * Math.PI) / 180);
+        // Soft golden glow underneath
+        ctx.shadowColor = "rgba(200, 166, 99, 0.35)";
+        ctx.shadowBlur = 8 * scale;
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+
+      if (handsToShow > rendered) {
+        const end = Math.min(handsToShow, positions.length);
+        for (let j = rendered; j < end; j++)
+          drawHand(ctx, canvas._img, positions[j], hw, hh);
+      } else {
+        ctx.clearRect(0, 0, W, H);
+        const end = Math.min(handsToShow, positions.length);
+        for (let j = 0; j < end; j++)
+          drawHand(ctx, canvas._img, positions[j], hw, hh);
+      }
+      canvas._rendered = handsToShow;
     },
   });
 
