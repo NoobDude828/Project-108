@@ -361,6 +361,29 @@
         Math.min(108, Math.round(1 + clamp(p / 0.65) * 107)),
       );
 
+      const isMobile = window.innerWidth < 600;
+      const mobileUnlock = 100;
+
+      // Mobile: column stays at centre (x = stageW/2 - colW/2) until count
+      // approaches mobileUnlock, then slides to its final right position.
+      if (isMobile) {
+        const colWrap = document.querySelector(".scene-stack .sg-col-wrap");
+        if (colWrap) {
+          const stageW =
+            (colWrap.parentElement && colWrap.parentElement.offsetWidth) ||
+            window.innerWidth;
+          const colW = colWrap.offsetWidth || 80;
+          // Final resting position: right:3% expressed as a pixel right value
+          const rightFinal = stageW * 0.03;
+          const rightCenter = (stageW - colW) / 2;
+          // Move only in last 6 counts (94-100)
+          const lp = Math.min(1, Math.max(0, (count - (mobileUnlock - 6)) / 6));
+          const ease = lp < 1 ? 1 - Math.pow(1 - lp, 3) : 1; // cubic ease-out
+          colWrap.style.right =
+            (rightCenter + (rightFinal - rightCenter) * ease).toFixed(1) + "px";
+        }
+      }
+
       // Rulers fade: 0 at p=0.75, fully in at p=0.88
       const holdP = clamp((p - 0.75) / 0.13);
 
@@ -370,7 +393,7 @@
           col.parentElement.parentElement &&
           col.parentElement.parentElement.offsetHeight) ||
         window.innerHeight;
-      const maxColH = stageH * 0.88;
+      const maxColH = stageH * (window.innerWidth < 600 ? 0.72 : 0.88);
       const idealH = count * 381; // 380px max unit + 1px gap
       const colH = Math.min(idealH, maxColH);
       const unitH = Math.max(2, (colH - (count - 1)) / count);
@@ -438,18 +461,20 @@
         { id: "eiffel", trigger: 27, chortens: 22, aspect: 0.686 },
         { id: "burj", trigger: 60, chortens: 55, aspect: 0.444 },
       ];
-      // Hide the entire landmarks container until the first landmark is due —
-      // otherwise flex gap takes space and off-centres the chorten column
+      // isMobile and mobileUnlock already declared above
       const sgLandmarks = document.querySelector(".scene-stack .sg-landmarks");
+      const showThreshold = isMobile ? mobileUnlock : 15;
       if (sgLandmarks) {
-        sgLandmarks.style.display = count >= 15 ? "" : "none";
+        sgLandmarks.style.display = count >= showThreshold ? "" : "none";
       }
       SG_LANDMARKS.forEach(({ id, trigger, chortens, aspect }) => {
         const el = document.querySelector(
           `.scene-stack .sg-landmark[data-id="${id}"]`,
         );
         if (!el) return;
-        if (count >= trigger) {
+        // On mobile, use mobileUnlock as the trigger for all landmarks
+        const effectiveTrigger = isMobile ? mobileUnlock : trigger;
+        if (count >= effectiveTrigger) {
           const h = (chortens * unitH).toFixed(2);
           const w = (chortens * unitH * aspect).toFixed(2);
           if (!el._sgVisible) {
@@ -458,7 +483,7 @@
             el.style.width = w + "px";
             setTimeout(() => {
               if (el._sgVisible) el.classList.add("sg-landmark--entering");
-            }, 300);
+            }, 0);
             el.addEventListener(
               "animationend",
               () => {
@@ -467,7 +492,7 @@
               { once: true },
             );
           } else {
-            // Live update — no transition, tracks unitH each tick
+            // Live update — tracks unitH each tick
             el.style.height = h + "px";
             el.style.width = w + "px";
           }
@@ -566,8 +591,8 @@
         denomEl.innerHTML = `volunteers · <strong>40,000</strong> across <strong>108</strong> sites`;
 
       // Init: size canvas, load SVG image, pre-compute positions
-      if (!canvas._volInit || canvas._volInit !== 13) {
-        canvas._volInit = 13;
+      if (!canvas._volInit || canvas._volInit !== 14) {
+        canvas._volInit = 14;
         canvas._rendered = 0;
         const ctx2 = canvas.getContext("2d");
         if (ctx2) ctx2.clearRect(0, 0, canvas.width || 1, canvas.height || 1);
@@ -578,23 +603,24 @@
         canvas.width = W;
         canvas.height = H;
 
-        const HAND_W = 56;
+        const isMobile = W < 600;
+        const HAND_W = isMobile ? 38 : 56;
         const HAND_H = Math.round(HAND_W * (685.18 / 1028.19));
 
-        // Text zone boundaries — generous padding so hands don't sit on text
-        // top-left: kicker + h2 + paragraph block
+        // Text zone boundaries — adjusted per viewport
+        // On mobile: vol-copy is top:8%, left:4%, width≈92% → covers nearly full width
         const copyX1 = 0;
         const copyY1 = 0;
-        const copyX2 = W * 0.3;
-        const copyY2 = H * 0.62;
-        // bottom-right: counter — tight core stays clear, fringe allows a cluster
-        const ctrCoreX1 = W * 0.72;
-        const ctrCoreY1 = H * 0.78;
+        const copyX2 = isMobile ? W * 0.96 : W * 0.3;
+        const copyY2 = isMobile ? H * 0.72 : H * 0.62;
+        // Counter core (the actual number text box)
+        const ctrCoreX1 = isMobile ? W * 0.28 : W * 0.72;
+        const ctrCoreY1 = isMobile ? H * 0.83 : H * 0.78;
         const ctrX2 = W;
         const ctrY2 = H;
-        // wider fringe: extends well left of the counter number
-        const ctrFringeX1 = W * 0.42;
-        const ctrFringeY1 = H * 0.66;
+        // Fringe zone around counter
+        const ctrFringeX1 = isMobile ? W * 0.1 : W * 0.42;
+        const ctrFringeY1 = isMobile ? H * 0.73 : H * 0.66;
 
         // Allow max 2 hands in copy zone, 14 in counter fringe, 0 in core
         let copyCount = 0,
@@ -608,7 +634,7 @@
           // Hard block: the actual counter text box
           if (cx > ctrCoreX1 && cx < ctrX2 && cy > ctrCoreY1 && cy < ctrY2)
             return true;
-          // Pocket zone: small gap just left of counter (circled region)
+          // Pocket zone: small gap just left of counter (desktop only)
           const pocketX1 = W * 0.48,
             pocketX2 = W * 0.68;
           const pocketY1 = H * 0.63,
@@ -643,7 +669,7 @@
         }
 
         const positions = [];
-        const baseMinDist = HAND_W * 1.25;
+        const baseMinDist = HAND_W * (isMobile ? 1.15 : 1.25);
         let attempts = 0;
 
         while (positions.length < HAND_COUNT && attempts < HAND_COUNT * 120) {
