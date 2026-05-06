@@ -4316,19 +4316,13 @@ body.scrolled .status .brand {
     padding-top: 0;
   }
 
-  /* Assets row: tight gap on mobile */
-  .sg-assets {
-    gap: 16px;
-  }
-  /* Stack sits closer to the burj on mobile */
-  .sg-asset[data-id="stack"] {
-    margin-left: -40px;
-  }
+  /* Assets row: JS uses display:block — gap is controlled via JS GAP_PX */
+  /* (no CSS gap override needed) */
 
-  /* Row: overflow hidden; JS controls the full X position via translateX */
+  /* Row: overflow hidden clips off-screen panned assets; JS controls X position */
   .sg-row {
     justify-content: flex-start;
-    padding: 0 0 38% 0;
+    padding: 0 0 55% 0;
     overflow: hidden;
   }
 

@@ -393,7 +393,7 @@
       ];
 
       const TOTAL_M = 1620;
-      const GAP_PX = isMobile ? 10 : 120;
+      const GAP_PX = isMobile ? 16 : 120;
       const TOTAL_GAPS = GAP_PX * (ASSETS.length - 1);
 
       // Scale factor: pick the tighter of height-based or width-based constraints
@@ -401,11 +401,11 @@
       const totalWidthM = ASSETS.reduce((s, a) => s + a.meters * a.aspect, 0);
       const pxPerM_h = (stageH * (isMobile ? 0.72 : 0.84)) / TOTAL_M;
       const pxPerM_w =
-        (stageW * (isMobile ? 0.85 : 0.82) - TOTAL_GAPS) / totalWidthM;
+        (stageW * (isMobile ? 0.9 : 0.82) - TOTAL_GAPS) / totalWidthM;
       const pxPerM = Math.min(pxPerM_h, pxPerM_w);
 
       // Landmark assets enter tall then shrink; stack grows from tiny.
-      const ENTER_H = stageH * (isMobile ? 0.55 : 0.7);
+      const ENTER_H = stageH * (isMobile ? 0.5 : 0.7);
 
       // Rulers fade in during the "scroll-stop" hold phase (p 0.63 → 0.82)
       const RULER_P = clamp((p - 0.63) / 0.19);
@@ -428,33 +428,58 @@
       // JS owns the full X position so CSS padding doesn't conflict.
       // On mobile: start offset centres the first asset on screen; end offset
       // centres the whole group. On desktop: simple left-to-right pan.
+      // Pre-compute stable final positions once per frame (constant given pxPerM).
+      // Using these instead of live DOM measurements means the layout never shifts
+      // when a new asset enters at its large ENTER_H size.
+      let accumX = 0;
+      const finalPos = {};
+      ASSETS.forEach((a) => {
+        const fh = a.meters * pxPerM;
+        finalPos[a.id] = { x: accumX, w: fh * a.aspect, h: fh };
+        accumX += fh * a.aspect + GAP_PX;
+      });
+      const finalContW = accumX - GAP_PX;
+
+      // On mobile: nudge the first 3 assets rightward so the gap between
+      // burj and stack closes. Stack stays at its computed position.
+      if (isMobile) {
+        const nudge = stageW * 0.1;
+        ["pyramid", "eiffel", "burj"].forEach((id) => {
+          finalPos[id].x += nudge;
+        });
+      }
+
       const assetsEl = document.querySelector(".scene-stack .sg-assets");
       if (assetsEl) {
-        let panFrac;
-        if (p < 0.1) panFrac = 0;
-        else if (p < 0.21) panFrac = clamp((p - 0.1) / 0.11) * 0.333;
-        else if (p < 0.335) panFrac = 0.333 + clamp((p - 0.21) / 0.125) * 0.333;
-        else panFrac = 0.667 + clamp((p - 0.335) / 0.265) * 0.333;
+        // Pan timing — each asset pans during its own shrink phase.
+        const panFrac = Math.min(
+          1,
+          clamp((p - 0.0) / 0.2) * 0.25 +
+            clamp((p - 0.1) / 0.22) * 0.25 +
+            clamp((p - 0.21) / 0.25) * 0.25 +
+            clamp((p - 0.335) / 0.265) * 0.25,
+        );
+        const panEase = 1 - Math.pow(1 - panFrac, 2);
 
-        const panEase = 1 - Math.pow(1 - panFrac, 2); // quad ease-out
-        const contW = assetsEl.scrollWidth;
+        // Switch to block + fixed width so flex reflow can never happen.
+        // Assets are absolutely positioned at their final X, so their large
+        // entry size does not push siblings.
+        assetsEl.style.display = "block";
+        assetsEl.style.position = "relative";
+        assetsEl.style.width = finalContW.toFixed(1) + "px";
+        assetsEl.style.height =
+          (stageH * (isMobile ? 0.62 : 0.88)).toFixed(1) + "px";
 
+        let panX;
         if (isMobile) {
-          // End position: whole group centred on screen, nudged right
-          const endX = (stageW - contW) / 2 + stageW * 0.08;
-          // Start position: enough to the right so the first asset is centred
-          const firstW =
-            (assetsEl.firstElementChild &&
-              assetsEl.firstElementChild.offsetWidth) ||
-            contW / 4;
-          const startX = stageW / 2 - firstW / 2;
-          const currentX = startX + (endX - startX) * panEase;
-          assetsEl.style.transform = `translateX(${currentX.toFixed(1)}px)`;
+          const startX = stageW / 2 - finalPos[ASSETS[0].id].w / 2;
+          const endX = (stageW - finalContW) / 2 + stageW * 0.04;
+          panX = startX + (endX - startX) * panEase;
         } else {
-          const maxPan = Math.max(0, contW - stageW * 0.9);
-          const desktopX = -maxPan * panEase + stageW * 0.06 * panEase;
-          assetsEl.style.transform = `translateX(${desktopX.toFixed(1)}px)`;
+          const maxPan = Math.max(0, finalContW - stageW * 0.9);
+          panX = -maxPan * panEase + stageW * 0.06 * panEase;
         }
+        assetsEl.style.transform = `translateX(${panX.toFixed(1)}px)`;
       }
 
       ASSETS.forEach(({ id, meters, aspect, start, end }) => {
@@ -463,24 +488,36 @@
         );
         if (!el) return;
 
-        const finalH = meters * pxPerM;
+        const fp = finalPos[id];
         const isStack = id === "stack";
-        const enterH = isStack ? finalH * 0.08 : ENTER_H;
+        const enterH = isStack ? fp.h * 0.08 : ENTER_H;
+
+        // Anchor at the CENTRE of the final position — so the large entry box
+        // overflows equally left and right, never spilling purely to one side.
+        // centreX is fixed each frame; only currentW changes.
+        const centreX = fp.x + fp.w / 2;
+
+        el.style.position = "absolute";
+        el.style.bottom = "0";
+        el.style.display = "";
 
         if (p < start) {
-          el.style.display = "none";
+          const w0 = enterH * aspect;
+          el.style.opacity = "0";
+          el.style.height = enterH.toFixed(2) + "px";
+          el.style.width = w0.toFixed(2) + "px";
+          el.style.left = (centreX - w0 / 2).toFixed(1) + "px";
           return;
         }
-        el.style.display = "";
 
         const raw = clamp((p - start) / (end - start));
         const ease = 1 - Math.pow(1 - raw, 3);
-        const currentH = enterH + (finalH - enterH) * ease;
+        const currentH = enterH + (fp.h - enterH) * ease;
         const currentW = currentH * aspect;
 
+        el.style.left = (centreX - currentW / 2).toFixed(1) + "px";
         el.style.height = currentH.toFixed(2) + "px";
         el.style.width = currentW.toFixed(2) + "px";
-        el.style.transform = ""; // no individual translate — container handles panning
         el.style.opacity = Math.min(1, raw / 0.1).toFixed(3);
 
         const ruler = el.querySelector(".sg-ruler");
