@@ -249,12 +249,20 @@
 
   /* -------- 108 Submission API ----------------------------------------
      Contract is documented in 108-BE.md. Endpoint per role:
-       patron    → POST https://gmc.bt/api/patrons
-       volunteer → POST https://gmc.bt/api/volunteers
+       patron    → POST {basePath}/api/submit/patrons
+       volunteer → POST {basePath}/api/submit/volunteers
+     We POST to a same-origin Next Route Handler (app/api/submit/[role]/route.ts)
+     which forwards server-side to https://gmc.bt/api/{patrons|volunteers}.
+     This sidesteps CORS preflight failures that were silently blocking the
+     direct browser-to-upstream call.
      Body shape differs by nationality (bhutanese vs non-bhutanese).
      Server enriches Bhutanese submissions with name/dob/gender via DOI.
   --------------------------------------------------------------------- */
-  const API_BASE = "https://gmc.bt/api";
+  // Detect Next basePath at runtime from the current URL.
+  // Prod (gmc.bt/108/...): "/108". Dev (localhost:3000/...): "".
+  // Reading window.location avoids hardcoding the prefix in two places.
+  const BASE_PATH = window.location.pathname.startsWith("/108") ? "/108" : "";
+  const API_BASE = BASE_PATH + "/api/submit";
 
   const trim = (v) => (typeof v === "string" ? v.trim() : v);
 
