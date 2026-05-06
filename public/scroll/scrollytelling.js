@@ -491,8 +491,13 @@
           const endX = (stageW - finalContW) / 2 + stageW * 0.04;
           panX = startX + (endX - startX) * panEase;
         } else {
-          const maxPan = Math.max(0, finalContW - stageW * 0.9);
-          panX = -maxPan * panEase + stageW * 0.06 * panEase;
+          // CSS (justify-content: center) already centres the container.
+          // JS translateX offsets FROM that centre position.
+          // Start: shift right so pyramid (leftmost) appears at screen centre.
+          // End: return to 0 so CSS centering shows the full group centred.
+          const firstW = finalPos[ASSETS[0].id].w;
+          const startX = (finalContW - firstW) / 2;
+          panX = startX * (1 - panEase) + stageW * 0.06 * panEase;
         }
         assetsEl.style.transform = `translateX(${panX.toFixed(1)}px)`;
       }
