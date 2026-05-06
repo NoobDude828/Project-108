@@ -268,40 +268,55 @@
       }
       if (tr) tr.style.setProperty("--p", trackP);
 
-      // Gap: 38vw desktop / 40vw mobile through first hold, then shrinks to 1vw
       const isMobile = window.innerWidth <= 768;
-      const maxGap = isMobile ? 65 : 38;
+      const maxGapPx = ((isMobile ? 65 : 38) * window.innerWidth) / 100;
 
-      // Reveal chortens symmetrically from center outward
+      // Gap: set directly in px — avoids vw recalculation cost on 108 slots.
+      let gapPx;
+      if (p < 0.45) {
+        gapPx = maxGapPx;
+      } else {
+        const t = clamp((p - 0.45) / 0.3);
+        gapPx = maxGapPx - t * (maxGapPx - window.innerWidth * 0.01);
+      }
+      if (row) {
+        const gapStr = gapPx.toFixed(1) + "px";
+        row.style.gap = gapStr;
+        // Apply same gap to every .pair child in one pass
+        row.querySelectorAll(".pair").forEach((pair) => {
+          pair.style.gap = gapStr;
+        });
+      }
+
+      // Measure line width matches the gap
+      if (measure) measure.style.width = gapPx.toFixed(1) + "px";
+
+      // Reveal chortens: only mutate DOM when revealRadius actually changes.
       let revealRadius;
       if (p < 0.25) {
-        revealRadius = 1; // show center 2
+        revealRadius = 1;
       } else if (p < 0.45) {
-        revealRadius = isMobile ? 1 : 2; // mobile: keep 2; desktop: show 4
+        revealRadius = isMobile ? 1 : 2;
       } else {
         const t = clamp((p - 0.45) / 0.3);
-        revealRadius = 2 + t * (N / 2 - 2); // 2 → 54 (all)
+        revealRadius = Math.round(2 + t * (N / 2 - 2));
       }
-      chortens.forEach((c, i) => {
-        const dist = Math.abs(i - (N / 2 - 0.5));
-        c.style.setProperty("--vis", dist < revealRadius ? 1 : 0);
-      });
-
-      let gapVw;
-      if (p < 0.45) {
-        gapVw = maxGap;
-      } else {
-        const t = clamp((p - 0.45) / 0.3);
-        gapVw = maxGap - t * (maxGap - 1); // maxGap → 1vw
+      // Cache on the element so we only touch the DOM when the value changes.
+      if (row && row._lastReveal !== revealRadius) {
+        row._lastReveal = revealRadius;
+        chortens.forEach((c, i) => {
+          const dist = Math.abs(i - (N / 2 - 0.5));
+          const visible = dist < revealRadius;
+          // Use opacity directly — avoids CSS custom property resolution cost.
+          c.style.opacity = visible ? "1" : "0";
+        });
       }
-      if (row) row.style.setProperty("--gap", gapVw + "vw");
 
       // 108 m measure line: fades in during first hold, fades out as zoom resumes
       if (measure) {
         const fadeIn = clamp((p - 0.27) / 0.06);
         const fadeOut = 1 - clamp((p - 0.42) / 0.06);
-        const measureVis = Math.min(fadeIn, fadeOut);
-        measure.style.setProperty("--vis", measureVis);
+        measure.style.opacity = Math.min(fadeIn, fadeOut).toFixed(3);
         measure.style.setProperty("--p", trackP);
       }
 
