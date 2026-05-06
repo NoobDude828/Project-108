@@ -1635,20 +1635,16 @@ body.scrolled .status .brand {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: repeat(18, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  /* No gap/padding so cell centres land at exact fractions of grid (8.5/18, 2.5/6),
-     which the static translate (2.78vw, 6.33vh) is calibrated against. Any non-zero
-     gap or padding shifts the centre cell by small amounts and breaks the alignment. */
+  /* 17 cols (cx=8 exact) × 7 rows (cy=3 exact) = 119 cells; 108 closest light up.
+     Both axes have a true integer centre so transform-origin: 50% 50% is exact. */
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(7, 1fr);
   gap: 0;
   padding: 0;
-  /* Camera zoom-out — the whole grid shrinks from 12× to 1× across the scroll.
-     Origin pinned to cell (8,2). Dynamic translate (driven from JS) keeps the centre
-     cell at viewport centre at high scales and fades to zero at scale 1, so the final
-     symmetric layout fits all 6 rows in the stage with no bottom clipping. */
-  transform: translate3d(var(--grid-tx, 2.78vw), var(--grid-ty, 6.33vh), 0)
+  /* Camera zoom-out 12→1. Origin is now truly 50%/50% — no drift. */
+  transform: translate3d(var(--grid-tx, 0px), var(--grid-ty, 0px), 0)
     scale(var(--grid-scale, 12));
-  transform-origin: 47.22% 41.67%;
+  transform-origin: 50% 50%;
   backface-visibility: hidden;
 }
 .mg-cell {

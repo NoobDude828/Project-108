@@ -27,8 +27,7 @@ export default function SceneMultiplyController() {
     );
     if (!scene || !grid) return;
 
-    const clamp = (v: number, a = 0, b = 1) =>
-      Math.max(a, Math.min(b, v));
+    const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
     const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
     /* ---------------- Grid build ----------------
@@ -37,8 +36,11 @@ export default function SceneMultiplyController() {
        This rebuild replaces whatever scrollytelling.js's buildMultiplyGrid put in.
     --------------------------------------------- */
     const isMobile = window.innerWidth <= 760;
-    const cols = isMobile ? 9 : 18;
-    const rows = isMobile ? 12 : 6;
+    // Desktop: 17 cols × 7 rows = 119 cells; 108 closest by dist light up, 11 stay dark.
+    // 17 cols → cx=8 (exact integer, 8 cols each side). 7 rows → cy=3 (exact integer).
+    // transform-origin: 50% 50% is therefore mathematically exact — no centre drift.
+    const cols = isMobile ? 9 : 15;
+    const rows = isMobile ? 12 : 7;
     const cx = (cols - 1) / 2;
     const cy = (rows - 1) / 2;
     const centreCol = Math.floor(cx);
@@ -59,8 +61,7 @@ export default function SceneMultiplyController() {
         const dx = c - cx;
         const dy = r - cy;
         const dist =
-          Math.sqrt(dx * dx + dy * dy) +
-          (isCentre ? -1 : Math.random() * 0.15);
+          Math.sqrt(dx * dx + dy * dy) + (isCentre ? -1 : Math.random() * 0.15);
         built.push({ el: cell, dist, idx: r * cols + c });
         grid.appendChild(cell);
       }
@@ -80,6 +81,40 @@ export default function SceneMultiplyController() {
        Camera zoom (12→1 desktop, 18→1 mobile) over [0, 0.95];
        counter ticks 1→108 alongside; cells reveal centre-out, one per tick.
     --------------------------------------------------- */
+
+    // Compute the translate needed to keep the centre cell at the stage centre
+    // at maximum scale. We do this by measuring the actual cell position once
+    // (at scale=1, i.e. before any transform) so it's pixel-perfect regardless
+    // of viewport size. Cache on resize.
+    let centreOffsetX = 0;
+    let centreOffsetY = 0;
+
+    const measureCentreOffset = () => {
+      // Temporarily remove transform so we can measure natural positions.
+      const prev = grid.style.getPropertyValue("--grid-scale");
+      grid.style.setProperty("--grid-scale", "1");
+      grid.style.setProperty("--grid-tx", "0px");
+      grid.style.setProperty("--grid-ty", "0px");
+
+      const centreCell = grid.querySelector<HTMLElement>(".mg-cell.center");
+      const stage = grid.parentElement as HTMLElement;
+      if (centreCell && stage) {
+        const cellR = centreCell.getBoundingClientRect();
+        const stageR = stage.getBoundingClientRect();
+        // How far the cell centre is from the stage centre at scale=1
+        const cellCX = cellR.left + cellR.width / 2;
+        const cellCY = cellR.top + cellR.height / 2;
+        const stageCX = stageR.left + stageR.width / 2;
+        const stageCY = stageR.top + stageR.height / 2;
+        centreOffsetX = stageCX - cellCX; // px to shift so cell lands on stage centre
+        centreOffsetY = stageCY - cellCY;
+      }
+
+      grid.style.setProperty("--grid-scale", prev || "12");
+    };
+
+    // Measure once after build, and again on resize (wired into onResize above).
+
     const update = (p: number) => {
       const mobile = window.innerWidth <= 760;
       const maxScale = mobile ? 18 : 12;
@@ -87,30 +122,20 @@ export default function SceneMultiplyController() {
       const gridScale = maxScale - (maxScale - 1) * easeOut(scaleP);
       grid.style.setProperty("--grid-scale", gridScale.toFixed(2));
 
-      // Translate fades from full (centre cell at viewport centre at high scale)
-      // to zero (grid naturally centred in stage at scale 1, all rows fit).
+      // offsetFactor: 1 at maxScale (full translate), 0 at scale 1 (no translate).
+      // We use the measured pixel offset so the centre cell sits exactly on the
+      // stage centre regardless of viewport dimensions.
       const offsetFactor = (gridScale - 1) / (maxScale - 1);
-      if (mobile) {
-        // Mobile cell (5,4) is horizontally true-centre, so only Y needs offset.
-        grid.style.setProperty(
-          "--grid-ty",
-          `${(2.84 * offsetFactor).toFixed(2)}vh`,
-        );
-      } else {
-        grid.style.setProperty(
-          "--grid-tx",
-          `${(2.78 * offsetFactor).toFixed(2)}vw`,
-        );
-        grid.style.setProperty(
-          "--grid-ty",
-          `${(6.33 * offsetFactor).toFixed(2)}vh`,
-        );
-      }
-
-      const target = Math.max(
-        1,
-        Math.min(108, Math.floor(1 + scaleP * 108)),
+      grid.style.setProperty(
+        "--grid-tx",
+        `${(centreOffsetX * offsetFactor).toFixed(2)}px`,
       );
+      grid.style.setProperty(
+        "--grid-ty",
+        `${(centreOffsetY * offsetFactor).toFixed(2)}px`,
+      );
+
+      const target = Math.max(1, Math.min(108, Math.floor(1 + scaleP * 108)));
       cellEls.forEach((el, i) => {
         const ord = order[i] != null ? order[i] : i;
         el.classList.toggle("lit", ord < target);
@@ -129,6 +154,7 @@ export default function SceneMultiplyController() {
       if (resizeTimer) clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         stableVH = window.innerHeight;
+        measureCentreOffset();
       }, 200);
     };
     window.addEventListener("resize", onResize);
@@ -148,9 +174,13 @@ export default function SceneMultiplyController() {
 
     if (window.matchMedia("(prefers-reduced-motion:reduce)").matches) {
       // Static final state — no rAF loop needed.
+      measureCentreOffset();
       update(1);
     } else {
-      rafId = requestAnimationFrame(loop);
+      requestAnimationFrame(() => {
+        measureCentreOffset();
+        rafId = requestAnimationFrame(loop);
+      });
     }
 
     return () => {
