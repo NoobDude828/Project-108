@@ -106,6 +106,209 @@ body.scrolled .status .brand {
   border-color: var(--gold-bright);
 }
 
+/* ── Desktop split-button ── */
+.status-split {
+  pointer-events: auto;
+  position: relative;
+  font-family: var(--font-utility);
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+/* Resting state — styled like hovered (gold pill) */
+.status-split__rest {
+  color: var(--gold-bright);
+  border: 1px solid var(--gold-bright);
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    opacity 0.18s,
+    visibility 0.18s;
+}
+/* Two buttons — hidden until hover */
+.status-split__hover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.18s,
+    visibility 0.18s;
+  white-space: nowrap;
+}
+.status-split:hover .status-split__rest {
+  opacity: 0;
+  visibility: hidden;
+}
+.status-split:hover .status-split__hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+/* Shared pill style — same gold look as the resting Join Now */
+.status-split__btn {
+  text-decoration: none;
+  color: var(--gold-bright);
+  border: 1px solid var(--gold-bright);
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(10, 3, 7, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  font-family: var(--font-utility);
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  transition: background 0.18s;
+}
+.status-split__btn:hover {
+  background: rgba(200, 166, 99, 0.14);
+}
+
+/* ── Mobile hamburger toggle ── */
+.status-burger {
+  display: none;
+}
+
+/* Drawer hidden on desktop — only activated inside the 760px breakpoint */
+.status-drawer {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .status-split {
+    display: none;
+  }
+
+  .status-burger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    pointer-events: auto;
+    background: none;
+    border: 1px solid rgba(200, 166, 99, 0.4);
+    border-radius: 6px;
+    padding: 0.4rem 0.5rem;
+    cursor: pointer;
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+  .status-burger span {
+    display: block;
+    width: 14px;
+    height: 1.5px;
+    background: var(--gold-bright);
+    border-radius: 1px;
+    transition:
+      transform 0.22s ease,
+      opacity 0.22s ease;
+    transform-origin: center;
+  }
+  .status-burger.is-open span:nth-child(1) {
+    transform: translateY(5.5px) rotate(45deg);
+  }
+  .status-burger.is-open span:nth-child(2) {
+    opacity: 0;
+  }
+  .status-burger.is-open span:nth-child(3) {
+    transform: translateY(-5.5px) rotate(-45deg);
+  }
+
+  /* ── Side drawer ── */
+  .status-drawer {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: none;
+  }
+  .status-drawer.is-open {
+    pointer-events: auto;
+  }
+  /* Semi-opaque backdrop */
+  .status-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 2, 4, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .status-drawer.is-open .status-drawer__backdrop {
+    opacity: 1;
+  }
+  /* Panel slides in from the right */
+  .status-drawer__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(55vw, 220px);
+    background: linear-gradient(160deg, #2c0f1c 0%, #0e040b 100%);
+    border-left: 1px solid rgba(200, 166, 99, 0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 5rem 1.6rem 3rem;
+    gap: 1rem;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .status-drawer.is-open .status-drawer__panel {
+    transform: translateX(0);
+  }
+  /* Close button × */
+  .status-drawer__close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.2rem;
+    background: none;
+    border: none;
+    color: rgba(242, 233, 216, 0.5);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  .status-drawer__close:hover {
+    color: var(--gold-bright);
+  }
+  /* Drawer buttons — underline style */
+  .status-drawer__btn {
+    text-decoration: none;
+    color: var(--gold-bright);
+    border: none;
+    border-bottom: 1px solid rgba(200, 166, 99, 0.4);
+    padding: 0.85rem 0;
+    border-radius: 0;
+    font-family: var(--font-utility);
+    font-size: 0.65rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    text-align: left;
+    transition:
+      border-color 0.18s,
+      color 0.18s;
+    display: block;
+  }
+  .status-drawer__btn:hover,
+  .status-drawer__btn:active {
+    border-color: var(--gold-bright);
+    color: var(--cream);
+  }
+}
+
 .rail {
   position: fixed;
   left: 0;
@@ -428,6 +631,18 @@ body.scrolled .status .brand {
   max-height: 100%;
   object-fit: contain;
   display: block;
+}
+.what-chorten__ground {
+  position: absolute;
+  bottom: -30%;
+  left: 52.5%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 140%;
+  height: auto;
+  max-height: none;
+  object-fit: unset;
+  opacity: 1;
+  pointer-events: none;
 }
 
 /* The four "truth" lines, fading sequentially around the chorten */
@@ -3686,6 +3901,9 @@ body.scrolled .status .brand {
     height: 100%;
     width: auto;
     object-fit: contain;
+  }
+  .what-chorten__ground {
+    bottom: -29%;
   }
   /* dissolve .what-truths so its children participate in the grid */
   .what-truths {
