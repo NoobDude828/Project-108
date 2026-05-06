@@ -3612,6 +3612,13 @@ body.scrolled .status .brand {
   flex-direction: column;
   gap: 1rem;
 }
+/* Author rules with `display: flex/grid` override the UA's `[hidden] { display: none }`,
+   so re-assert hidden semantics for both form and thanks slots — without this,
+   `form.hidden = true` no-ops and the form keeps rendering above the thanks dialogue. */
+.form-modal__form[hidden],
+.form-modal__thanks[hidden] {
+  display: none;
+}
 .form-row {
   display: flex;
   flex-direction: column;
@@ -3824,9 +3831,57 @@ body.scrolled .status .brand {
   letter-spacing: 0.04em;
   padding-bottom: 2.4rem;
 }
+/* Static phone-prefix chip — used for the Bhutanese flow where +975 is implicit. */
+.field__prefix-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.field__prefix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  font-family: var(--font-utility);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  background: rgba(242, 233, 216, 0.06);
+  border: 1px solid rgba(242, 233, 216, 0.18);
+  border-radius: 6px;
+  user-select: none;
+}
+.field__prefix-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Server-side error slot — populated by form.js on 400/500 responses. */
+.form-modal__error {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #f4b9a0;
+  background: rgba(244, 185, 160, 0.08);
+  border: 1px solid rgba(244, 185, 160, 0.25);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  margin: 0.4rem 0 1.1rem;
+}
 .form-modal__thanks {
   text-align: center;
-  padding: 2rem 0 1rem;
+  padding: 3rem 1rem 2rem;
+}
+/* Brand divider — 36×1px gold hairline above the eyebrow, shared by both
+   success and duplicate variants. Marks the moment as ceremonial. */
+.form-modal__thanks::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+  margin: 0 auto 1.8rem;
 }
 .form-modal__thanks .lbl {
   font-family: var(--font-utility);
@@ -3834,19 +3889,60 @@ body.scrolled .status .brand {
   letter-spacing: 0.34em;
   font-size: 0.6rem;
   color: var(--gold);
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
+  font-weight: 500;
 }
 .form-modal__thanks h4 {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
   font-weight: 300;
-  margin: 0 0 0.8rem;
+  font-style: italic;
+  line-height: 1.2;
+  margin: 0 0 1.1rem;
   color: var(--cream);
+  text-wrap: balance;
 }
 .form-modal__thanks p {
-  font-size: 0.9rem;
-  color: rgba(242, 233, 216, 0.6);
-  margin: 0 0 1.6rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: rgba(242, 233, 216, 0.72);
+  max-width: 32rem;
+  margin: 0 auto 2.2rem;
+  text-wrap: balance;
+}
+/* Brand button — pill, gold fill on maroon-deep, the same primary treatment
+   as the form's Submit button so the closing gesture mirrors the opening one. */
+.form-modal__thanks .btn {
+  display: inline-block;
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.85rem 2.2rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--maroon-deep);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease,
+    box-shadow 0.25s ease;
+}
+.form-modal__thanks .btn:hover {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(200, 166, 99, 0.22);
+}
+.form-modal__thanks .btn:active {
+  transform: translateY(0);
+}
+/* Duplicate variant — slightly brighter eyebrow so the two acknowledgements
+   read as related but distinct. The hairline (above) is shared. */
+.form-modal__thanks.is-duplicate .lbl {
+  color: var(--gold-bright);
 }
 .visually-hidden {
   position: absolute;
