@@ -13,6 +13,11 @@ export default function SceneWhat() {
           <div className="what-stage">
             <div className="what-chorten" aria-hidden="true">
               <img src="/assets/chorten-front.png" alt="" />
+              <img
+                src="/assets/brush-stroke.png"
+                alt=""
+                className="what-chorten__ground"
+              />
             </div>
             <div className="what-truths">
               <p className="truth t1">
