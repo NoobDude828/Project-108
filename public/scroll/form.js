@@ -183,9 +183,13 @@
 
   /* -------- Open / close -------- */
   let lastFocused = null;
+  // The role drives endpoint selection — patron → /patrons, volunteer → /volunteers.
+  // (The endpoint *is* the role per the API contract; we don't send it in the body.)
+  let currentRole = null;
 
   function openModal(role) {
     populateCountries(); // idempotent
+    currentRole = role || null;
     if (role) {
       const radio = form.querySelector(`input[name="role"][value="${role}"]`);
       if (radio) radio.checked = true;
@@ -205,6 +209,8 @@
     }
     form.hidden = false;
     thanksBox.hidden = true;
+    resetFormError();
+    resetThanks();
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -241,63 +247,229 @@
     if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
   });
 
-  /* -------- Google Forms backend -------- */
-  // Replace these placeholders with real IDs from your Google Form.
-  // To get them: open your form → ⋮ → "Get pre-filled link" → fill all
-  // fields → "Get link" → grab `entry.NNN` IDs from the URL. The form
-  // endpoint is https://docs.google.com/forms/d/e/{FORM_ID}/formResponse
-  const GOOGLE_FORM = {
-    formId: "1FAIpQLSe_REPLACE_WITH_REAL_FORM_ID_xxxxxxxxxxxxxx",
-    fields: {
-      role: "entry.1000000001",
-      name: "entry.1000000002",
-      email: "entry.1000000003",
-      country_code: "entry.1000000004",
-      phone: "entry.1000000005",
-      country: "entry.1000000006",
-      message: "entry.1000000007",
+  /* -------- 108 Submission API ----------------------------------------
+     Contract is documented in 108-BE.md. Endpoint per role:
+       patron    → POST {basePath}/api/submit/patrons
+       volunteer → POST {basePath}/api/submit/volunteers
+     We POST to a same-origin Next Route Handler (app/api/submit/[role]/route.ts)
+     which forwards server-side to https://gmc.bt/api/{patrons|volunteers}.
+     This sidesteps CORS preflight failures that were silently blocking the
+     direct browser-to-upstream call.
+     Body shape differs by nationality (bhutanese vs non-bhutanese).
+     Server enriches Bhutanese submissions with name/dob/gender via DOI.
+  --------------------------------------------------------------------- */
+  // Detect Next basePath at runtime from the current URL.
+  // Prod (gmc.bt/108/...): "/108". Dev (localhost:3000/...): "".
+  // Reading window.location avoids hardcoding the prefix in two places.
+  const BASE_PATH = window.location.pathname.startsWith("/108") ? "/108" : "";
+  const API_BASE = BASE_PATH + "/api/submit";
+
+  const trim = (v) => (typeof v === "string" ? v.trim() : v);
+
+  function buildPayload(fd) {
+    const nationality = fd.get("nationality");
+    if (nationality === "bhutanese") {
+      return {
+        nationality: "bhutanese",
+        cid: trim(fd.get("cid")),
+        countryCode: "+975",
+        phone: trim(fd.get("phone")),
+      };
+    }
+    const payload = {
+      nationality: "non-bhutanese",
+      name: trim(fd.get("name")),
+      email: trim(fd.get("email")),
+      countryCode: trim(fd.get("country_code")),
+      phone: trim(fd.get("phone")),
+      country: trim(fd.get("country")),
+    };
+    const message = trim(fd.get("message"));
+    if (message) payload.message = message;
+    return payload;
+  }
+
+  async function postSubmission(role, payload) {
+    const path = role === "patron" ? "/patrons" : "/volunteers";
+    const res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    let body = null;
+    try {
+      body = await res.json();
+    } catch (_) {
+      /* non-JSON or empty — leave body null */
+    }
+    return { status: res.status, body };
+  }
+
+  async function postWithRetry(role, payload) {
+    const first = await postSubmission(role, payload);
+    if (first.status !== 500) return first;
+    // Spec: retry 500 once after 1s before giving up.
+    await new Promise((r) => setTimeout(r, 1000));
+    return postSubmission(role, payload);
+  }
+
+  /* -------- Error / thanks UI helpers -------- */
+  const errorEl = modal.querySelector(".form-modal__error");
+  function showFormError(msg) {
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.hidden = false;
+  }
+  function resetFormError() {
+    if (!errorEl) return;
+    errorEl.textContent = "";
+    errorEl.hidden = true;
+  }
+
+  const thanksLblEl = thanksBox.querySelector(".lbl");
+  const thanksTitleEl = thanksBox.querySelector("h4");
+  const thanksDescEl = thanksBox.querySelector("p:not(.lbl)");
+
+  // Brand voice: measured third-person, sentence-case body, no exclamation, British spelling.
+  // Success copy varies by role; duplicate copy varies by role × matched identifier
+  // (the API dedupes by CID for Bhutanese, by email for non-Bhutanese).
+  const SUCCESS_COPY = {
+    patron: {
+      lbl: "Thank you",
+      title: "Your offering is received.",
+      desc: "Project 108 welcomes you to this collective act of merit. Our team will be in touch shortly to begin the conversation.",
+    },
+    volunteer: {
+      lbl: "Thank you",
+      title: "Your registration is received.",
+      desc: "Project 108 welcomes you to this collective act of merit. Our team will be in touch shortly with the next steps for 1 November 2026.",
     },
   };
+  const DUPLICATE_COPY = {
+    patron: {
+      cid: {
+        lbl: "Already received",
+        title: "Your offering is already with us.",
+        desc: "An offering for Project 108 has been registered against this Citizenship Identity Card. Our team will be in touch with the next steps.",
+      },
+      email: {
+        lbl: "Already received",
+        title: "Your offering is already with us.",
+        desc: "An offering for Project 108 has been registered from this email address. Our team will be in touch with the next steps.",
+      },
+    },
+    volunteer: {
+      cid: {
+        lbl: "Already received",
+        title: "Your registration is already with us.",
+        desc: "A volunteer registration has been received against this Citizenship Identity Card. Our team will be in touch with the next steps.",
+      },
+      email: {
+        lbl: "Already received",
+        title: "Your registration is already with us.",
+        desc: "A volunteer registration has been received from this email address. Our team will be in touch with the next steps.",
+      },
+    },
+  };
+  function showThanks(variant, opts) {
+    // variant: "success" | "duplicate".
+    // opts: { role: "patron" | "volunteer", idType?: "cid" | "email" (duplicate only) }
+    const role = opts && opts.role === "volunteer" ? "volunteer" : "patron";
+    let copy;
+    if (variant === "duplicate") {
+      const idType = opts && opts.idType === "email" ? "email" : "cid";
+      copy = DUPLICATE_COPY[role][idType];
+      thanksBox.classList.add("is-duplicate");
+    } else {
+      copy = SUCCESS_COPY[role];
+      thanksBox.classList.remove("is-duplicate");
+    }
+    if (thanksLblEl) thanksLblEl.textContent = copy.lbl;
+    if (thanksTitleEl) thanksTitleEl.textContent = copy.title;
+    if (thanksDescEl) thanksDescEl.textContent = copy.desc;
+    form.hidden = true;
+    thanksBox.hidden = false;
+  }
+  function resetThanks() {
+    // Just hide the thanks box and clear the duplicate-variant accent.
+    // Copy is rewritten on every showThanks() call, so no text reset needed here.
+    thanksBox.classList.remove("is-duplicate");
+    thanksBox.hidden = true;
+    form.hidden = false;
+  }
 
-  function submitToGoogleForm(data) {
-    const url = `https://docs.google.com/forms/d/e/${GOOGLE_FORM.formId}/formResponse`;
-    const body = new FormData();
-    Object.entries(GOOGLE_FORM.fields).forEach(([key, entryId]) => {
-      if (data[key] != null) body.append(entryId, data[key]);
-    });
-    // Google Forms doesn't send CORS headers; no-cors makes the request
-    // fire-and-forget. We can't read the response, so we treat any
-    // non-throw as success.
-    return fetch(url, { method: "POST", mode: "no-cors", body });
+  function firstFieldError(details) {
+    const fe = details && details.fieldErrors;
+    if (!fe || typeof fe !== "object") return null;
+    for (const key of Object.keys(fe)) {
+      const arr = fe[key];
+      if (Array.isArray(arr) && arr.length) return arr[0];
+    }
+    return null;
   }
 
   /* -------- Submit handler -------- */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    resetFormError();
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
+
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = "Sending…";
 
     const fd = new FormData(form);
-    const data = Object.fromEntries(fd.entries());
+    const payload = buildPayload(fd);
 
-    try {
-      await submitToGoogleForm(data);
-    } catch (err) {
-      // no-cors swallows most errors; log just in case
-      console.warn("Form submit error", err);
+    // Defence-in-depth: API re-validates these but a client check avoids a round-trip.
+    if (payload.nationality === "bhutanese" && !/^\d{11}$/.test(payload.cid || "")) {
+      showFormError("CID must be exactly 11 digits.");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit";
+      return;
     }
 
-    // Show thanks state
-    form.hidden = true;
-    thanksBox.hidden = false;
+    const role = currentRole === "volunteer" ? "volunteer" : "patron";
+
+    let result;
+    try {
+      result = await postWithRetry(role, payload);
+    } catch (err) {
+      console.warn("Submission network error", err);
+      showFormError(
+        "Couldn't reach the server. Please check your connection and try again.",
+      );
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit";
+      return;
+    }
+
+    if (result.status === 201) {
+      showThanks("success", { role });
+      setTimeout(() => form.reset(), 400);
+    } else if (result.status === 409) {
+      showThanks("duplicate", {
+        role,
+        idType: payload.nationality === "bhutanese" ? "cid" : "email",
+      });
+      setTimeout(() => form.reset(), 400);
+    } else if (result.status === 400) {
+      const msg =
+        firstFieldError(result.body && result.body.details) ||
+        (result.body && result.body.error) ||
+        "Please check the form and try again.";
+      showFormError(msg);
+    } else {
+      showFormError(
+        "Something went wrong. Please try again in a moment.",
+      );
+    }
+
     submitBtn.disabled = false;
     submitBtn.textContent = "Submit";
-    setTimeout(() => form.reset(), 400);
   });
 
   // Pre-populate countries on first load (so screenshots/print show real options)
