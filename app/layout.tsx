@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
   verification: {
-    google: "ec73a7a221d2ce22",
+    google: "jExndcNQyCwtoJo5MnKDVGuC_LWj491seNvv18hQ0fI",
   },
 };
 
@@ -130,23 +130,6 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Purge all browser caches on every page load 
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('caches' in window) {
-                caches.keys().then(function(names) {
-                  names.forEach(function(name) { caches.delete(name); });
-                });
-              }
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                  regs.forEach(function(reg) { reg.unregister(); });
-                });
-              }
-            `,
-          }}
-        /> */}
       </head>
       <body>{children}</body>
     </html>
