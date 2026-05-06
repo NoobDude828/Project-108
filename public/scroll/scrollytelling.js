@@ -1053,12 +1053,27 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       stableVH = window.innerHeight;
+      cacheSceneRects();
     }, 200);
   });
 
+  /* ---------------- Scene rect cache ----------------
+     getBoundingClientRect() forces a layout recalculation.
+     Calling it on all 15 scenes every rAF frame (~60/s) is the
+     primary cause of jitter on mobile — it can halve the frame rate.
+     Instead we cache offsetTop + offsetHeight once, invalidate on resize,
+     and compute p purely from scrollY arithmetic (zero layout cost).
+  ---------------------------------------------------- */
+  let sceneCache = []; // [{top, height}]
+
+  function cacheSceneRects() {
+    sceneCache = sceneDefs.map((s) => ({
+      top: s.el.offsetTop,
+      height: s.el.offsetHeight,
+    }));
+  }
+
   /* ---------------- Main scroll loop ---------------- */
-  // Smoothed progress per scene — lerped each frame to kill mobile jitter.
-  // Key = scene index, value = current smoothed p (0..1).
   const smoothP = {};
 
   function tick() {
@@ -1069,39 +1084,37 @@
     if (scrollY > 50) document.body.classList.add("scrolled");
     else document.body.classList.remove("scrolled");
 
-    // Show floating back-to-top button after scrolling past the first viewport
     const floatBtn = document.getElementById("float-top-btn");
     if (floatBtn) {
       floatBtn.classList.toggle("visible", scrollY > stableVH * 0.8);
     }
 
-    // Lerp factor: how quickly smoothed p chases the real p each frame.
-    // 0.12 = ~8 frames to close the gap — noticeably smooth on 60 Hz mobile.
-    const LERP = 0.12;
+    // Lerp: smoothed p chases rawP each frame — absorbs momentum-scroll jumps.
+    const LERP = 0.14;
 
-    // For each scene, compute progress through its scrollable region.
-    // Pinned region: scene's bounding-rect top is between 0 and -(scene.height - vh).
     let activeIdx = 0;
     sceneDefs.forEach((s, i) => {
-      const r = s.el.getBoundingClientRect();
-      const sceneH = s.el.offsetHeight;
-      const vh = stableVH;
-      const travelled = -r.top;
-      const travel = Math.max(1, sceneH - vh);
+      const cache = sceneCache[i];
+      if (!cache) return;
+
+      // p from pure arithmetic — NO getBoundingClientRect, NO layout cost.
+      const travelled = scrollY - cache.top;
+      const travel = Math.max(1, cache.height - stableVH);
       const rawP = clamp(travelled / travel);
 
-      // Smooth p — lerp toward rawP every frame.
       if (smoothP[i] === undefined) smoothP[i] = rawP;
-      smoothP[i] = smoothP[i] + (rawP - smoothP[i]) * LERP;
-      // Snap to exact 0 or 1 when close enough to avoid eternal micro-drift.
+      smoothP[i] += (rawP - smoothP[i]) * LERP;
       if (Math.abs(smoothP[i] - rawP) < 0.0005) smoothP[i] = rawP;
 
       s.update(smoothP[i]);
 
-      if (r.top <= stableVH * 0.5 && r.bottom > stableVH * 0.5) {
-        activeIdx = i;
-      }
-      const isPast = r.bottom < stableVH * 0.5;
+      // Active scene detection — using cached values avoids getBCR entirely.
+      const sceneTop = cache.top - scrollY; // relative to viewport
+      const sceneBottom = sceneTop + cache.height;
+      const mid = stableVH * 0.5;
+      if (sceneTop <= mid && sceneBottom > mid) activeIdx = i;
+
+      const isPast = sceneBottom < mid;
       s.el.classList.toggle("is-past", isPast);
     });
     setActiveScene(activeIdx);
@@ -1122,6 +1135,10 @@
     buildVolunteersSVG();
     buildCompletionTrack();
     buildWhyDots();
+
+    // Cache scene positions once — tick loop reads these instead of calling
+    // getBoundingClientRect() every frame (which forces layout on mobile).
+    cacheSceneRects();
 
     if (reducedMotion) {
       // Don't run the rAF loop; show captions for the very first scene only.
