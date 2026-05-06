@@ -1740,21 +1740,19 @@ body.scrolled .status .brand {
   transform: translateX(-50%) scale(calc(1 - var(--p) * 0.904));
   transform-origin: bottom center;
   display: flex;
-  gap: var(--gap, 38vw);
-  transition: transform 0.15s linear;
+  /* gap is set in px directly by JS each frame — avoids vw recalculation */
+  gap: 0;
   width: max-content;
 }
 .spacing-row .pair {
   display: flex;
-  gap: var(--gap, 38vw);
   align-items: flex-end;
   position: relative;
 }
 .spacing-row .chorten-mini {
   width: 110px;
   height: auto;
-  opacity: var(--vis, 0);
-  transition: opacity 0.4s ease;
+  opacity: 0;
   flex-shrink: 0;
 }
 @media (min-width: 900px) {
@@ -1771,8 +1769,7 @@ body.scrolled .status .brand {
   width: 38vw;
   text-align: center;
   --p: 0;
-  opacity: var(--vis, 0);
-  transition: opacity 0.3s ease;
+  opacity: 0;
   pointer-events: none;
 }
 @media (min-width: 1600px) {
@@ -4098,16 +4095,11 @@ body.scrolled .status .brand {
     width: min(80vw, 420px);
     height: min(45vh, 280px);
   }
-  /* ── Scene 07 mobile — shift chorten row left ── */
+  /* ── Scene 07 mobile — gap set in px by JS ── */
   .spacing-row {
     left: 50%;
-    gap: var(--gap, 65vw);
-  }
-  .spacing-row .pair {
-    gap: var(--gap, 65vw);
   }
   .spacing-measure {
-    width: var(--gap, 65vw);
     left: 49.9%;
   }
 
