@@ -17,26 +17,23 @@ export default function StatusBar() {
       <header className="status" role="banner">
         <span className="brand">Project 108 · Bhutan · 1 November 2026</span>
 
-        {/* ── Desktop: split-button ── */}
+        {/* ── Desktop: two plain buttons ── */}
         <div className="status-split" aria-label="Actions">
-          <div className="status-split__rest">Join Now →</div>
-          <div className="status-split__hover">
-            <a
-              href="/assets/Project_108.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="status-split__btn"
-            >
-              Download Brochure
-            </a>
-            <a
-              href="#scene-invitation"
-              className="status-split__btn"
-              onClick={scrollToInvitation}
-            >
-              Take Part →
-            </a>
-          </div>
+          <a
+            href="/assets/Project_108.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="status-split__btn"
+          >
+            Download Brochure
+          </a>
+          <a
+            href="#scene-invitation"
+            className="status-split__btn"
+            onClick={scrollToInvitation}
+          >
+            Take Part →
+          </a>
         </div>
 
         {/* ── Mobile: hamburger toggle ── */}

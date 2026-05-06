@@ -109,50 +109,15 @@ body.scrolled .status .brand {
 /* ── Desktop split-button ── */
 .status-split {
   pointer-events: auto;
-  position: relative;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
   font-family: var(--font-utility);
   font-size: 0.625rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  cursor: pointer;
 }
-/* Resting state — styled like hovered (gold pill) */
-.status-split__rest {
-  color: var(--gold-bright);
-  border: 1px solid var(--gold-bright);
-  padding: 0.55rem 1.2rem;
-  border-radius: 999px;
-  white-space: nowrap;
-  user-select: none;
-  transition:
-    opacity 0.18s,
-    visibility 0.18s;
-}
-/* Two buttons — hidden until hover */
-.status-split__hover {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  gap: 0.5rem;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition:
-    opacity 0.18s,
-    visibility 0.18s;
-  white-space: nowrap;
-}
-.status-split:hover .status-split__rest {
-  opacity: 0;
-  visibility: hidden;
-}
-.status-split:hover .status-split__hover {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-/* Shared pill style — same gold look as the resting Join Now */
+/* Two plain gold pill buttons, always visible */
 .status-split__btn {
   text-decoration: none;
   color: var(--gold-bright);
@@ -167,6 +132,7 @@ body.scrolled .status .brand {
   font-size: 0.625rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
+  white-space: nowrap;
   transition: background 0.18s;
 }
 .status-split__btn:hover {
