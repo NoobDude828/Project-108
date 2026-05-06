@@ -440,8 +440,8 @@
         const contW = assetsEl.scrollWidth;
 
         if (isMobile) {
-          // End position: whole group centred on screen
-          const endX = (stageW - contW) / 2;
+          // End position: whole group centred on screen, nudged right
+          const endX = (stageW - contW) / 2 + stageW * 0.08;
           // Start position: enough to the right so the first asset is centred
           const firstW =
             (assetsEl.firstElementChild &&
@@ -452,7 +452,8 @@
           assetsEl.style.transform = `translateX(${currentX.toFixed(1)}px)`;
         } else {
           const maxPan = Math.max(0, contW - stageW * 0.9);
-          assetsEl.style.transform = `translateX(${(-maxPan * panEase).toFixed(1)}px)`;
+          const desktopX = -maxPan * panEase + stageW * 0.06 * panEase;
+          assetsEl.style.transform = `translateX(${desktopX.toFixed(1)}px)`;
         }
       }
 
@@ -484,6 +485,8 @@
 
         const ruler = el.querySelector(".sg-ruler");
         if (ruler) ruler.style.opacity = RULER_P.toFixed(3);
+        const name = el.querySelector(".sg-asset__name");
+        if (name) name.style.opacity = RULER_P.toFixed(3);
       });
     },
   });

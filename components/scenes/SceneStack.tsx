@@ -22,6 +22,11 @@ export default function SceneStack() {
                     </span>
                   </div>
                   <img src="/assets/pyramid.png" alt="" />
+                  <span className="sg-asset__name">
+                    Great Pyramid
+                    <br />
+                    of Giza
+                  </span>
                 </div>
                 <div className="sg-asset" data-id="eiffel">
                   <div className="sg-ruler">
@@ -32,22 +37,24 @@ export default function SceneStack() {
                     </span>
                   </div>
                   <img src="/assets/eiffel-tower.png" alt="" />
+                  <span className="sg-asset__name">Eiffel Tower</span>
                 </div>
                 <div className="sg-asset" data-id="burj">
                   <div className="sg-ruler">
                     <span className="sg-ruler__line"></span>
                     <span className="sg-ruler__label">
-                      <strong>55 chortens</strong>
+                      <strong>~55 chortens</strong>
                       <span>828 m</span>
                     </span>
                   </div>
                   <img src="/assets/building.png" alt="" />
+                  <span className="sg-asset__name">Burj Khalifa</span>
                 </div>
                 <div className="sg-asset" data-id="stack">
                   <div className="sg-ruler">
                     <span className="sg-ruler__line"></span>
                     <span className="sg-ruler__label">
-                      <strong>108 chortens</strong>
+                      <strong>108 chortens stacked</strong>
                       <span>1.62 km</span>
                     </span>
                   </div>
