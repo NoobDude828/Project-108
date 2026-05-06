@@ -51,7 +51,7 @@ export default function ScrollPage() {
       <FloatTopButton />
       <FormModal />
 
-      <Script src="/scroll/scrollytelling.js" strategy="afterInteractive" />
+      <Script src="/scroll/scrollytelling.js?v=5" strategy="afterInteractive" />
       <Script src="/scroll/form.js" strategy="afterInteractive" />
     </>
   );
