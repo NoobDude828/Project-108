@@ -2035,7 +2035,7 @@ body.scrolled .status .brand {
 .sg-tally .kicker {
   margin-bottom: 0.5rem;
 }
-.sg-m {
+.sg-phase-h {
   display: block;
   font-family: var(--font-display);
   font-style: italic;
@@ -2045,7 +2045,7 @@ body.scrolled .status .brand {
   line-height: 1;
   font-feature-settings: "onum";
 }
-.sg-n-row {
+.sg-phase-label {
   display: block;
   font-family: var(--font-utility);
   font-size: 0.65rem;
@@ -2054,49 +2054,41 @@ body.scrolled .status .brand {
   color: rgba(242, 233, 216, 0.55);
   margin-top: 0.5rem;
 }
-.sg-n {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.1rem;
-  color: var(--cream);
-  letter-spacing: 0;
-  text-transform: none;
-}
 
-/* ── row holds landmarks + chorten column ── */
+/* ── row: single centred flex container ── */
 .sg-row {
   flex: 1;
   min-height: 0;
   display: flex;
-  flex-direction: row;
   align-items: flex-end;
   justify-content: center;
-  gap: 5rem;
   padding-bottom: 4rem;
   overflow: visible;
 }
 
-/* ── landmark images ── */
-.sg-landmarks {
+/* ── four assets in a baseline-aligned flex row ── */
+.sg-assets {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: 8.5rem;
+  gap: 120px;
   flex-shrink: 0;
-}
-.sg-landmark {
   overflow: visible;
-  width: 0;
-  height: 0;
+  will-change: transform;
+}
+/* Each asset: JS controls height/width/opacity/display each frame */
+.sg-asset {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: flex-end;
-  position: relative;
+  overflow: visible;
 }
-.sg-landmark img {
-  object-fit: fill;
+.sg-asset img {
   width: 100%;
   height: 100%;
+  object-fit: fill;
+  display: block;
 }
 @keyframes sg-landmark-grow {
   from {
@@ -2122,6 +2114,9 @@ body.scrolled .status .brand {
 }
 
 /* Landmark rulers (left side of each landmark image) */
+.sg-asset[data-id="stack"] .sg-ruler {
+  left: 0.9rem;
+}
 .sg-ruler {
   position: absolute;
   left: -1.6rem;
@@ -4302,32 +4297,20 @@ body.scrolled .status .brand {
     padding-top: 0;
   }
 
-  /* Chorten column: absolutely pinned, right position driven by JS each frame */
-  .sg-col-wrap {
-    position: absolute;
-    bottom: 3rem;
-    right: 4%; /* overridden by JS inline style on mobile */
+  /* Assets row: tight gap on mobile */
+  .sg-assets {
+    gap: 16px;
   }
-  .sg-col {
-    width: min(90px, 20vw);
-  }
-
-  /* Hide col-ruler on mobile — tally already shows “108 chortens stacked” */
-  .sg-col-ruler {
-    display: none;
+  /* Stack sits closer to the burj on mobile */
+  .sg-asset[data-id="stack"] {
+    margin-left: -40px;
   }
 
-  /* Row: landmarks pushed right to sit directly beside the pinned column */
+  /* Row: overflow hidden; JS controls the full X position via translateX */
   .sg-row {
-    justify-content: flex-end;
-    align-items: flex-end;
-    padding: 0 calc(min(90px, 20vw) + 0.6rem) 3rem 4%;
-    gap: 0.6rem;
-    overflow: visible;
-  }
-  .sg-landmarks {
-    gap: 0.4rem;
-    flex-shrink: 1;
+    justify-content: flex-start;
+    padding: 0 0 38% 0;
+    overflow: hidden;
   }
 
   /* Tally */
@@ -4339,41 +4322,14 @@ body.scrolled .status .brand {
     font-size: 0.58rem;
     margin-bottom: 0.4rem;
   }
-  .sg-m {
+  .sg-phase-h {
     font-size: clamp(1.4rem, 5.5vw, 2rem);
   }
-  .sg-n-row {
+  .sg-phase-label {
     font-size: 0.56rem;
   }
 
-  /* Slide-up entrance on mobile — overrides the desktop fade-only keyframe */
-  @keyframes sg-landmark-grow-mobile {
-    from {
-      opacity: 0;
-      transform: translateY(60px) scaleY(0.85);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scaleY(1);
-    }
-  }
-  .sg-landmark--entering {
-    animation: sg-landmark-grow-mobile 1.1s cubic-bezier(0.16, 1, 0.3, 1)
-      forwards;
-    transform-origin: bottom center;
-  }
-  /* Stagger: each landmark enters slightly after the previous */
-  .sg-landmark:nth-child(1).sg-landmark--entering {
-    animation-delay: 0ms;
-  }
-  .sg-landmark:nth-child(2).sg-landmark--entering {
-    animation-delay: 120ms;
-  }
-  .sg-landmark:nth-child(3).sg-landmark--entering {
-    animation-delay: 240ms;
-  }
-
-  /* Ruler: float above the landmark, centred — stays inside the stage */
+  /* Ruler: short vertical pointer centred above each asset */
   .sg-ruler {
     left: 50%;
     top: auto;
@@ -4381,7 +4337,7 @@ body.scrolled .status .brand {
     width: max-content;
     height: auto;
     transform: translateX(-50%);
-    flex-direction: column; /* label on top, line below pointing down */
+    flex-direction: column;
     align-items: center;
     gap: 0.2rem;
     padding: 0 0 0.3rem;
@@ -4406,8 +4362,11 @@ body.scrolled .status .brand {
   .sg-ruler__label span {
     display: none;
   }
+  /* Stack ruler: keep centred on mobile */
+  .sg-asset[data-id="stack"] .sg-ruler {
+    left: 50%;
+  }
 }
-
 /* ─────────────────────── Scene 12 — Volunteers mobile ─────────────────────── */
 @media (max-width: 760px) {
   .vol-copy {

@@ -345,186 +345,146 @@
     num: "09 / 15",
     act: "IV — The Scale of the Offering",
     update(p) {
-      const col = document.querySelector(".scene-stack .sg-col-wrap .sg-col");
-      const nEl = document.querySelector(".scene-stack .sg-n");
-      const mEl = document.querySelector(".scene-stack .sg-m");
-      const stage = document.querySelector(".scene-stack .sg-stage");
-      if (!col) return;
+      const stageEl = document.querySelector(".scene-stack .sg-stage");
+      if (!stageEl) return;
+      const stageH = stageEl.offsetHeight;
+      const stageW = stageEl.offsetWidth;
+      const isMobile = stageW < 600;
 
-      // Phase map (scene is 2200vh):
-      // 0.00 → 0.65 : stacking 1 → 108              (≈ 1430vh — slow build)
-      // 0.65 → 0.75 : HOLD — 108 done, nothing changes (≈ 220vh — pause)
-      // 0.75 → 0.88 : rulers fade in                 (≈ 286vh — measured reveal)
-      // 0.88 → 1.00 : hold everything shown           (≈ 264vh — linger)
-      const count = Math.max(
-        1,
-        Math.min(108, Math.round(1 + clamp(p / 0.65) * 107)),
-      );
-
-      const isMobile = window.innerWidth < 600;
-      const mobileUnlock = 100;
-
-      // Mobile: column stays at centre (x = stageW/2 - colW/2) until count
-      // approaches mobileUnlock, then slides to its final right position.
-      if (isMobile) {
-        const colWrap = document.querySelector(".scene-stack .sg-col-wrap");
-        if (colWrap) {
-          const stageW =
-            (colWrap.parentElement && colWrap.parentElement.offsetWidth) ||
-            window.innerWidth;
-          const colW = colWrap.offsetWidth || 80;
-          // Final resting position: right:3% expressed as a pixel right value
-          const rightFinal = stageW * 0.03;
-          const rightCenter = (stageW - colW) / 2;
-          // Move only in last 6 counts (94-100)
-          const lp = Math.min(1, Math.max(0, (count - (mobileUnlock - 6)) / 6));
-          const ease = lp < 1 ? 1 - Math.pow(1 - lp, 3) : 1; // cubic ease-out
-          colWrap.style.right =
-            (rightCenter + (rightFinal - rightCenter) * ease).toFixed(1) + "px";
-        }
-      }
-
-      // Rulers fade: 0 at p=0.75, fully in at p=0.88
-      const holdP = clamp((p - 0.75) / 0.13);
-
-      // Column height — computed every tick so landmarks share same unitH
-      const stageH =
-        (col.parentElement &&
-          col.parentElement.parentElement &&
-          col.parentElement.parentElement.offsetHeight) ||
-        window.innerHeight;
-      const maxColH = stageH * (window.innerWidth < 600 ? 0.72 : 0.88);
-      const idealH = count * 381; // 380px max unit + 1px gap
-      const colH = Math.min(idealH, maxColH);
-      const unitH = Math.max(2, (colH - (count - 1)) / count);
-
-      if (col._sgCount !== count) {
-        const prev = col._sgCount || 0;
-        // Throttle: add/remove at most 1 unit per frame to avoid reflow bursts
-        const step =
-          count > prev ? Math.min(count, prev + 1) : Math.max(count, prev - 1);
-        col._sgCount = step;
-        const stepCount = step;
-
-        // Update column height
-        const stepColH = Math.min(stepCount * 381, maxColH);
-        const stepUnitH = Math.max(2, (stepColH - (stepCount - 1)) / stepCount);
-        col.style.maxHeight = stepColH + "px";
-
-        if (step > prev) {
-          // Forward: new chorten fades in (opacity only — no translate to avoid layout conflict)
-          const div = document.createElement("div");
-          div.className = "sg-unit sg-unit--new";
-          div.style.height = stepUnitH.toFixed(2) + "px";
-          div.innerHTML = `<img src="/assets/chorten.png" alt="" />`;
-          col.prepend(div);
-          div.addEventListener(
-            "animationend",
-            () => div.classList.remove("sg-unit--new"),
-            { once: true },
-          );
-        } else {
-          // Reverse: top unit lifts off
-          const top = col.children[0];
-          if (top) {
-            top.classList.add("sg-unit--remove");
-            top.addEventListener(
-              "animationend",
-              () => {
-                if (top.parentNode) top.parentNode.removeChild(top);
-              },
-              { once: true },
-            );
-          }
-        }
-
-        // Resize remaining units — instant on forward (no competing layout),
-        // smooth on reverse
-        const isForward = step > prev;
-        Array.from(col.children).forEach((u) => {
-          if (!u.classList.contains("sg-unit--remove")) {
-            u.style.transition = isForward ? "none" : "height 0.25s ease";
-            u.style.height = stepUnitH.toFixed(2) + "px";
-          }
-        });
-        if (isForward) {
-          requestAnimationFrame(() =>
-            Array.from(col.children).forEach((u) => (u.style.transition = "")),
-          );
-        }
-      }
-
-      // Landmarks — updated every tick
-      // aspect = imageW/imageH (measured from actual PNG files)
-      const SG_LANDMARKS = [
-        { id: "pyramid", trigger: 15, chortens: 10, aspect: 1.377 },
-        { id: "eiffel", trigger: 27, chortens: 22, aspect: 0.686 },
-        { id: "burj", trigger: 60, chortens: 55, aspect: 0.444 },
+      // Asset data — real height (m), image aspect ratio (w/h), phase start/end
+      // Aspect ratios measured from actual PNG files:
+      //   pyramid.png 1601×1163 → 1.3765
+      //   eiffel-tower.png 1090×1588 → 0.6864
+      //   building.png (Burj) 645×1454 → 0.4435
+      //   stack.png 963×3508 → 0.2745
+      const ASSETS = [
+        {
+          id: "pyramid",
+          label: "Great Pyramid",
+          meters: 138.5,
+          aspect: 1.3765,
+          start: 0.0,
+          end: 0.2,
+        },
+        {
+          id: "eiffel",
+          label: "Eiffel Tower",
+          meters: 330,
+          aspect: 0.6864,
+          start: 0.1,
+          end: 0.32,
+        },
+        {
+          id: "burj",
+          label: "Burj Khalifa",
+          meters: 828,
+          aspect: 0.4435,
+          start: 0.21,
+          end: 0.46,
+        },
+        {
+          id: "stack",
+          label: "108 Chortens",
+          meters: 1620,
+          aspect: 0.2745,
+          start: 0.335,
+          end: 0.6,
+        },
       ];
-      // isMobile and mobileUnlock already declared above
-      const sgLandmarks = document.querySelector(".scene-stack .sg-landmarks");
-      const showThreshold = isMobile ? mobileUnlock : 15;
-      if (sgLandmarks) {
-        sgLandmarks.style.display = count >= showThreshold ? "" : "none";
+
+      const TOTAL_M = 1620;
+      const GAP_PX = isMobile ? 10 : 120;
+      const TOTAL_GAPS = GAP_PX * (ASSETS.length - 1);
+
+      // Scale factor: pick the tighter of height-based or width-based constraints
+      // so all four assets always fit on screen simultaneously at final sizes.
+      const totalWidthM = ASSETS.reduce((s, a) => s + a.meters * a.aspect, 0);
+      const pxPerM_h = (stageH * (isMobile ? 0.72 : 0.84)) / TOTAL_M;
+      const pxPerM_w =
+        (stageW * (isMobile ? 0.85 : 0.82) - TOTAL_GAPS) / totalWidthM;
+      const pxPerM = Math.min(pxPerM_h, pxPerM_w);
+
+      // Landmark assets enter tall then shrink; stack grows from tiny.
+      const ENTER_H = stageH * (isMobile ? 0.55 : 0.7);
+
+      // Rulers fade in during the "scroll-stop" hold phase (p 0.63 → 0.82)
+      const RULER_P = clamp((p - 0.63) / 0.19);
+
+      // Tally — label of the last asset whose phase has started
+      const labelEl = document.querySelector(".scene-stack .sg-phase-label");
+      const heightEl = document.querySelector(".scene-stack .sg-phase-h");
+      if (labelEl && heightEl) {
+        let active = ASSETS[0];
+        for (const a of ASSETS) {
+          if (p >= a.start) active = a;
+        }
+        labelEl.textContent = active.label;
+        const m = active.meters;
+        heightEl.textContent =
+          m >= 1000 ? (m / 1000).toFixed(2) + " km" : m + " m";
       }
-      SG_LANDMARKS.forEach(({ id, trigger, chortens, aspect }) => {
+
+      // ── Container pan (keeps gaps uniform) ──────────────────────────────────
+      // JS owns the full X position so CSS padding doesn't conflict.
+      // On mobile: start offset centres the first asset on screen; end offset
+      // centres the whole group. On desktop: simple left-to-right pan.
+      const assetsEl = document.querySelector(".scene-stack .sg-assets");
+      if (assetsEl) {
+        let panFrac;
+        if (p < 0.1) panFrac = 0;
+        else if (p < 0.21) panFrac = clamp((p - 0.1) / 0.11) * 0.333;
+        else if (p < 0.335) panFrac = 0.333 + clamp((p - 0.21) / 0.125) * 0.333;
+        else panFrac = 0.667 + clamp((p - 0.335) / 0.265) * 0.333;
+
+        const panEase = 1 - Math.pow(1 - panFrac, 2); // quad ease-out
+        const contW = assetsEl.scrollWidth;
+
+        if (isMobile) {
+          // End position: whole group centred on screen
+          const endX = (stageW - contW) / 2;
+          // Start position: enough to the right so the first asset is centred
+          const firstW =
+            (assetsEl.firstElementChild &&
+              assetsEl.firstElementChild.offsetWidth) ||
+            contW / 4;
+          const startX = stageW / 2 - firstW / 2;
+          const currentX = startX + (endX - startX) * panEase;
+          assetsEl.style.transform = `translateX(${currentX.toFixed(1)}px)`;
+        } else {
+          const maxPan = Math.max(0, contW - stageW * 0.9);
+          assetsEl.style.transform = `translateX(${(-maxPan * panEase).toFixed(1)}px)`;
+        }
+      }
+
+      ASSETS.forEach(({ id, meters, aspect, start, end }) => {
         const el = document.querySelector(
-          `.scene-stack .sg-landmark[data-id="${id}"]`,
+          `.scene-stack .sg-asset[data-id="${id}"]`,
         );
         if (!el) return;
-        // On mobile, use mobileUnlock as the trigger for all landmarks
-        const effectiveTrigger = isMobile ? mobileUnlock : trigger;
-        if (count >= effectiveTrigger) {
-          const h = (chortens * unitH).toFixed(2);
-          const w = (chortens * unitH * aspect).toFixed(2);
-          if (!el._sgVisible) {
-            el._sgVisible = true;
-            el.style.height = h + "px";
-            el.style.width = w + "px";
-            setTimeout(() => {
-              if (el._sgVisible) el.classList.add("sg-landmark--entering");
-            }, 0);
-            el.addEventListener(
-              "animationend",
-              () => {
-                el.classList.remove("sg-landmark--entering");
-              },
-              { once: true },
-            );
-          } else {
-            // Live update — tracks unitH each tick
-            el.style.height = h + "px";
-            el.style.width = w + "px";
-          }
-        } else {
-          if (el._sgVisible) {
-            el._sgVisible = false;
-            el.classList.add("sg-landmark--leaving");
-            el.addEventListener(
-              "animationend",
-              () => {
-                el.classList.remove("sg-landmark--leaving");
-                el.style.width = "0px";
-                el.style.height = "0px";
-              },
-              { once: true },
-            );
-          }
-        }
-      });
 
-      // Rulers: fade in during hold phase (p 0.75 → 0.88)
-      document.querySelectorAll(".scene-stack .sg-ruler").forEach((r) => {
-        r.style.opacity = holdP;
+        const finalH = meters * pxPerM;
+        const isStack = id === "stack";
+        const enterH = isStack ? finalH * 0.08 : ENTER_H;
+
+        if (p < start) {
+          el.style.display = "none";
+          return;
+        }
+        el.style.display = "";
+
+        const raw = clamp((p - start) / (end - start));
+        const ease = 1 - Math.pow(1 - raw, 3);
+        const currentH = enterH + (finalH - enterH) * ease;
+        const currentW = currentH * aspect;
+
+        el.style.height = currentH.toFixed(2) + "px";
+        el.style.width = currentW.toFixed(2) + "px";
+        el.style.transform = ""; // no individual translate — container handles panning
+        el.style.opacity = Math.min(1, raw / 0.1).toFixed(3);
+
+        const ruler = el.querySelector(".sg-ruler");
+        if (ruler) ruler.style.opacity = RULER_P.toFixed(3);
       });
-      const colRuler = document.querySelector(".scene-stack .sg-col-ruler");
-      if (colRuler) colRuler.style.opacity = holdP;
-      if (nEl) nEl.textContent = count;
-      if (mEl) {
-        const meters = count * 15;
-        mEl.textContent =
-          meters >= 1000 ? (meters / 1000).toFixed(2) + " km" : meters + " m";
-      }
     },
   });
 
