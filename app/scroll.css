@@ -4323,7 +4323,7 @@ body.scrolled .status .brand {
   /* Row: overflow hidden clips off-screen panned assets; JS controls X position */
   .sg-row {
     justify-content: flex-start;
-    padding: 0 0 55% 0;
+    padding: 0 0 38% 0;
     overflow: hidden;
   }
 
