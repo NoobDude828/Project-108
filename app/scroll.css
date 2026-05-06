@@ -2083,6 +2083,7 @@ body.scrolled .status .brand {
   display: flex;
   align-items: flex-end;
   overflow: visible;
+  will-change: transform, opacity;
 }
 .sg-asset img {
   width: 100%;
