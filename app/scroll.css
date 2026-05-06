@@ -2090,6 +2090,25 @@ body.scrolled .status .brand {
   object-fit: fill;
   display: block;
 }
+/* Asset name label — above on desktop */
+.sg-asset__name {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 7rem;
+  white-space: normal;
+  text-align: center;
+  font-family: var(--font-utility);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(242, 233, 216, 0.55);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  line-height: 1.5;
+}
 @keyframes sg-landmark-grow {
   from {
     opacity: 0;
@@ -4329,23 +4348,26 @@ body.scrolled .status .brand {
     font-size: 0.56rem;
   }
 
-  /* Ruler: short vertical pointer centred above each asset */
+  /* Ruler: label + short horizontal line, shifted up and inward */
   .sg-ruler {
-    left: 50%;
-    top: auto;
-    bottom: 100%;
+    left: auto;
+    right: 76%;
+    top: 8%;
+    bottom: auto;
     width: max-content;
     height: auto;
-    transform: translateX(-50%);
-    flex-direction: column;
+    transform: none;
+    flex-direction: row;
     align-items: center;
-    gap: 0.2rem;
-    padding: 0 0 0.3rem;
+    gap: 0.25rem;
+    padding: 0 0.2rem 0 0;
   }
   .sg-ruler__line {
-    width: 2px;
-    height: 0.8rem;
+    width: 0.6rem;
+    height: 1px;
+    background: rgba(200, 166, 99, 0.6);
     align-self: center;
+    flex-shrink: 0;
   }
   .sg-ruler__line::before,
   .sg-ruler__line::after {
@@ -4353,18 +4375,31 @@ body.scrolled .status .brand {
   }
   .sg-ruler__label {
     order: -1;
-    text-align: center;
+    text-align: right;
     white-space: nowrap;
   }
   .sg-ruler__label strong {
-    font-size: 0.56rem;
+    font-size: 0.5rem;
   }
   .sg-ruler__label span {
-    display: none;
+    display: block;
+    font-size: 0.45rem;
   }
-  /* Stack ruler: keep centred on mobile */
   .sg-asset[data-id="stack"] .sg-ruler {
-    left: 50%;
+    left: auto;
+    right: 76%;
+  }
+  .sg-asset[data-id="pyramid"] .sg-ruler {
+    right: 92%;
+  }
+  /* Name label: below the asset on mobile */
+  .sg-asset__name {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 2.5rem;
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
   }
 }
 /* ─────────────────────── Scene 12 — Volunteers mobile ─────────────────────── */
