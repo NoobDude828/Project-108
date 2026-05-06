@@ -482,7 +482,7 @@
         assetsEl.style.transform = `translateX(${panX.toFixed(1)}px)`;
       }
 
-      ASSETS.forEach(({ id, meters, aspect, start, end }) => {
+      ASSETS.forEach(({ id, aspect, start, end }) => {
         const el = document.querySelector(
           `.scene-stack .sg-asset[data-id="${id}"]`,
         );
@@ -491,33 +491,37 @@
         const fp = finalPos[id];
         const isStack = id === "stack";
         const enterH = isStack ? fp.h * 0.08 : ENTER_H;
+        // Scale at entry — how many times larger than the final size it starts
+        const s0 = enterH / fp.h;
 
-        // Anchor at the CENTRE of the final position — so the large entry box
-        // overflows equally left and right, never spilling purely to one side.
-        // centreX is fixed each frame; only currentW changes.
-        const centreX = fp.x + fp.w / 2;
-
-        el.style.position = "absolute";
-        el.style.bottom = "0";
+        // ── Set final dimensions once (causes layout) ──────────────────────
+        // Only mutate width/height/left/position when they differ from what
+        // was last set — avoids forced reflow on every frame.
+        // Subsequent per-frame animation uses only transform + opacity
+        // (GPU-composited, zero layout cost).
+        if (el._fp !== fp) {
+          el._fp = fp;
+          el.style.position = "absolute";
+          el.style.bottom = "0";
+          el.style.left = fp.x.toFixed(1) + "px";
+          el.style.width = fp.w.toFixed(2) + "px";
+          el.style.height = fp.h.toFixed(2) + "px";
+          el.style.transformOrigin = "bottom center";
+          el.style.willChange = "transform, opacity";
+        }
         el.style.display = "";
 
         if (p < start) {
-          const w0 = enterH * aspect;
           el.style.opacity = "0";
-          el.style.height = enterH.toFixed(2) + "px";
-          el.style.width = w0.toFixed(2) + "px";
-          el.style.left = (centreX - w0 / 2).toFixed(1) + "px";
+          el.style.transform = `scale(${s0.toFixed(4)})`;
           return;
         }
 
         const raw = clamp((p - start) / (end - start));
         const ease = 1 - Math.pow(1 - raw, 3);
-        const currentH = enterH + (fp.h - enterH) * ease;
-        const currentW = currentH * aspect;
+        const s = s0 + (1 - s0) * ease;
 
-        el.style.left = (centreX - currentW / 2).toFixed(1) + "px";
-        el.style.height = currentH.toFixed(2) + "px";
-        el.style.width = currentW.toFixed(2) + "px";
+        el.style.transform = `scale(${s.toFixed(4)})`;
         el.style.opacity = Math.min(1, raw / 0.1).toFixed(3);
 
         const ruler = el.querySelector(".sg-ruler");
