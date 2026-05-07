@@ -1541,10 +1541,10 @@ body.scrolled .status .brand {
 @media (max-width: 768px) {
   .dots-field {
     grid-template-columns: repeat(9, 1fr);
-    width: min(80vw, 320px);
+    width: min(68vw, 260px);
     margin-left: auto;
     margin-right: auto;
-    margin-top: -4rem;
+    margin-top: -2rem;
   }
 }
 
