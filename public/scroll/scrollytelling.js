@@ -1124,9 +1124,20 @@
   // Expose tick for screenshot harnesses where rAF is paused (document.hidden).
   window.__p108Tick = tick;
 
+  // On slower devices (especially iPhones), React hydration may not have
+  // mounted scene components by the time this script runs. Poll until at
+  // least one scene element exists before initialising — typically 0-200ms.
+  function waitForScenes() {
+    if (document.querySelector(".scene-what")) {
+      init();
+    } else {
+      setTimeout(waitForScenes, 50);
+    }
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", waitForScenes);
   } else {
-    init();
+    waitForScenes();
   }
 })();
