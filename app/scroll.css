@@ -4079,7 +4079,7 @@ body.scrolled .status .brand {
     display: contents;
   }
   .truth {
-    font-size: clamp(1rem, 4vw, 1.25rem);
+    font-size: clamp(0.78rem, 3.2vw, 1rem);
     max-width: none;
     padding: 0;
     transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -4096,9 +4096,9 @@ body.scrolled .status .brand {
     align-self: start;
     justify-self: start;
     padding-bottom: 0;
-    padding-top: 1rem;
+    padding-top: 0.25rem;
     padding-left: 2rem;
-    transform: translateY(-2rem);
+    transform: translateY(1rem);
   }
   .truth.t1::before {
     margin-left: 0;
@@ -4112,8 +4112,8 @@ body.scrolled .status .brand {
     justify-self: start;
     padding-left: 2rem;
     padding-bottom: 0;
-    padding-top: 0.5rem;
-    transform: translateY(-2rem);
+    padding-top: 0.15rem;
+    transform: translateY(1rem);
   }
   .truth.t2::before {
     margin-left: 0;

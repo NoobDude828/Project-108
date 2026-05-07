@@ -131,7 +131,7 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Purge all browser caches on every page load */}
+        {/* Purge all browser caches on every page load 
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -147,7 +147,7 @@ export default function RootLayout({
               }
             `,
           }}
-        />
+        />*/}
       </head>
       <body>
         {/* GA4 — replace G-XXXXXXXXXX with your Measurement ID */}
