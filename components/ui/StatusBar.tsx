@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 
+const BROCHURE_HREF = "/assets/Project_108.pdf";
+
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -20,7 +22,7 @@ export default function StatusBar() {
         {/* ── Desktop: two plain buttons ── */}
         <div className="status-split" aria-label="Actions">
           <a
-            href="/assets/Project_108.pdf"
+            href={BROCHURE_HREF}
             target="_blank"
             rel="noopener noreferrer"
             className="status-split__btn"
@@ -67,7 +69,7 @@ export default function StatusBar() {
             ×
           </button>
           <a
-            href="/assets/Project_108.pdf"
+            href={BROCHURE_HREF}
             target="_blank"
             rel="noopener noreferrer"
             className="status-drawer__btn"
