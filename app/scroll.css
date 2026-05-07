@@ -3372,58 +3372,15 @@ body.scrolled .status .brand {
 }
 
 /* ─────────────────────── Reduced motion fallback ─────────────────────── */
+/* Kill CSS transitions/keyframes so nothing swoops or slides, but keep
+   the scroll-driven layout intact (tall sections, sticky stages, JS --p).
+   The JS tick loop runs with LERP=1 for instant-snap reveals. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001s !important;
     transition-duration: 0.001s !important;
-  }
-  .scene {
-    height: auto !important;
-  }
-  .stage {
-    position: relative;
-    height: auto;
-    min-height: 80vh;
-    padding: 6rem 0;
-  }
-  .what-chorten,
-  .scale-art,
-  .assy-part,
-  .assy-item,
-  .why-chapter,
-  .mg-cell,
-  .spacing-row,
-  .spacing-measure,
-  .river-photo,
-  .river-path,
-  .river-marker,
-  .stack-unit,
-  .stack-counter,
-  .stack-final,
-  .time-marker,
-  .time-fill,
-  .manpower-row,
-  .vol-site,
-  .vol-flow,
-  .compl-chorten,
-  .compl-copy,
-  .compl-light {
-    --p: 1 !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .why-anchor {
-    --p: 0 !important;
-    opacity: 0 !important;
-  }
-  .why-chapter {
-    position: relative;
-    inset: auto;
-    opacity: 1 !important;
-    padding: 4rem 1.5rem;
-    align-items: center;
   }
 }
 
