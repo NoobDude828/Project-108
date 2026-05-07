@@ -1160,6 +1160,14 @@
     // getBoundingClientRect() every frame (which forces layout on mobile).
     cacheSceneRects();
 
+    // Re-cache after fonts are ready — on first visit fonts may not be painted
+    // at DOMContentLoaded, causing wrong measurements on real devices.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        cacheSceneRects();
+      });
+    }
+
     if (reducedMotion) {
       // Don't run the rAF loop; show captions for the very first scene only.
       setActiveScene(0);
@@ -1177,9 +1185,11 @@
   // Expose tick for screenshot harnesses where rAF is paused (document.hidden).
   window.__p108Tick = tick;
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
+  if (document.readyState === "complete") {
     init();
+  } else {
+    // Wait for full load (fonts + images) so cacheSceneRects() measures correctly.
+    // This is critical on first visit to real devices where nothing is cached.
+    window.addEventListener("load", init, { once: true });
   }
 })();
