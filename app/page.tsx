@@ -52,7 +52,7 @@ export default function ScrollPage() {
       <FormModal />
 
       <Script
-        src="/scroll/scrollytelling.js?v=26"
+        src="/scroll/scrollytelling.js?v=25"
         strategy="afterInteractive"
       />
       <Script src="/scroll/form.js" strategy="afterInteractive" />
