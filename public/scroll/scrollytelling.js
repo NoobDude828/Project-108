@@ -1200,8 +1200,17 @@
   }
 
   function safeInit() {
-    // Delay slightly so Safari finishes layout after first paint
-    setTimeout(doInit, 80);
+    // On slower devices (especially iPhones), React hydration may not have
+    // mounted scene components yet. Poll until at least one scene element
+    // exists — typically 0-200ms on slow devices, instant on fast ones.
+    function waitForScenes() {
+      if (document.querySelector(".scene-what")) {
+        doInit();
+      } else {
+        setTimeout(waitForScenes, 50);
+      }
+    }
+    waitForScenes();
     // Re-cache after fonts settle (critical for Cormorant Garamond line heights)
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
