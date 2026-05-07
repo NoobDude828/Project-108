@@ -130,6 +130,23 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Purge all browser caches on every page load 
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('caches' in window) {
+                caches.keys().then(function(names) {
+                  names.forEach(function(name) { caches.delete(name); });
+                });
+              }
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  regs.forEach(function(reg) { reg.unregister(); });
+                });
+              }
+            `,
+          }}
+        /> */}
       </head>
       <body>{children}</body>
     </html>
