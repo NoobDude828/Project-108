@@ -1,10 +1,54 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const BROCHURE_HREF = "/assets/Project_108.pdf";
 
+function useOnlineCount() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Register this visitor
+    fetch("/api/online", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "join" }),
+    })
+      .then((r) => r.json())
+      .then((d) => setCount(d.activeUsers));
+
+    // Poll every 30s to stay in sync across tabs
+    const id = setInterval(() => {
+      fetch("/api/online")
+        .then((r) => r.json())
+        .then((d) => setCount(d.activeUsers));
+    }, 30_000);
+
+    // Deregister on close
+    const onLeave = () => {
+      const blob = new Blob([JSON.stringify({ action: "leave" })], {
+        type: "application/json",
+      });
+      navigator.sendBeacon("/api/online", blob);
+    };
+    window.addEventListener("beforeunload", onLeave);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("beforeunload", onLeave);
+      fetch("/api/online", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "leave" }),
+      });
+    };
+  }, []);
+
+  return count;
+}
+
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const onlineCount = useOnlineCount();
 
   function scrollToInvitation(e: React.MouseEvent) {
     e.preventDefault();
@@ -18,6 +62,17 @@ export default function StatusBar() {
     <>
       <header className="status" role="banner">
         <span className="brand">Project 108 · Bhutan · 1 November 2026</span>
+
+        {/* ── Live visitors dot ── */}
+        {onlineCount !== null && (
+          <span
+            className="status-online"
+            aria-label={`${onlineCount} people viewing`}
+          >
+            <span className="status-online__dot" />
+            {onlineCount} online
+          </span>
+        )}
 
         {/* ── Desktop: two plain buttons ── */}
         <div className="status-split" aria-label="Actions">

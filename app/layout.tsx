@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -148,7 +149,20 @@ export default function RootLayout({
           }}
         /> */}
       </head>
-      <body>{children}</body>
+      <body>
+        {/* GA4 — replace G-XXXXXXXXXX with your Measurement ID */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-NE1T7ZF5PX"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-NE1T7ZF5PX');
+        `}</Script>
+        {children}
+      </body>
     </html>
   );
 }
