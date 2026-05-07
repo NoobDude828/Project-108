@@ -1160,14 +1160,6 @@
     // getBoundingClientRect() every frame (which forces layout on mobile).
     cacheSceneRects();
 
-    // Re-cache after fonts are ready — on first visit fonts may not be painted
-    // at DOMContentLoaded, causing wrong measurements on real devices.
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () {
-        cacheSceneRects();
-      });
-    }
-
     if (reducedMotion) {
       // Don't run the rAF loop; show captions for the very first scene only.
       setActiveScene(0);
@@ -1185,11 +1177,51 @@
   // Expose tick for screenshot harnesses where rAF is paused (document.hidden).
   window.__p108Tick = tick;
 
-  if (document.readyState === "complete") {
-    init();
-  } else {
-    // Wait for full load (fonts + images) so cacheSceneRects() measures correctly.
-    // This is critical on first visit to real devices where nothing is cached.
-    window.addEventListener("load", init, { once: true });
+  let rafId = null;
+  let inited = false;
+
+  function startTick() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    requestAnimationFrame(function loop() {
+      tick();
+      // tick() already calls rAF internally — this wrapper is just for restart
+    });
   }
+
+  function doInit() {
+    if (inited) {
+      // Re-entry on bfcache restore or font-settle: just re-cache rects
+      cacheSceneRects();
+      return;
+    }
+    inited = true;
+    init();
+  }
+
+  function safeInit() {
+    // Delay slightly so Safari finishes layout after first paint
+    setTimeout(doInit, 80);
+    // Re-cache after fonts settle (critical for Cormorant Garamond line heights)
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        setTimeout(cacheSceneRects, 50);
+      });
+    }
+  }
+
+  if (document.readyState === "complete") {
+    safeInit();
+  } else {
+    window.addEventListener("load", safeInit, { once: true });
+  }
+
+  // Safari bfcache: page is restored from cache — load event doesn't fire,
+  // but pageshow does. Re-cache rects so animations start correctly.
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) {
+      // Page restored from bfcache — measurements may be stale
+      setTimeout(cacheSceneRects, 80);
+    }
+  });
 })();
