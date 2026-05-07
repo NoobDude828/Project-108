@@ -3379,8 +3379,8 @@ body.scrolled .status .brand {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001s !important;
-    transition-duration: 0.001s !important;
+    animation-duration: 0.1s !important;
+    transition-duration: 0.1s !important;
   }
 }
 
