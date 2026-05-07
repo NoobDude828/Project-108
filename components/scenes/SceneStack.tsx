@@ -54,11 +54,19 @@ export default function SceneStack() {
                   <div className="sg-ruler">
                     <span className="sg-ruler__line"></span>
                     <span className="sg-ruler__label">
+                      <em className="sg-stack__chorten-label">
+                        Jangchub
+                        <br />
+                        Chortens
+                      </em>
                       <strong>108 chortens stacked</strong>
                       <span>1.62 km</span>
                     </span>
                   </div>
                   <img src="/assets/stack.png" alt="" />
+                  <span className="sg-asset__name sg-asset__name--stack">
+                    Jangchub Chortens
+                  </span>
                 </div>
               </div>
             </div>

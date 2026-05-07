@@ -50,6 +50,18 @@ function useOnlineCount() {
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const onlineCount = useOnlineCount();
+  const [onFirstScene, setOnFirstScene] = useState(true);
+
+  useEffect(() => {
+    const firstScene = document.querySelector(".scene:first-of-type");
+    if (!firstScene) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setOnFirstScene(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    obs.observe(firstScene);
+    return () => obs.disconnect();
+  }, []);
 
   function scrollToInvitation(e: React.MouseEvent) {
     e.preventDefault();
@@ -62,7 +74,7 @@ export default function StatusBar() {
   return (
     <>
       {/* ── Mobile floating live counter over first scene ── */}
-      {onlineCount !== null && (
+      {onlineCount !== null && onFirstScene && (
         <div
           className="status-online-float"
           aria-label={`${onlineCount} people viewing`}
