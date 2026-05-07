@@ -2,13 +2,14 @@
 import { useState, useEffect } from "react";
 
 const BROCHURE_HREF = "/assets/Project_108.pdf";
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 function useOnlineCount() {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
     // Register this visitor
-    fetch("/api/online", {
+    fetch(`${BASE}/api/online`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "join" }),
@@ -18,7 +19,7 @@ function useOnlineCount() {
 
     // Poll every 30s to stay in sync across tabs
     const id = setInterval(() => {
-      fetch("/api/online")
+      fetch(`${BASE}/api/online`)
         .then((r) => r.json())
         .then((d) => setCount(d.activeUsers));
     }, 30_000);
@@ -28,14 +29,14 @@ function useOnlineCount() {
       const blob = new Blob([JSON.stringify({ action: "leave" })], {
         type: "application/json",
       });
-      navigator.sendBeacon("/api/online", blob);
+      navigator.sendBeacon(`${BASE}/api/online`, blob);
     };
     window.addEventListener("beforeunload", onLeave);
 
     return () => {
       clearInterval(id);
       window.removeEventListener("beforeunload", onLeave);
-      fetch("/api/online", {
+      fetch(`${BASE}/api/online`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "leave" }),
