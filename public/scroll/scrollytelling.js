@@ -1111,7 +1111,7 @@
 
     // Lerp: smoothed p chases rawP each frame — absorbs momentum-scroll jumps.
     // When reduced-motion is active, skip smoothing (instant snap).
-    const LERP = reducedMotion ? 0.4 : 0.14;
+    const LERP = 0.14;
 
     let activeIdx = 0;
     sceneDefs.forEach((s, i) => {
