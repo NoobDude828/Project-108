@@ -1110,7 +1110,8 @@
     }
 
     // Lerp: smoothed p chases rawP each frame — absorbs momentum-scroll jumps.
-    const LERP = 0.14;
+    // When reduced-motion is active, skip smoothing (instant snap).
+    const LERP = reducedMotion ? 1 : 0.14;
 
     let activeIdx = 0;
     sceneDefs.forEach((s, i) => {
@@ -1160,17 +1161,10 @@
     // getBoundingClientRect() every frame (which forces layout on mobile).
     cacheSceneRects();
 
-    if (reducedMotion) {
-      // Don't run the rAF loop; show captions for the very first scene only.
-      setActiveScene(0);
-      // Force final-state on each scene for clarity.
-      sceneDefs.forEach((s) => {
-        try {
-          s.update(1);
-        } catch (e) {}
-      });
-      return;
-    }
+    // When reduced-motion is preferred, still run the scroll loop so
+    // content reveals as the user scrolls — but skip the lerp smoothing
+    // so transitions are instant (no swooping/sliding). This keeps the
+    // site usable for accessibility users instead of showing a static wall.
     requestAnimationFrame(tick);
   }
 
