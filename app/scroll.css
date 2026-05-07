@@ -1294,13 +1294,16 @@ body.scrolled .status .brand {
     min-height: 340px;
   }
   .fig-person {
-    left: 8%;
+    left: 6%;
+    z-index: 2;
   }
   .fig-building {
     left: 30%;
+    z-index: 1;
   }
   .fig-chorten {
     right: 6%;
+    z-index: 3;
   }
 }
 .scale-art {
@@ -1559,9 +1562,9 @@ body.scrolled .status .brand {
 /* The 108 dots field for chapter E */
 .dots-field {
   display: grid;
-  grid-template-columns: repeat(18, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   gap: 6px;
-  width: min(88vw, 720px);
+  width: min(55vw, 480px);
   margin: 0 auto 1.5rem;
 }
 .dots-field .dot {
@@ -2111,6 +2114,27 @@ body.scrolled .status .brand {
   pointer-events: none;
   line-height: 1.5;
 }
+/* Stack chorten label — desktop: floats above the ruler label block */
+.sg-stack__chorten-label {
+  display: block;
+  position: absolute;
+  bottom: calc(100% - 8.2rem);
+  right: 0;
+  font-style: normal;
+  font-family: var(--font-utility);
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(242, 233, 216, 0.55);
+  white-space: normal;
+  text-align: right;
+  line-height: 1.6;
+  width: 7rem;
+}
+/* Stack name span — desktop hidden, mobile shown */
+.sg-asset__name--stack {
+  display: none;
+}
 @keyframes sg-landmark-grow {
   from {
     opacity: 0;
@@ -2175,6 +2199,7 @@ body.scrolled .status .brand {
 }
 .sg-ruler__label {
   order: -1;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -4423,6 +4448,13 @@ body.scrolled .status .brand {
     margin-top: 2.5rem;
     font-size: 0.5rem;
     letter-spacing: 0.16em;
+  }
+  /* Stack: hide ruler chorten label, show name span below asset */
+  .sg-stack__chorten-label {
+    display: none;
+  }
+  .sg-asset__name--stack {
+    display: block;
   }
 }
 /* ─────────────────────── Scene 12 — Volunteers mobile ─────────────────────── */
