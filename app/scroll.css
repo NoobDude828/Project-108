@@ -1544,7 +1544,7 @@ body.scrolled .status .brand {
     width: min(68vw, 260px);
     margin-left: auto;
     margin-right: auto;
-    margin-top: 0rem;
+    margin-top: 0.5rem;
   }
 }
 
