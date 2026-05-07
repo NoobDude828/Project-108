@@ -4128,6 +4128,9 @@ body.scrolled .status .brand {
     transform: translateY(-9vh);
     overflow: visible;
   }
+  .assembly-labels h2 {
+    font-size: clamp(0.95rem, 3.8vw, 1.25rem);
+  }
   .scene-assembly .stage__inner {
     overflow: visible;
     padding-top: 6rem;
