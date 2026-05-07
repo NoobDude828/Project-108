@@ -118,6 +118,10 @@ body.scrolled .status .brand {
   color: var(--gold-bright);
   opacity: 0.85;
 }
+/* Float version — desktop hidden, mobile shown via media query */
+.status-online-float {
+  display: none;
+}
 .status-online__dot {
   width: 7px;
   height: 7px;
@@ -3406,6 +3410,33 @@ body.scrolled .status .brand {
   }
   .status .skip {
     display: none;
+  }
+  /* Hide the inline dot in the header on mobile — show the floating one instead */
+  .status .status-online {
+    display: none;
+  }
+  /* Floating live counter over the first scene on mobile */
+  .status-online-float {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    position: fixed;
+    top: 3.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    font-family: var(--font-utility);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    background: rgba(26, 7, 16, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(200, 166, 99, 0.25);
+    padding: 0.35rem 0.8rem;
+    border-radius: 2rem;
+    pointer-events: none;
   }
   .caption-bar {
     left: 1rem;
