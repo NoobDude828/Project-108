@@ -24,7 +24,7 @@ export default function SceneScale() {
               <div className="scale-fig fig-person" data-fig="1">
                 <img src="/assets/people2.png" alt="" />
                 <span className="lbl">
-                  <strong>1.75 m</strong>Person
+                  <strong>1.75 m</strong>Human
                 </span>
               </div>
               <div className="scale-fig fig-building" data-fig="2">

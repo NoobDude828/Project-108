@@ -61,6 +61,17 @@ export default function StatusBar() {
 
   return (
     <>
+      {/* ── Mobile floating live counter over first scene ── */}
+      {onlineCount !== null && (
+        <div
+          className="status-online-float"
+          aria-label={`${onlineCount} people viewing`}
+        >
+          <span className="status-online__dot" />
+          {onlineCount} online
+        </div>
+      )}
+
       <header className="status" role="banner">
         <span className="brand">Project 108 · Bhutan · 1 November 2026</span>
 
