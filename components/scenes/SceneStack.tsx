@@ -21,7 +21,7 @@ export default function SceneStack() {
                       <span>138.5 m</span>
                     </span>
                   </div>
-                  <img src="/assets/pyramid.png" alt="" />
+                  <img src="/assets/pyramid.png" alt="Great Pyramid of Giza" />
                   <span className="sg-asset__name">
                     Great Pyramid
                     <br />
@@ -36,7 +36,7 @@ export default function SceneStack() {
                       <span>330 m</span>
                     </span>
                   </div>
-                  <img src="/assets/eiffel-tower.png" alt="" />
+                  <img src="/assets/eiffel-tower.png" alt="Eiffel Tower" />
                   <span className="sg-asset__name">Eiffel Tower</span>
                 </div>
                 <div className="sg-asset" data-id="burj">
@@ -47,7 +47,7 @@ export default function SceneStack() {
                       <span>828 m</span>
                     </span>
                   </div>
-                  <img src="/assets/building.png" alt="" />
+                  <img src="/assets/building.png" alt="Burj Khalifa" />
                   <span className="sg-asset__name">Burj Khalifa</span>
                 </div>
                 <div className="sg-asset" data-id="stack">
@@ -63,7 +63,7 @@ export default function SceneStack() {
                       <span>1.62 km</span>
                     </span>
                   </div>
-                  <img src="/assets/stack.png" alt="" />
+                  <img src="/assets/stack.png" alt="108 Jangchub Chortens stacked vertically, reaching 1.62 km" />
                   <span className="sg-asset__name sg-asset__name--stack">
                     Jangchub Chortens
                   </span>

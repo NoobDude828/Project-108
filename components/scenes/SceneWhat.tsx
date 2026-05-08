@@ -12,7 +12,7 @@ export default function SceneWhat() {
           </div>
           <div className="what-stage">
             <div className="what-chorten" aria-hidden="true">
-              <img src="/assets/chorten-front.png" alt="" />
+              <img src="/assets/chorten-front.png" alt="Front elevation of a Jangchub Chorten, 15 metres tall" />
               <img
                 src="/assets/brush-stroke.png"
                 alt=""

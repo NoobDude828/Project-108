@@ -638,7 +638,7 @@ export default function SceneWhy() {
                 <div className="vis" aria-hidden="true">
                   <img
                     src="/assets/Mandala.png"
-                    alt=""
+                    alt="Mandala representing 108, a number of completeness in Buddhist tradition"
                     className="why-mandala"
                   />
                 </div>
