@@ -109,6 +109,7 @@
     num: "04 / 15",
     act: "I — The Sacred Object",
     update(p) {
+      if (window.innerWidth <= 768) p = 1;
       const wrap = document.querySelector(".scene-scale .scale-scrolly");
       const art = document.querySelector(".scene-scale .scale-art");
       if (art) art.style.setProperty("--p", clamp(p));
@@ -360,6 +361,7 @@
     num: "09 / 15",
     act: "IV — The Scale of the Offering",
     update(p) {
+      if (window.innerWidth <= 768) p = 1;
       const stageEl = document.querySelector(".scene-stack .sg-stage");
       if (!stageEl) return;
       const stageH = stageEl.offsetHeight;
@@ -594,6 +596,7 @@
     num: "12 / 15",
     act: "V — The Human Achievement",
     update(p) {
+      if (window.innerWidth <= 768) p = 1;
       const canvas = document.querySelector(".scene-volunteers .vol-canvas");
       if (!canvas) return;
 
