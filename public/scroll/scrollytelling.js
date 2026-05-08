@@ -189,14 +189,13 @@
       tickLines("B", [0.24, 0.41]);
       tickLines("C", [0.43, 0.58]);
 
-      // Project chapter — 108 dots
+      // Project chapter — mandala radial reveal
       const projC = document.querySelector('.why-chapter[data-chap="E"]');
       if (projC) {
-        const dots = projC.querySelectorAll(".dot");
         const [a, b] = [0.78, 0.98];
         const local = clamp((p - a) / (b - a));
-        const litCount = Math.floor(local * dots.length);
-        dots.forEach((d, i) => d.classList.toggle("lit", i < litCount));
+        const mandala = projC.querySelector(".why-mandala");
+        if (mandala) mandala.style.setProperty("--mandala-p", local);
       }
     },
   });
@@ -1055,15 +1054,9 @@
     track.innerHTML = html;
   }
 
-  /* ---------------- Why-108 dots ---------------- */
+  /* ---------------- Why-108 mandala ---------------- */
   function buildWhyDots() {
-    const wrap = document.querySelector(
-      '.why-chapter[data-chap="E"] .dots-field',
-    );
-    if (!wrap) return;
-    const html = [];
-    for (let i = 0; i < 108; i++) html.push('<div class="dot"></div>');
-    wrap.innerHTML = html.join("");
+    // No-op: mandala is now a single static image (why-mandala)
   }
 
   /* ---------------- Stable viewport height ---------------- */

@@ -636,7 +636,11 @@ export default function SceneWhy() {
               {/* Chapter E — Project 108 */}
               <article className="why-chapter" data-chap="E">
                 <div className="vis" aria-hidden="true">
-                  <div className="dots-field"></div>
+                  <img
+                    src="/assets/Mandala.png"
+                    alt=""
+                    className="why-mandala"
+                  />
                 </div>
                 <p className="ttl">
                   In <em>Project 108</em>, the number becomes <em>physical</em>.

@@ -1560,33 +1560,24 @@ body.scrolled .status .brand {
 }
 
 /* The 108 dots field for chapter E */
-.dots-field {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 6px;
-  width: min(55vw, 480px);
+.why-mandala {
+  width: min(55vw, 420px);
+  height: auto;
+  display: block;
   margin: 0 auto 1.5rem;
-}
-.dots-field .dot {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 0;
-  background: url("/assets/Mandala.png") center / contain no-repeat;
-  opacity: 1;
-  transform: scale(0);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.dots-field .dot.lit {
-  transform: scale(1);
+  --mandala-p: 0;
+  clip-path: circle(calc(var(--mandala-p) * 75%) at 50% 50%);
+  transition: clip-path 0.25s ease;
+  opacity: calc(0.15 + var(--mandala-p) * 0.85);
 }
 
 @media (max-width: 768px) {
-  .dots-field {
-    grid-template-columns: repeat(9, 1fr);
-    width: min(68vw, 260px);
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0.5rem;
+  .why-mandala {
+    --mandala-p: 1;
+    clip-path: none;
+    opacity: 1;
+    transition: none;
+    width: min(72vw, 280px);
   }
 }
 
@@ -4327,10 +4318,12 @@ body.scrolled .status .brand {
   }
   .why-chapter .lines span {
     opacity: 1;
-  }
-  .dots-field .dot {
-    transform: scale(1);
+    color: rgba(242, 233, 216, 0.72);
     transition: none;
+  }
+  .why-chapter .lines span.lit {
+    opacity: 1;
+    color: rgba(242, 233, 216, 0.72);
   }
 
   /* ── Scene 08 mobile — shift and rotate river line ── */
@@ -4379,9 +4372,9 @@ body.scrolled .status .brand {
     transition: none !important;
   }
 
-  /* ── Scene 09 mobile — stack: reduce height ── */
+  /* ── Scene 09 mobile — stack: static end state, minimal scroll ── */
   .scene-stack {
-    height: 300vh;
+    height: 120vh;
   }
 
   /* ── Scene 10 mobile — time: force visible, reduce height ── */
@@ -4393,20 +4386,7 @@ body.scrolled .status .brand {
     transition: none !important;
   }
 
-  /* ── Scene 11 mobile — manpower: force visible rows ── */
-  .scene-manpower {
-    height: auto;
-  }
-  .manpower-row {
-    --p: 1;
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-  .manpower-row .bar__fill {
-    transform: scaleX(1) !important;
-    transition: none !important;
-  }
+  /* ── Scene 11 mobile — manpower: scene height is handled by existing auto layout ── */
 
   /* ── Scene 12 mobile — volunteers: reduce height ── */
   .scene-volunteers {
