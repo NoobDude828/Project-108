@@ -85,28 +85,8 @@ export default function FormModal() {
             </label>
           </fieldset>
 
-          {/* Step 2 — Shown once nationality is chosen */}
           {nationality && (
             <>
-              {/* Patron / Volunteer — present in both flows */}
-              {/* <fieldset className="form-row form-row--choice">
-                <legend className="visually-hidden">I would like to</legend>
-                <label className="choice">
-                  <input type="radio" name="role" value="patron" required />
-                  <span className="choice__box">
-                    <span className="choice__ttl">Patron</span>
-                    <span className="choice__sub">Offer a chorten</span>
-                  </span>
-                </label>
-                <label className="choice">
-                  <input type="radio" name="role" value="volunteer" required />
-                  <span className="choice__box">
-                    <span className="choice__ttl">Volunteer</span>
-                    <span className="choice__sub">Join the build day</span>
-                  </span>
-                </label>
-              </fieldset> */}
-
               {nationality === "bhutanese" ? (
                 /* Bhutanese flow — CID + phone */
                 <>

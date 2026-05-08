@@ -199,9 +199,10 @@
       ledeEl.innerHTML =
         "One chorten. One offering. From <em>USD 200,000</em> — flexible by conversation.";
     } else if (role === "volunteer") {
-      titleEl.innerHTML = "Register to <em>volunteer</em>.";
+      titleEl.innerHTML =
+        "Register to show your <em>interest</em>. </br> Your interest to <em> volunteer </em>.";
       ledeEl.textContent =
-        "Leave your details — we will share next steps for the build day on 1 November 2026.";
+        "Once ready, we will infrom you on how to volunteer.";
     } else {
       titleEl.innerHTML = "Take <em>part</em>.";
       ledeEl.textContent =
@@ -211,6 +212,7 @@
     thanksBox.hidden = true;
     resetFormError();
     resetThanks();
+    modal.setAttribute("data-role", role || "");
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -225,6 +227,7 @@
   function closeModal() {
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
+    modal.removeAttribute("data-role");
     document.body.style.overflow = "";
     if (lastFocused) lastFocused.focus();
   }
@@ -341,7 +344,8 @@
     },
     volunteer: {
       lbl: "Thank you",
-      title: "Your registration is received.",
+      title:
+        "Your interest to volunteer has been received. We will get in touch.",
       desc: "Project 108 welcomes you to this collective act of merit. Our team will be in touch shortly with the next steps for 1 November 2026.",
     },
   };
@@ -425,7 +429,10 @@
     const payload = buildPayload(fd);
 
     // Defence-in-depth: API re-validates these but a client check avoids a round-trip.
-    if (payload.nationality === "bhutanese" && !/^\d{11}$/.test(payload.cid || "")) {
+    if (
+      payload.nationality === "bhutanese" &&
+      !/^\d{11}$/.test(payload.cid || "")
+    ) {
       showFormError("CID must be exactly 11 digits.");
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
@@ -463,9 +470,7 @@
         "Please check the form and try again.";
       showFormError(msg);
     } else {
-      showFormError(
-        "Something went wrong. Please try again in a moment.",
-      );
+      showFormError("Something went wrong. Please try again in a moment.");
     }
 
     submitBtn.disabled = false;

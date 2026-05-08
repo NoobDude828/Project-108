@@ -3535,7 +3535,7 @@ body.scrolled .status .brand {
     font-size: 0.55rem;
   }
   .scene-multiply {
-    height: 280vh;
+    display: none;
   }
   .multiply-stage {
     top: 16vh;
@@ -3721,7 +3721,7 @@ body.scrolled .status .brand {
 }
 .form-modal__ttl {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
   font-weight: 300;
   line-height: 1;
   margin: 0 0 0.6rem;
@@ -3738,7 +3738,7 @@ body.scrolled .status .brand {
   line-height: 1.65;
   color: rgba(242, 233, 216, 0.5);
   margin: 0 0 2rem;
-  max-width: 52ch;
+  max-width: none;
   padding-bottom: 2rem;
   border-bottom: 1px solid rgba(200, 166, 99, 0.1);
 }
@@ -4007,9 +4007,16 @@ body.scrolled .status .brand {
   padding: 0.7rem 0.9rem;
   margin: 0.4rem 0 1.1rem;
 }
+/* Hide message field for volunteer role */
+.form-modal[data-role="volunteer"] label:has(textarea[name="message"]) {
+  display: none;
+}
 .form-modal__thanks {
   text-align: center;
-  padding: 3rem 1rem 2rem;
+  padding: 3rem 2.8rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 /* Brand divider — 36×1px gold hairline above the eyebrow, shared by both
    success and duplicate variants. Marks the moment as ceremonial. */
