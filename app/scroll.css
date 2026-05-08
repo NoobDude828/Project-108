@@ -4105,7 +4105,7 @@ body.scrolled .status .brand {
 /* ── Scene 02 mobile ── */
 @media (max-width: 768px) {
   .scene-what {
-    height: 560vh;
+    height: 140vh;
   }
   .scene-what .stage__inner {
     padding: 2rem 5vw 1.5rem;
@@ -4191,6 +4191,12 @@ body.scrolled .status .brand {
   .truth.t2::before {
     margin-left: 0;
     margin-right: auto;
+  }
+
+  /* ── Scene 02 mobile — static truths (no animation) ── */
+  .truth {
+    opacity: 1 !important;
+    transition: none !important;
   }
 
   /* ── Scene 03 mobile — shift chorten layers up ── */
@@ -4298,6 +4304,35 @@ body.scrolled .status .brand {
     margin-top: 1.5rem;
   }
 
+  /* ── Scene 04 mobile — scale: force end state ── */
+  .scene-scale {
+    height: 120vh;
+  }
+  .scale-ground {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+  .scale-yaxis {
+    transform: scaleY(1) !important;
+    transition: none !important;
+  }
+  .scale-fig {
+    --on: 1;
+    transition: none !important;
+  }
+
+  /* ── Scene 05 mobile — why 108: compress to ~1 swipe per chapter ── */
+  .scene-why {
+    height: 600vh;
+  }
+  .why-chapter .lines span {
+    opacity: 1;
+  }
+  .dots-field .dot {
+    transform: scale(1);
+    transition: none;
+  }
+
   /* ── Scene 08 mobile — shift and rotate river line ── */
   .river-svg {
     transform: translate(-2%, 20%) rotate(9deg);
@@ -4325,6 +4360,57 @@ body.scrolled .status .brand {
 
   .river-meta {
     margin-top: 0.85rem;
+  }
+
+  /* ── Scene 08 mobile — river: force end state, reduce height ── */
+  .scene-river {
+    height: 120vh;
+  }
+  .river-photo {
+    opacity: 0.7 !important;
+    transition: none !important;
+  }
+  .river-path {
+    stroke-dashoffset: 0 !important;
+    transition: none !important;
+  }
+  .river-marker {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  /* ── Scene 09 mobile — stack: reduce height ── */
+  .scene-stack {
+    height: 300vh;
+  }
+
+  /* ── Scene 10 mobile — time: force visible, reduce height ── */
+  .scene-time {
+    height: 120vh;
+  }
+  .time-marker {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+
+  /* ── Scene 11 mobile — manpower: force visible rows ── */
+  .scene-manpower {
+    height: auto;
+  }
+  .manpower-row {
+    --p: 1;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .manpower-row .bar__fill {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+
+  /* ── Scene 12 mobile — volunteers: reduce height ── */
+  .scene-volunteers {
+    height: 120vh;
   }
 
   /* ── Scene 12 mobile — volunteers SVG ── */
