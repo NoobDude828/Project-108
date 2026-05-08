@@ -3,20 +3,16 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title:
-    "Project 108 — 108 Jangchub Chortens · Gelephu Mindfulness City, Bhutan",
+  title: "Project 108 — 108 Jangchub Chortens · Gelephu, Bhutan",
   description:
-    "Project 108: 108 Jangchub Chortens, each 15 metres tall, raised together in a single day along the Mau Chhu river in Gelephu Mindfulness City, Bhutan. 1 November 2026.",
+    "108 Jangchub Chortens, each 15 metres tall, raised in a single day along the Mau Chhu river in Gelephu Mindfulness City, Bhutan. 1 November 2026.",
   keywords: [
     "Project 108",
-    "108 chortens",
     "Jangchub Chorten",
     "Gelephu Mindfulness City",
     "GMC Bhutan",
     "Buddhist monument Bhutan",
     "Mau Chhu",
-    "Project 108 Bhutan",
-    "gmc.bt",
   ],
   authors: [{ name: "Gelephu Mindfulness City Authority" }],
   creator: "Gelephu Mindfulness City Authority",
