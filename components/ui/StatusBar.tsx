@@ -1,67 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const BROCHURE_HREF = "/assets/Project_108.pdf";
-const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
-
-function useOnlineCount() {
-  const [count, setCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    // Register this visitor
-    fetch(`${BASE}/api/online`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "join" }),
-    })
-      .then((r) => r.json())
-      .then((d) => setCount(d.activeUsers));
-
-    // Poll every 30s to stay in sync across tabs
-    const id = setInterval(() => {
-      fetch(`${BASE}/api/online`)
-        .then((r) => r.json())
-        .then((d) => setCount(d.activeUsers));
-    }, 30_000);
-
-    // Deregister on close
-    const onLeave = () => {
-      const blob = new Blob([JSON.stringify({ action: "leave" })], {
-        type: "application/json",
-      });
-      navigator.sendBeacon(`${BASE}/api/online`, blob);
-    };
-    window.addEventListener("beforeunload", onLeave);
-
-    return () => {
-      clearInterval(id);
-      window.removeEventListener("beforeunload", onLeave);
-      fetch(`${BASE}/api/online`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "leave" }),
-      });
-    };
-  }, []);
-
-  return count;
-}
 
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const onlineCount = useOnlineCount();
-  const [onFirstScene, setOnFirstScene] = useState(true);
-
-  useEffect(() => {
-    const firstScene = document.querySelector(".scene:first-of-type");
-    if (!firstScene) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setOnFirstScene(entry.isIntersecting),
-      { threshold: 0.1 },
-    );
-    obs.observe(firstScene);
-    return () => obs.disconnect();
-  }, []);
 
   function scrollToInvitation(e: React.MouseEvent) {
     e.preventDefault();
@@ -73,30 +16,8 @@ export default function StatusBar() {
 
   return (
     <>
-      {/* ── Mobile floating live counter over first scene ── */}
-      {onlineCount !== null && onFirstScene && (
-        <div
-          className="status-online-float"
-          aria-label={`${onlineCount} people viewing`}
-        >
-          <span className="status-online__dot" />
-          {onlineCount} online
-        </div>
-      )}
-
       <header className="status" role="banner">
         <span className="brand">Project 108 · Bhutan · 1 November 2026</span>
-
-        {/* ── Live visitors dot ── */}
-        {onlineCount !== null && (
-          <span
-            className="status-online"
-            aria-label={`${onlineCount} people viewing`}
-          >
-            <span className="status-online__dot" />
-            {onlineCount} online
-          </span>
-        )}
 
         {/* ── Desktop: two plain buttons ── */}
         <div className="status-split" aria-label="Actions">
