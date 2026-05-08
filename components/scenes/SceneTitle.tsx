@@ -8,8 +8,9 @@ export default function SceneTitle() {
           <h1 className="title-numeral">
             <span aria-hidden="true">108</span>
             <span className="visually-hidden">
-              Project 108 — One Hundred and Eight Jangchub Chortens, Gelephu
-              Mindfulness City, Bhutan
+              Project 108 — 108 Jangchub Chortens, Gelephu Mindfulness City,
+              Bhutan. 108 chortens, each fifteen metres tall, completed together
+              in a single day. 1 November 2026.
             </span>
           </h1>
           <p className="title-caption">

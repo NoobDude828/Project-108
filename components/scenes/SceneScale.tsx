@@ -22,19 +22,19 @@ export default function SceneScale() {
               <div className="scale-ground"></div>
               <div className="scale-yaxis" aria-hidden="true"></div>
               <div className="scale-fig fig-person" data-fig="1">
-                <img src="/assets/people2.png" alt="" />
+                <img src="/assets/people2.png" alt="Human figure to scale" />
                 <span className="lbl">
                   <strong>1.75 m</strong>Human
                 </span>
               </div>
               <div className="scale-fig fig-building" data-fig="2">
-                <img src="/assets/building2.png" alt="" />
+                <img src="/assets/building2.png" alt="Five-storey building to scale" />
                 <span className="lbl">
                   <strong>~10 m</strong>Three storeys
                 </span>
               </div>
               <div className="scale-fig fig-chorten" data-fig="3">
-                <img src="/assets/chorten2.png" alt="" />
+                <img src="/assets/chorten2.png" alt="Jangchub Chorten at 15 metres, shown to scale" />
                 <span className="lbl">
                   <strong>15 m</strong>One Jangchub Chorten
                 </span>
