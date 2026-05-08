@@ -1,20 +1,15 @@
 "use client";
 
 /**
- * Dedicated controller for Scene 06 (One becomes 108).
+ * Dedicated controller for Scene 06 (Buddha → chorten assembly → One becomes 108).
  *
- * All multiply-scene behavior lives here so /public/scroll/scrollytelling.js
- * stays untouched (other devs are editing that file in parallel).
- *
- * The shared scrollytelling.js still has its own update for `.scene-multiply` —
- * it runs each frame and writes the old wave-reveal state into the cells. We
- * register our own rAF AFTER its init runs, which means our callback fires after
- * the framework's per frame, overwriting `.lit` classes and counter text with
- * our values. Last-write-wins per frame, no scrollytelling.js edits required.
- *
- * Progress `p` is computed using the same formula scrollytelling.js uses
- * (-rect.top / max(1, sceneH - vh)) so this scene stays in lockstep with the
- * framework's other scenes.
+ * Animation phases (p = 0..1 across the full scene scroll):
+ *   0.00–0.18  Buddha zooms out (scale 4→1) and fades in
+ *   0.15–0.24  3.png (dome) fades in around Buddha
+ *   0.22–0.30  Buddha fades out; 4.png (niche) fades in
+ *   0.30–0.46  1,2 slide up from below; 5,6,7 slide down from above — chorten assembles
+ *   0.44–0.52  Intro fades out
+ *   0.46–1.00  Grid zoom-out 1→108 (remapped from old 0→1)
  */
 
 import { useEffect } from "react";
@@ -25,20 +20,28 @@ export default function SceneMultiplyController() {
     const grid = document.querySelector<HTMLElement>(
       ".scene-multiply .multiply-grid",
     );
+    const intro = document.querySelector<HTMLElement>(
+      ".scene-multiply .multiply-intro",
+    );
     if (!scene || !grid) return;
 
     const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
     const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+    /** Map v from [a,b] → [0,1] clamped */
+    const rng = (v: number, a: number, b: number) => clamp((v - a) / (b - a));
 
-    /* ---------------- Grid build ----------------
-       Portrait phones get 9×12 (more square cells, bigger thumbnails);
-       landscape desktops get 18×6. Both have a true centre cell forced to order 0.
-       This rebuild replaces whatever scrollytelling.js's buildMultiplyGrid put in.
-    --------------------------------------------- */
+    // ── Intro element refs ──────────────────────────────────────────────────
+    const buddha = intro?.querySelector<HTMLElement>(".mi-buddha");
+    const p3 = intro?.querySelector<HTMLElement>(".mi-p3");
+    const p4 = intro?.querySelector<HTMLElement>(".mi-p4");
+    const p1 = intro?.querySelector<HTMLElement>(".mi-p1");
+    const p2 = intro?.querySelector<HTMLElement>(".mi-p2");
+    const p5 = intro?.querySelector<HTMLElement>(".mi-p5");
+    const p6 = intro?.querySelector<HTMLElement>(".mi-p6");
+    const p7 = intro?.querySelector<HTMLElement>(".mi-p7");
+
+    // ── Grid build ──────────────────────────────────────────────────────────
     const isMobile = window.innerWidth <= 760;
-    // Desktop: 17 cols × 7 rows = 119 cells; 108 closest by dist light up, 11 stay dark.
-    // 17 cols → cx=8 (exact integer, 8 cols each side). 7 rows → cy=3 (exact integer).
-    // transform-origin: 50% 50% is therefore mathematically exact — no centre drift.
     const cols = isMobile ? 9 : 15;
     const rows = isMobile ? 12 : 7;
     const cx = (cols - 1) / 2;
@@ -77,20 +80,11 @@ export default function SceneMultiplyController() {
     );
     const cellEls = grid.querySelectorAll<HTMLElement>(".mg-cell");
 
-    /* ---------------- Per-frame update ----------------
-       Camera zoom (12→1 desktop, 18→1 mobile) over [0, 0.95];
-       counter ticks 1→108 alongside; cells reveal centre-out, one per tick.
-    --------------------------------------------------- */
-
-    // Compute the translate needed to keep the centre cell at the stage centre
-    // at maximum scale. We do this by measuring the actual cell position once
-    // (at scale=1, i.e. before any transform) so it's pixel-perfect regardless
-    // of viewport size. Cache on resize.
+    // ── Centre-offset measurement (keeps grid's centre cell on stage centre) ─
     let centreOffsetX = 0;
     let centreOffsetY = 0;
 
     const measureCentreOffset = () => {
-      // Temporarily remove transform so we can measure natural positions.
       const prev = grid.style.getPropertyValue("--grid-scale");
       grid.style.setProperty("--grid-scale", "1");
       grid.style.setProperty("--grid-tx", "0px");
@@ -101,30 +95,73 @@ export default function SceneMultiplyController() {
       if (centreCell && stage) {
         const cellR = centreCell.getBoundingClientRect();
         const stageR = stage.getBoundingClientRect();
-        // How far the cell centre is from the stage centre at scale=1
-        const cellCX = cellR.left + cellR.width / 2;
-        const cellCY = cellR.top + cellR.height / 2;
-        const stageCX = stageR.left + stageR.width / 2;
-        const stageCY = stageR.top + stageR.height / 2;
-        centreOffsetX = stageCX - cellCX; // px to shift so cell lands on stage centre
-        centreOffsetY = stageCY - cellCY;
+        centreOffsetX =
+          stageR.left + stageR.width / 2 - (cellR.left + cellR.width / 2);
+        centreOffsetY =
+          stageR.top + stageR.height / 2 - (cellR.top + cellR.height / 2);
       }
-
       grid.style.setProperty("--grid-scale", prev || "12");
     };
 
-    // Measure once after build, and again on resize (wired into onResize above).
+    // ── Phase constants ─────────────────────────────────────────────────────
+    const GRID_P_START = 0.46;
+    const INTRO_FADE_START = 0.38;
+    const INTRO_FADE_END = 0.4;
 
-    const update = (p: number) => {
+    // ── Intro update ────────────────────────────────────────────────────────
+    const updateIntro = (p: number) => {
+      if (!intro) return;
+
+      // Buddha: scale 4→0.45 over [0, 0.18] so final size matches 4.png (niche)
+      // 4.png is 19% wide; mi-buddha is 42% wide → target scale = 19/42 ≈ 0.45
+      const buddhaScale = 4 - 3.75 * easeOut(rng(p, 0, 0.18));
+      const buddhaOpacity = Math.min(rng(p, 0, 0.05), 1 - rng(p, 0.2, 0.3));
+      // Shift down when large; translate eases to 0 as scale reaches final size
+      const buddhaShift = ((buddhaScale - 0.25) / 3.75) * 20 - 2;
+      if (buddha) {
+        buddha.style.transform = `translateY(${buddhaShift.toFixed(1)}vh) translateX(0.3vw) scale(${buddhaScale.toFixed(3)})`;
+        buddha.style.opacity = buddhaOpacity.toFixed(3);
+      }
+
+      // 3.png: fade in [0.15, 0.24]
+      if (p3) p3.style.opacity = easeOut(rng(p, 0.15, 0.24)).toFixed(3);
+
+      // 4.png: fade in [0.27, 0.36]
+      if (p4) p4.style.opacity = easeOut(rng(p, 0.27, 0.36)).toFixed(3);
+
+      // 5, 6, 7: slide down from above + fade in [0.27, 0.46]
+      const upperT = easeOut(rng(p, 0.27, 0.46));
+      const upperDy = (-(1 - upperT) * 90).toFixed(1);
+      [p5, p6, p7].forEach((el) => {
+        if (!el) return;
+        el.style.opacity = upperT.toFixed(3);
+        el.style.transform = `translateY(${upperDy}px)`;
+      });
+
+      // 1, 2: slide up from below + fade in [0.27, 0.46]
+      const lowerT = easeOut(rng(p, 0.27, 0.46));
+      const lowerDy = ((1 - lowerT) * 90).toFixed(1);
+      [p1, p2].forEach((el) => {
+        if (!el) return;
+        el.style.opacity = lowerT.toFixed(3);
+        el.style.transform = `translateY(${lowerDy}px)`;
+      });
+
+      // Intro container: fade out [0.44, 0.52]
+      intro.style.opacity = (
+        1 - rng(p, INTRO_FADE_START, INTRO_FADE_END)
+      ).toFixed(3);
+    };
+
+    // ── Grid update (remapped: scene-p [GRID_P_START, 1] → grid-p [0, 1]) ──
+    const updateGrid = (p: number) => {
+      const gridP = rng(p, GRID_P_START, 1.0);
       const mobile = window.innerWidth <= 760;
       const maxScale = mobile ? 18 : 12;
-      const scaleP = clamp(p / 0.95);
+      const scaleP = clamp(gridP / 0.95);
       const gridScale = maxScale - (maxScale - 1) * easeOut(scaleP);
       grid.style.setProperty("--grid-scale", gridScale.toFixed(2));
 
-      // offsetFactor: 1 at maxScale (full translate), 0 at scale 1 (no translate).
-      // We use the measured pixel offset so the centre cell sits exactly on the
-      // stage centre regardless of viewport dimensions.
       const offsetFactor = (gridScale - 1) / (maxScale - 1);
       grid.style.setProperty(
         "--grid-tx",
@@ -141,13 +178,19 @@ export default function SceneMultiplyController() {
         el.classList.toggle("lit", ord < target);
       });
       if (numEl) numEl.textContent = String(target);
+
+      // Fade grid in exactly as intro fades out — seamless crossfade
+      grid.style.opacity = easeOut(
+        rng(p, INTRO_FADE_START, INTRO_FADE_END),
+      ).toFixed(3);
     };
 
-    /* ---------------- Self-driven rAF loop ----------------
-       Mirror scrollytelling.js's stableVH + p formula so scene progress matches
-       the framework's. Registering after the framework's init means this callback
-       fires after the framework's per frame → our writes overwrite the framework's.
-    ------------------------------------------------------- */
+    const update = (p: number) => {
+      updateIntro(p);
+      updateGrid(p);
+    };
+
+    // ── rAF loop ────────────────────────────────────────────────────────────
     let stableVH = window.innerHeight;
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const onResize = () => {
@@ -173,7 +216,6 @@ export default function SceneMultiplyController() {
     };
 
     if (window.matchMedia("(prefers-reduced-motion:reduce)").matches) {
-      // Static final state — no rAF loop needed.
       measureCentreOffset();
       update(1);
     } else {

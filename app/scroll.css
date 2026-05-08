@@ -1592,7 +1592,7 @@ body.scrolled .status .brand {
 
 /* ─────────────────────── Scene 06 — One becomes 108 ─────────────────────── */
 .scene-multiply {
-  height: 680vh;
+  height: 950vh;
 }
 .scene-multiply .stage__inner {
   background: radial-gradient(
@@ -1601,6 +1601,114 @@ body.scrolled .status .brand {
     var(--maroon-deeper) 80%
   );
   overflow: hidden;
+}
+
+/* ── Multiply intro: Buddha → chorten assembly ── */
+.multiply-intro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+/* Reuse the same aspect-ratio and positioning system as .assembly-img-stack */
+.mi-stack {
+  position: relative;
+  height: 100vh;
+  width: auto;
+  aspect-ratio: 220 / 540;
+  transform: translateY(-1.01vh);
+}
+/* All parts absolutely fill the stack container (same system as assy-part) */
+.mi-stack > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.mi-stack img {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  bottom: var(--mi-bottom, 0%);
+}
+/* Mirror exact offsets from .assembly-img-stack so parts align to a real chorten */
+.mi-p1 img {
+  bottom: 10%;
+  width: 105%;
+  height: 105%;
+  left: -0.2%;
+  right: -2.5%;
+}
+.mi-p2 img {
+  bottom: 17.5%;
+  width: 85%;
+  height: 85%;
+  left: 8.7%;
+  right: 6.5%;
+}
+.mi-p3 img {
+  bottom: 33.4%;
+  width: 88.8%;
+  height: 85%;
+  left: 7%;
+  right: 7.5%;
+}
+.mi-p4 img {
+  bottom: 36.3%;
+  width: 25%;
+  height: 75%;
+  left: 39.3%;
+  right: 37%;
+}
+.mi-p5 img {
+  bottom: 54.4%;
+  width: 28%;
+  height: 49%;
+  left: 36.5%;
+  right: 34.5%;
+}
+.mi-p6 img {
+  bottom: 67%;
+  width: 25%;
+  height: 59%;
+  left: 39%;
+  right: 36.5%;
+}
+.mi-p7 img {
+  bottom: 71.9%;
+  width: 18%;
+  height: 54%;
+  left: 42%;
+  right: 41%;
+}
+/* Buddha sits inside the dome (part 3) — centred horizontally, dome-interior height */
+.mi-buddha img {
+  bottom: 37%;
+  width: 42%;
+  height: 52%;
+  left: 29%;
+  right: 29%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+/* Initial states — controller drives opacity/transform each frame */
+.mi-part {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+.mi-buddha {
+  opacity: 0;
+  transform-origin: center 60%; /* zoom toward dome centre */
+  will-change: opacity, transform;
+  z-index: 3;
 }
 .multiply-stage {
   position: absolute;
@@ -1652,6 +1760,7 @@ body.scrolled .status .brand {
   grid-template-rows: repeat(7, 1fr);
   gap: 0;
   padding: 0;
+  opacity: 0; /* fades in once intro fades out — controller drives this */
   /* Camera zoom-out 12→1. Origin is now truly 50%/50% — no drift. */
   transform: translate3d(var(--grid-tx, 0px), var(--grid-ty, 0px), 0)
     scale(var(--grid-scale, 12));
