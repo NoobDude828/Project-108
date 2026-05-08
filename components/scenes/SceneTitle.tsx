@@ -5,8 +5,12 @@ export default function SceneTitle() {
         <div className="stage__inner">
           <div className="title-mist" aria-hidden="true"></div>
           <p className="title-eyebrow">Project</p>
-          <h1 className="title-numeral" aria-label="One hundred and eight">
-            108
+          <h1 className="title-numeral">
+            <span aria-hidden="true">108</span>
+            <span className="visually-hidden">
+              Project 108 — One Hundred and Eight Jangchub Chortens, Gelephu
+              Mindfulness City, Bhutan
+            </span>
           </h1>
           <p className="title-caption">
             108 Jangchub Chortens, each fifteen metres tall,

@@ -7,6 +7,7 @@ const basePath = envBasePath !== undefined ? envBasePath : "/108";
 
 const nextConfig: NextConfig = {
   ...(basePath ? { basePath } : {}),
+  poweredByHeader: false,
   turbopack: {
     root: __dirname,
   },
