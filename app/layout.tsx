@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
+import CookieConsent from "@/components/ui/CookieConsent";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://gmc.bt"),
@@ -155,10 +156,13 @@ export default function RootLayout({
         <Script id="ga4-init" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
+          // Default consent denied until visitor accepts banner
+          gtag('consent', 'default', { analytics_storage: 'denied' });
           gtag('js', new Date());
-          gtag('config', 'G-NE1T7ZF5PX');
+          gtag('config', 'G-NE1T7ZF5PX', { anonymize_ip: true });
         `}</Script>
         {children}
+        <CookieConsent />
       </body>
     </html>
   );
