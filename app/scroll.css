@@ -3108,12 +3108,18 @@ body.scrolled .status .brand {
   text-transform: uppercase;
   text-decoration: none;
   display: inline-block;
+  appearance: none;
+  -webkit-appearance: none;
   padding: 0.85rem 1.4rem;
   border-radius: 999px;
+  border: 1px solid transparent;
   background: var(--gold);
+  background-clip: padding-box;
   color: var(--maroon-deep);
   margin-top: auto;
   align-self: flex-start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   transition:
     background 0.25s,
     transform 0.25s;
@@ -3121,6 +3127,10 @@ body.scrolled .status .brand {
 .inv-card .btn:hover {
   background: var(--gold-warm);
   transform: translateY(-1px);
+}
+.inv-card .btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
 }
 
 .inv-meta {

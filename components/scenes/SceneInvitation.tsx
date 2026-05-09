@@ -67,7 +67,7 @@ export default function SceneInvitation() {
                   className="btn"
                   data-open-form="volunteer"
                 >
-                  Register to volunteer
+                  Register to show your interest
                 </button>
               </div>
             </div>
