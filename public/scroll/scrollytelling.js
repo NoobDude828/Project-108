@@ -132,8 +132,8 @@
   });
 
   // Scene 05 — Why 108? (multi-chapter pinned scene)
-  // Five chapters: A astronomy, B buddhism, C hinduism, D math, E project
-  const WHY_CHAPTERS = ["A", "B", "C", "D", "E"];
+  // Five chapters: A astronomy, B buddhism, D math, C hinduism, E project
+  const WHY_CHAPTERS = ["A", "B", "D", "C", "E"];
   registerScene({
     selector: ".scene-why",
     label: "Why 108?",
@@ -141,12 +141,12 @@
     act: "II — The Sacred Number",
     update(p) {
       // Anchor visibility: hide during chapter content, return at hand-offs
-      // Chapters span: A 0.05–0.22, B 0.24–0.41, C 0.43–0.58, D 0.60–0.75, E 0.78–0.98
+      // Chapters span: A 0.05–0.22, B 0.24–0.41, D 0.43–0.58, C 0.60–0.75, E 0.78–0.98
       const ranges = [
         ["A", 0.05, 0.22],
         ["B", 0.24, 0.41],
-        ["C", 0.43, 0.58],
-        ["D", 0.6, 0.75],
+        ["D", 0.43, 0.58],
+        ["C", 0.6, 0.75],
         ["E", 0.78, 0.98],
       ];
       let anchorP = 0;
@@ -187,7 +187,7 @@
         });
       };
       tickLines("B", [0.24, 0.41]);
-      tickLines("C", [0.43, 0.58]);
+      tickLines("C", [0.6, 0.75]);
 
       // Project chapter — mandala radial reveal
       const projC = document.querySelector('.why-chapter[data-chap="E"]');
