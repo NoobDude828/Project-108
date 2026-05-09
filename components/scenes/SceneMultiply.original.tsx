@@ -172,12 +172,20 @@ export default function SceneMultiplyController() {
         `${(centreOffsetY * offsetFactor).toFixed(2)}px`,
       );
 
-      const target = Math.max(1, Math.min(108, Math.floor(1 + scaleP * 108)));
+      // Count lit cells = how many cells are visible at this zoom level.
+      // Only start counting once gridP > 0 (grid crossfade complete, intro gone).
+      const target = Math.max(
+        1,
+        Math.min(108, Math.ceil(108 / (gridScale * gridScale))),
+      );
       cellEls.forEach((el, i) => {
         const ord = order[i] != null ? order[i] : i;
         el.classList.toggle("lit", ord < target);
       });
-      if (numEl) numEl.textContent = String(target);
+
+      // Counter: blank during entire intro + crossfade; only show once
+      // the grid is the sole thing on screen (p >= GRID_P_START).
+      if (numEl) numEl.textContent = gridP > 0 ? String(target) : "";
 
       // Fade grid in exactly as intro fades out — seamless crossfade
       grid.style.opacity = easeOut(

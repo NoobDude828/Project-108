@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://gmc.bt"),
   title: "Project 108 — 108 Jangchub Chortens · Gelephu, Bhutan",
   description:
     "108 Jangchub Chortens, each 15 metres tall, raised in a single day along the Mau Chhu river in Gelephu Mindfulness City, Bhutan. 1 November 2026.",

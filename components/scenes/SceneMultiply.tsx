@@ -42,7 +42,7 @@ export default function SceneMultiply() {
             <p className="kicker">From one to one hundred and eight</p>
           </div>
           <div className="multiply-copy">
-            <p className="num">1</p>
+            <p className="num"></p>
             <p className="lbl">One sacred form, repeated</p>
           </div>
         </div>

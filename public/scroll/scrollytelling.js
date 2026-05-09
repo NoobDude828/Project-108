@@ -229,11 +229,7 @@
         const order = ordered[i] != null ? ordered[i] : i;
         el.classList.toggle("lit", order < target);
       });
-      // Update copy
-      const numEl = document.querySelector(
-        ".scene-multiply .multiply-copy .num",
-      );
-      if (numEl) numEl.textContent = target;
+      // Counter is managed by SceneMultiplyController (React) — do not update here.
     },
   });
 
