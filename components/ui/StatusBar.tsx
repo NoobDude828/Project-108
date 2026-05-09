@@ -3,12 +3,19 @@ import { useState } from "react";
 
 const BROCHURE_HREF = "/assets/Project_108.pdf";
 
+declare function gtag(...args: unknown[]): void;
+
+function trackEvent(name: string, params?: Record<string, string>) {
+  if (typeof gtag === "function") gtag("event", name, params ?? {});
+}
+
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   function scrollToInvitation(e: React.MouseEvent) {
     e.preventDefault();
     setMenuOpen(false);
+    trackEvent("nav_take_part");
     document
       .getElementById("scene-invitation")
       ?.scrollIntoView({ behavior: "smooth" });
@@ -26,6 +33,9 @@ export default function StatusBar() {
             target="_blank"
             rel="noopener noreferrer"
             className="status-split__btn"
+            onClick={() =>
+              trackEvent("pdf_download", { location: "nav_desktop" })
+            }
           >
             Download Brochure
           </a>
@@ -74,7 +84,10 @@ export default function StatusBar() {
             rel="noopener noreferrer"
             className="status-drawer__btn"
             role="menuitem"
-            onClick={() => setMenuOpen(false)}
+            onClick={() => {
+              setMenuOpen(false);
+              trackEvent("pdf_download", { location: "nav_mobile" });
+            }}
           >
             Download Brochure
           </a>

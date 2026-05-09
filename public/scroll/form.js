@@ -216,6 +216,10 @@
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    // GA4 event
+    if (typeof gtag === "function") {
+      gtag("event", "cta_open_modal", { modal_role: role || "generic" });
+    }
     lastFocused = document.activeElement;
     // focus first focusable
     setTimeout(() => {
@@ -421,6 +425,13 @@
       return;
     }
 
+    // GA4 event — fires on every valid submit attempt
+    if (typeof gtag === "function") {
+      gtag("event", "form_submit_attempt", {
+        form_role: currentRole || "unknown",
+      });
+    }
+
     const submitBtn = form.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = "Sending…";
@@ -457,6 +468,10 @@
     if (result.status === 201) {
       showThanks("success", { role });
       setTimeout(() => form.reset(), 400);
+      // GA4 event — only fires on genuine first-time success
+      if (typeof gtag === "function") {
+        gtag("event", "form_submit_success", { form_role: role });
+      }
     } else if (result.status === 409) {
       showThanks("duplicate", {
         role,
