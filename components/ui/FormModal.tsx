@@ -122,6 +122,16 @@ export default function FormModal() {
                       />
                     </span>
                   </label>
+                  <label className="field">
+                    <span className="field__lbl">Email</span>
+                    <input
+                      type="email"
+                      name="email"
+                      autoComplete="email"
+                      placeholder="your@email.com"
+                      required
+                    />
+                  </label>
                 </>
               ) : (
                 /* Non-Bhutanese flow — full form */
