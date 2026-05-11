@@ -279,6 +279,7 @@
       return {
         nationality: "bhutanese",
         cid: trim(fd.get("cid")),
+        email: trim(fd.get("email")),
         countryCode: "+975",
         phone: trim(fd.get("phone")),
       };
