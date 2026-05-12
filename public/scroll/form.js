@@ -244,11 +244,12 @@
       openModal(role);
     });
   });
-  document.querySelectorAll("[data-close-form]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeModal();
-    });
+  document.addEventListener("click", (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    const closeTrigger = target && target.closest("[data-close-form]");
+    if (!closeTrigger || !modal.contains(closeTrigger)) return;
+    e.preventDefault();
+    closeModal();
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
