@@ -6,45 +6,45 @@ const STORAGE_KEY = "p108_cookie_consent";
 
 declare function gtag(...args: unknown[]): void;
 
+function disableAnalytics() {
+  if (typeof gtag === "function") {
+    gtag("consent", "update", { analytics_storage: "denied" });
+  }
+}
+
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) {
+      // First visit — show banner; analytics already running (granted by default)
       setVisible(true);
-    } else if (stored === "granted") {
-      enableAnalytics();
+    } else if (stored === "denied") {
+      // Returning visitor who previously opted out — disable immediately
+      disableAnalytics();
     }
-    // "denied" → GA4 stays blocked (default from layout.tsx consent_mode)
   }, []);
 
-  function enableAnalytics() {
-    if (typeof gtag === "function") {
-      gtag("consent", "update", {
-        analytics_storage: "granted",
-      });
-    }
-  }
-
-  function accept() {
+  function dismiss() {
     localStorage.setItem(STORAGE_KEY, "granted");
-    enableAnalytics();
     setVisible(false);
   }
 
-  function decline() {
+  function optOut() {
     localStorage.setItem(STORAGE_KEY, "denied");
+    disableAnalytics();
     setVisible(false);
   }
 
   if (!visible) return null;
 
   return (
-    <div className="cookie-banner" role="dialog" aria-label="Cookie consent">
+    <div className="cookie-banner" role="dialog" aria-label="Cookie notice">
       <p className="cookie-banner__text">
-        This site uses Google Analytics to understand how visitors engage with
-        Project 108. No personal data is sold or shared.{" "}
+        We use analytics to understand how visitors experience this site — page
+        views, scroll depth, and button clicks — so we can improve it. No
+        personal data is collected or shared.{" "}
         {/* <Link href="/privacy" className="cookie-banner__link">
           Privacy notice
         </Link> */}
@@ -53,16 +53,9 @@ export default function CookieConsent() {
         <button
           type="button"
           className="cookie-banner__btn cookie-banner__btn--accept"
-          onClick={accept}
+          onClick={dismiss}
         >
-          Accept
-        </button>
-        <button
-          type="button"
-          className="cookie-banner__btn cookie-banner__btn--decline"
-          onClick={decline}
-        >
-          Decline
+          Got it
         </button>
       </div>
     </div>
