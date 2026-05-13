@@ -156,8 +156,8 @@ export default function RootLayout({
         <Script id="ga4-init" strategy="afterInteractive">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
-          // Default consent denied until visitor accepts banner
-          gtag('consent', 'default', { analytics_storage: 'denied' });
+          // Analytics enabled by default — visitors may opt out via the banner
+          gtag('consent', 'default', { analytics_storage: 'granted' });
           gtag('js', new Date());
           gtag('config', 'G-NE1T7ZF5PX', { anonymize_ip: true });
         `}</Script>
