@@ -359,13 +359,13 @@
     patron: {
       cid: {
         lbl: "Already received",
-        title: "Your offering is already with us.",
-        desc: "An offering for Project 108 has been registered against this Citizenship Identity Card. Our team will be in touch with the next steps.",
+        title: "An offering has already been registered.",
+        desc: "An offering for contribution to Project 108 has already been registered against this Citizenship Identity Card. Our team will be in touch with the next steps.",
       },
       email: {
         lbl: "Already received",
-        title: "Your offering is already with us.",
-        desc: "An offering for Project 108 has been registered from this email address. Our team will be in touch with the next steps.",
+        title: "An offering has already been registered.",
+        desc: "An offering for contribution to Project 108 has already been registered from this email address. Our team will be in touch with the next steps.",
       },
     },
     volunteer: {
