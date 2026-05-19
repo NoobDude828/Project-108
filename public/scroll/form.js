@@ -256,6 +256,12 @@
     if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
   });
 
+  /* -------- Auto-open via URL (?form=patron|volunteer) -------- */
+  const urlRole = new URLSearchParams(window.location.search).get("form");
+  if (urlRole === "patron" || urlRole === "volunteer") {
+    openModal(urlRole);
+  }
+
   /* -------- 108 Submission API ----------------------------------------
      Contract is documented in 108-BE.md. Endpoint per role:
        patron    → POST {basePath}/api/submit/patrons
