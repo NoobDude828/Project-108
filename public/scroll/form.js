@@ -242,6 +242,12 @@
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       const role = btn.getAttribute("data-open-form");
+      // Volunteer-org form lives in a separate React component
+      // (components/ui/OrgFormModal.tsx). It listens for this CustomEvent.
+      if (role === "volunteer-org") {
+        window.dispatchEvent(new CustomEvent("p108:open-org-form"));
+        return;
+      }
       openModal(role);
     });
   });
@@ -498,10 +504,13 @@
   // Pre-populate countries on first load (so screenshots/print show real options)
   populateCountries();
 
-  /* -------- Auto-open via URL (?form=patron|volunteer) --------
-     Runs at end of IIFE so all declarations (errorEl, etc.) are initialized. */
+  /* -------- Auto-open via URL (?form=patron|volunteer|volunteer-org) --------
+     Runs at end of IIFE so all declarations (errorEl, etc.) are initialized.
+     Volunteer-org opens the React-mounted modal via CustomEvent. */
   const urlRole = new URLSearchParams(window.location.search).get("form");
   if (urlRole === "patron" || urlRole === "volunteer") {
     openModal(urlRole);
+  } else if (urlRole === "volunteer-org") {
+    window.dispatchEvent(new CustomEvent("p108:open-org-form"));
   }
 })();
