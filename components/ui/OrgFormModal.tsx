@@ -171,8 +171,8 @@ type Status = "idle" | "submitting" | "success" | "duplicate" | "error";
 const initialForm = {
   orgName: "",
   orgType: "",
-  country: "",
-  countryCode: "",
+  country: "BT",
+  countryCode: "+975",
   contactName: "",
   contactRole: "",
   email: "",
@@ -491,11 +491,16 @@ export default function OrgFormModal() {
                 How many volunteers can you mobilise?
               </span>
               <input
-                type="number"
-                min={1}
-                value={form.volunteerCount}
-                onChange={(e) => update("volunteerCount", e.target.value)}
+                type="text"
                 inputMode="numeric"
+                pattern="\d*"
+                value={form.volunteerCount}
+                onChange={(e) =>
+                  update(
+                    "volunteerCount",
+                    e.target.value.replace(/[^\d]/g, ""),
+                  )
+                }
                 placeholder="Total volunteers"
                 required
               />
@@ -507,13 +512,16 @@ export default function OrgFormModal() {
                   Of which, men <span className="field__opt">(optional)</span>
                 </span>
                 <input
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
                   value={form.volunteerCountMale}
                   onChange={(e) =>
-                    update("volunteerCountMale", e.target.value)
+                    update(
+                      "volunteerCountMale",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
                   }
-                  inputMode="numeric"
                 />
               </label>
               <label className="field">
@@ -522,13 +530,16 @@ export default function OrgFormModal() {
                   <span className="field__opt">(optional)</span>
                 </span>
                 <input
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
                   value={form.volunteerCountFemale}
                   onChange={(e) =>
-                    update("volunteerCountFemale", e.target.value)
+                    update(
+                      "volunteerCountFemale",
+                      e.target.value.replace(/[^\d]/g, ""),
+                    )
                   }
-                  inputMode="numeric"
                 />
               </label>
             </div>
