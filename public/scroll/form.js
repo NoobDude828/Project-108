@@ -216,6 +216,16 @@
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    // Push /forms route into browser history
+    // Derive basePath from the initial page pathname (e.g. "/108" or "").
+    const _basePath = location.pathname
+      .replace(/\/forms$/, "")
+      .replace(/\/$/, "");
+    history.pushState(
+      { formModal: true, role: role || "" },
+      "",
+      _basePath + "/forms",
+    );
     // GA4 event
     if (typeof gtag === "function") {
       gtag("event", "cta_open_modal", { modal_role: role || "generic" });
@@ -234,6 +244,10 @@
     modal.removeAttribute("data-role");
     document.body.style.overflow = "";
     if (lastFocused) lastFocused.focus();
+    // Restore the base URL if we pushed /forms
+    if (location.pathname.endsWith("/forms")) {
+      history.back();
+    }
   }
 
   /* -------- Wire up triggers -------- */
@@ -253,6 +267,16 @@
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+  });
+  // Close modal when user presses the browser back button from /forms
+  window.addEventListener("popstate", (e) => {
+    if (modal.classList.contains("is-open")) {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      modal.removeAttribute("data-role");
+      document.body.style.overflow = "";
+      if (lastFocused) lastFocused.focus();
+    }
   });
 
   /* -------- 108 Submission API ----------------------------------------
