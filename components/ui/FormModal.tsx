@@ -47,6 +47,20 @@ export default function FormModal() {
         <p className="form-modal__lede">
           Leave your details and we will be in touch with the next steps.
         </p>
+        {/* Visible only when role=volunteer (CSS attr selector on parent). */}
+        <p className="form-modal__org-link">
+          Registering on behalf of an organization?{" "}
+          <button
+            type="button"
+            className="form-modal__org-link-btn"
+            data-close-form="true"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("p108:open-org-form"));
+            }}
+          >
+            Register as an organization →
+          </button>
+        </p>
         <form className="form-modal__form" id="signup-form" noValidate>
           {/* Step 1 — Nationality */}
           <fieldset className="form-row form-row--nationality">
