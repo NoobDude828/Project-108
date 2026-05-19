@@ -41,9 +41,9 @@ export default function SceneInvitation() {
                 </button>
               </div>
               <div className="inv-card ghost">
-                <p className="lbl">Volunteer</p>
+                <p className="lbl">Join the build day</p>
                 <p className="ttl">
-                  Join the <em>build day</em>.
+                  Become a <em>Volunteer</em>.
                 </p>
                 <p className="amt">
                   <span className="from">A workforce of</span>
