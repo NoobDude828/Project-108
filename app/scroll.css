@@ -3748,6 +3748,29 @@ body.scrolled .status .brand {
   color: var(--gold-bright);
   font-style: italic;
 }
+/* "Register as an organization →" — only surfaced in the volunteer flow. */
+.form-modal__org-link {
+  display: none;
+  margin: -0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: rgba(255, 248, 230, 0.75);
+}
+.form-modal[data-role="volunteer"] .form-modal__org-link {
+  display: block;
+}
+.form-modal__org-link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--gold-bright);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.form-modal__org-link-btn:hover {
+  text-decoration: none;
+}
 .form-modal__form {
   display: flex;
   flex-direction: column;
