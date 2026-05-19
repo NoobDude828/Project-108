@@ -256,12 +256,6 @@
     if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
   });
 
-  /* -------- Auto-open via URL (?form=patron|volunteer) -------- */
-  const urlRole = new URLSearchParams(window.location.search).get("form");
-  if (urlRole === "patron" || urlRole === "volunteer") {
-    openModal(urlRole);
-  }
-
   /* -------- 108 Submission API ----------------------------------------
      Contract is documented in 108-BE.md. Endpoint per role:
        patron    → POST {basePath}/api/submit/patrons
@@ -503,4 +497,11 @@
 
   // Pre-populate countries on first load (so screenshots/print show real options)
   populateCountries();
+
+  /* -------- Auto-open via URL (?form=patron|volunteer) --------
+     Runs at end of IIFE so all declarations (errorEl, etc.) are initialized. */
+  const urlRole = new URLSearchParams(window.location.search).get("form");
+  if (urlRole === "patron" || urlRole === "volunteer") {
+    openModal(urlRole);
+  }
 })();
