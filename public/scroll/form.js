@@ -352,7 +352,7 @@
       lbl: "Thank you",
       title:
         "Your interest to volunteer has been received. We will get in touch.",
-      desc: "Project 108 welcomes you to this collective act of merit. Our team will be in touch shortly with the next steps for 1 November 2026.",
+      desc: "The Project 108 team will get back to all interested volunteers with further details regarding participation, training, and confirmation of registration.",
     },
   };
   const DUPLICATE_COPY = {
