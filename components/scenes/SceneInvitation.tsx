@@ -13,9 +13,7 @@ export default function SceneInvitation() {
               merit. Both are needed.
             </p>
             <div className="inv-cards">
-              {/* Patron card hidden temporarily — the form is still
-                  reachable via the URL trigger (?form=patron). */}
-              <div className="inv-card" style={{ display: "none" }}>
+              <div className="inv-card">
                 <p className="lbl">Patronage</p>
                 <p className="ttl">
                   Offer a <em>chorten</em>.
