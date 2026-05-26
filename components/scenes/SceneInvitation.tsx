@@ -14,33 +14,6 @@ export default function SceneInvitation() {
             </p>
             <div className="inv-cards">
               <div className="inv-card">
-                <p className="lbl">Patronage</p>
-                <p className="ttl">
-                  Offer a <em>chorten</em>.
-                </p>
-                <p className="amt">
-                  <span className="from">From</span>
-                  <strong>USD 200,000</strong>
-                  <span className="per">
-                    per chorten · flexible by conversation
-                  </span>
-                </p>
-                <p className="body">
-                  Each Jangchub Chorten may be offered by an individual, a
-                  family, a community, or an institution. Patronage covers
-                  construction, sacred materials, and consecration by Buddhist
-                  masters.
-                </p>
-                <p className="body">
-                  Each chorten may be dedicated in honour of a patron, a loved
-                  one, or all sentient beings. A plaque provides permanent
-                  recognition.
-                </p>
-                <button type="button" className="btn" data-open-form="patron">
-                  Begin the conversation
-                </button>
-              </div>
-              <div className="inv-card ghost">
                 <p className="lbl">Join the build day</p>
                 <p className="ttl">
                   Become a <em>Volunteer</em>.
@@ -68,6 +41,33 @@ export default function SceneInvitation() {
                   data-open-form="volunteer"
                 >
                   Register to show your interest
+                </button>
+              </div>
+              <div className="inv-card ghost">
+                <p className="lbl">Patronage</p>
+                <p className="ttl">
+                  Offer a <em>chorten</em>.
+                </p>
+                <p className="amt">
+                  <span className="from">From</span>
+                  <strong>USD 200,000</strong>
+                  <span className="per">
+                    per chorten · flexible by conversation
+                  </span>
+                </p>
+                <p className="body">
+                  Each Jangchub Chorten may be offered by an individual, a
+                  family, a community, or an institution. Patronage covers
+                  construction, sacred materials, and consecration by Buddhist
+                  masters.
+                </p>
+                <p className="body">
+                  Each chorten may be dedicated in honour of a patron, a loved
+                  one, or all sentient beings. A plaque provides permanent
+                  recognition.
+                </p>
+                <button type="button" className="btn" data-open-form="patron">
+                  Begin the conversation
                 </button>
               </div>
             </div>
