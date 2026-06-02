@@ -73,7 +73,7 @@ export default function SceneInvitation() {
             </div>
             <p className="inv-meta">
               Gelephu Mindfulness City Authority ·{" "}
-              <a href="mailto:108@gmc.bt">108@gmc.bt</a> · +975 77117708
+              <a href="mailto:108@gmc.bt">108@gmc.bt</a> · +975 17525480
             </p>
           </div>
         </div>
