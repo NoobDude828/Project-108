@@ -17,6 +17,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd ~/Project-108
-            git pull
+            git fetch origin && git reset --hard origin/main
             npm run build
             pm2 restart project-108
