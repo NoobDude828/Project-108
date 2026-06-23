@@ -365,7 +365,7 @@ body.scrolled .status .brand {
   opacity: 1;
 }
 .act-marker .num {
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-size: clamp(5rem, 12vw, 10rem);
   color: var(--gold);
   line-height: 1;
@@ -382,6 +382,13 @@ body.scrolled .status .brand {
   text-transform: uppercase;
   color: var(--gold-bright);
   margin-top: 1rem;
+}
+
+/* ── Inline scene numeral (Caslon, inside display headings) ── */
+.sc-num {
+  font-family: var(--font-caslon);
+  font-style: normal;
+  font-weight: 400;
 }
 
 /* ─────────────────────── Scene framework ─────────────────────── */
@@ -509,7 +516,7 @@ body.scrolled .status .brand {
   }
 }
 .title-numeral {
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-weight: 300;
   font-size: clamp(9rem, 28vw, 22rem);
   line-height: 0.85;
@@ -1251,7 +1258,7 @@ body.scrolled .status .brand {
   display: flex;
   align-items: flex-start;
   gap: 0.4rem;
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-feature-settings: "onum";
   color: var(--maroon);
   margin: 1.4rem 0;
@@ -1259,8 +1266,8 @@ body.scrolled .status .brand {
 }
 .scale-copy .num .big {
   font-size: clamp(5rem, 9vw, 9rem);
-  font-style: italic;
-  font-weight: 300;
+  font-style: normal;
+  font-weight: 400;
 }
 .scale-copy .num .unit {
   font-size: clamp(1.4rem, 2vw, 2rem);
@@ -1440,7 +1447,7 @@ body.scrolled .status .brand {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-weight: 300;
   font-size: clamp(8rem, 18vw, 16rem);
   line-height: 0.85;
@@ -1538,7 +1545,7 @@ body.scrolled .status .brand {
 
 /* Math equation layout */
 .math-eq {
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-weight: 300;
   font-size: clamp(2rem, 4.5vw, 3.6rem);
   color: var(--gold-bright);
@@ -1791,7 +1798,7 @@ body.scrolled .status .brand {
   pointer-events: none;
 }
 .multiply-copy .num {
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-weight: 300;
   color: var(--gold-bright);
   font-size: clamp(2.4rem, 5vw, 4rem);
@@ -2826,7 +2833,7 @@ body.scrolled .status .brand {
   text-align: right;
 }
 .vol-counter .num {
-  font-family: var(--font-display);
+  font-family: var(--font-caslon);
   font-weight: 300;
   font-size: clamp(3rem, 6vw, 5rem);
   color: var(--gold-bright);

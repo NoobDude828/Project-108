@@ -25,7 +25,7 @@ export default function SceneCompletion() {
             <div className="compl-track" aria-hidden="true"></div>
             <div className="compl-copy">
               <h2>
-                108 chortens. <em>One day</em>.<br />
+                <span className="sc-num">108</span> chortens. <em>One day</em>.<br />
                 One offering.
               </h2>
               <p className="meta">

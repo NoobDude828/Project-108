@@ -611,8 +611,7 @@ export default function SceneWhy() {
                       y="112"
                       textAnchor="middle"
                       fill="#E2C788"
-                      fontFamily="Cormorant Garamond, serif"
-                      fontStyle="italic"
+                      fontFamily="Libre Caslon Display, Big Caslon, Georgia, serif"
                       fontSize="42"
                     >
                       108
@@ -643,7 +642,7 @@ export default function SceneWhy() {
                   />
                 </div>
                 <p className="ttl">
-                  In <em>Project 108</em>, the number becomes <em>physical</em>.
+                  In <em>Project <span className="sc-num">108</span></em>, the number becomes <em>physical</em>.
                 </p>
                 <p className="lines">
                   108 chortens. 108 metres apart. <em>One</em> sacred

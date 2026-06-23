@@ -8,7 +8,7 @@ export default function SceneVolunteers() {
             <div className="vol-copy">
               <p className="kicker">Zhābto · voluntary communal work</p>
               <h2>
-                108 sites <em>activate</em>.<br />
+                <span className="sc-num">108</span> sites <em>activate</em>.<br />
                 Forty thousand hands <em>arrive</em>.
               </h2>
               <p>

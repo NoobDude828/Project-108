@@ -2,7 +2,7 @@
    Project 108 — Colors & Type Tokens
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Libre+Caslon+Display&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter+Tight:wght@400;500;600&display=swap");
 
 :root {
   --maroon: #4a1a2c;
@@ -42,6 +42,7 @@
   --accent-bright: var(--gold-bright);
 
   --font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --font-caslon: "Libre Caslon Display", "Big Caslon", Georgia, serif;
   --font-body: "Lora", Georgia, "Times New Roman", serif;
   --font-utility:
     "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;

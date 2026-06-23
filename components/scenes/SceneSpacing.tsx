@@ -7,9 +7,9 @@ export default function SceneSpacing() {
             <div className="spacing-copy">
               <p className="kicker">The formation</p>
               <h2>
-                <em>108</em> chortens.
+                <em><span className="sc-num">108</span></em> chortens.
                 <br />
-                <em>108</em> metres apart.
+                <em><span className="sc-num">108</span></em> metres apart.
               </h2>
               <p className="spacing-sub">
                 Centre to centre, in a single file along the Mau Chhu — the
