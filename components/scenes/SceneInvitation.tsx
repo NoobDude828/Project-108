@@ -35,13 +35,14 @@ export default function SceneInvitation() {
                   No specialist skills are required. What matters is
                   willingness, discipline, and shared purpose.
                 </p>
-                <button
-                  type="button"
+                <a
+                  href="https://sites.google.com/view/gmc-project108"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn"
-                  data-open-form="volunteer"
                 >
                   Register to show your interest
-                </button>
+                </a>
               </div>
               <div className="inv-card ghost">
                 <p className="lbl">Patronage</p>
