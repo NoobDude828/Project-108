@@ -33,6 +33,14 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local operational notes (server access / infra topology — keep out of git)
+INFRA.local.md
+*.local.md
+*.pem
+
+# DK docs contain the UAT API key (image PDF) — never commit
+Stripe Payment Processing API Documentation v2.pdf
+
 # vercel
 .vercel
 
