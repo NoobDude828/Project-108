@@ -1,0 +1,41 @@
+/**
+ * Contribution status — polls DK's /check-application-status for a payment.
+ *
+ * Payment completion is confirmed here (a boolean from DK), never by trusting
+ * the browser's success_url redirect. On confirmation we move our record to
+ * `paid`. Requires the DK_* env vars (see lib/dk.ts).
+ */
+
+import { dkCheckStatus } from "@/lib/dk";
+import { markPaymentStatus, bumpPoll } from "@/lib/db";
+
+export async function GET(req: Request) {
+  const ref = new URL(req.url).searchParams.get("ref")?.trim();
+  if (!ref) {
+    return Response.json(
+      { success: false, error: "Missing payment reference." },
+      { status: 400 },
+    );
+  }
+
+  // Record the poll (last_polled_at + poll_count); no-op when no DB is configured.
+  await bumpPoll(ref);
+
+  try {
+    const r = await dkCheckStatus(ref);
+    // Persist the confirmation once payment is complete.
+    if (r.status === "paid") {
+      await markPaymentStatus(ref, "paid", {
+        eventType: "status_poll",
+        dkResponseCode: r.code,
+      });
+    }
+    return Response.json({ status: r.status, code: r.code });
+  } catch (err) {
+    console.error("[/api/payment/status] DK request failed", err);
+    return Response.json(
+      { success: false, error: "Couldn't reach the payment gateway." },
+      { status: 502 },
+    );
+  }
+}

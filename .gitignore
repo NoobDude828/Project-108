@@ -36,6 +36,7 @@ yarn-error.log*
 # local operational notes (server access / infra topology — keep out of git)
 INFRA.local.md
 *.local.md
+*.pem
 
 # DK gateway docs are image PDFs that contain live X-Gravitee-Api-Key values
 # (both the UAT and production keys) — never commit them.
