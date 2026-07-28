@@ -274,8 +274,10 @@
      Server enriches Bhutanese submissions with name/dob/gender via DOI.
   --------------------------------------------------------------------- */
   // Detect Next basePath at runtime from the current URL.
-  // Prod (gmc.bt/108/...): "/108". Dev (localhost:3000/...): "".
-  // Reading window.location avoids hardcoding the prefix in two places.
+  // Prod is now 108.gmc.bt with the app at the root, so this resolves to "" —
+  // as it does in dev (localhost:3000). The /108 branch is kept only so any
+  // still-cached page served under the old gmc.bt/108 path keeps working;
+  // gmc.bt/108 itself 301s to the subdomain.
   const BASE_PATH = window.location.pathname.startsWith("/108") ? "/108" : "";
   const API_BASE = BASE_PATH + "/api/submit";
 

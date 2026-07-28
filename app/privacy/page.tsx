@@ -54,8 +54,8 @@ export default function PrivacyPage() {
 
         <Section heading="What this notice covers">
           This notice explains what data is collected when you visit{" "}
-          <a href="https://gmc.bt/108" style={linkStyle}>
-            gmc.bt/108
+          <a href="https://108.gmc.bt" style={linkStyle}>
+            108.gmc.bt
           </a>{" "}
           and how it is used by the Gelephu Mindfulness City Authority
           (&ldquo;GMCA&rdquo;) and the Project 108 team.

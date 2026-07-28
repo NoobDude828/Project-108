@@ -4,7 +4,7 @@ import "./globals.css";
 import CookieConsent from "@/components/ui/CookieConsent";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gmc.bt"),
+  metadataBase: new URL("https://108.gmc.bt"),
   title: "Project 108 — 108 Jangchub Chortens · Gelephu, Bhutan",
   description:
     "108 Jangchub Chortens, each 15 metres tall, raised in a single day along the Mau Chhu river in Gelephu Mindfulness City, Bhutan. 1 November 2026.",
@@ -20,13 +20,13 @@ export const metadata: Metadata = {
   creator: "Gelephu Mindfulness City Authority",
   publisher: "Gelephu Mindfulness City Authority",
   alternates: {
-    canonical: "https://gmc.bt/108",
+    canonical: "https://108.gmc.bt",
   },
   openGraph: {
     title: "Project 108 — 108 Jangchub Chortens · Gelephu, Bhutan",
     description:
       "108 Jangchub Chortens, each 15 metres tall, raised together in a single day along the Mau Chhu in Gelephu Mindfulness City. 1 November 2026.",
-    url: "https://gmc.bt/108",
+    url: "https://108.gmc.bt",
     siteName: "Gelephu Mindfulness City",
     images: [
       {
@@ -88,8 +88,8 @@ export default function RootLayout({
                   description:
                     "108 Jangchub Chortens, each 15 metres tall, raised together in a single day along the Mau Chhu river in Gelephu Mindfulness City, Bhutan.",
                   startDate: "2026-11-01",
-                  url: "https://gmc.bt/108",
-                  image: "https://gmc.bt/assets/og_image.jpg",
+                  url: "https://108.gmc.bt",
+                  image: "https://108.gmc.bt/assets/og_image.jpg",
                   organizer: {
                     "@type": "Organization",
                     name: "Gelephu Mindfulness City Authority",
@@ -116,7 +116,7 @@ export default function RootLayout({
                 {
                   "@type": "WebPage",
                   name: "Project 108 — 108 Jangchub Chortens · Gelephu Mindfulness City",
-                  url: "https://gmc.bt/108",
+                  url: "https://108.gmc.bt",
                   description:
                     "Project 108: 108 Jangchub Chortens raised in a single day in Gelephu, Bhutan. 1 November 2026.",
                   publisher: {

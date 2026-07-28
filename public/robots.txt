@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://gmc.bt/108/sitemap.xml
+Sitemap: https://108.gmc.bt/sitemap.xml
