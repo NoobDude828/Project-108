@@ -21,9 +21,18 @@ import {
   computeFees,
 } from "@/lib/dk";
 import { insertPaymentCreated, markPaymentStatus } from "@/lib/db";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const MIN_USD = 1; // DK minimum transaction is $1.00
 const MAX_USD = 1_000_000; // sane upper cap
+
+// This route is unauthenticated by necessity (donors are anonymous) and every
+// accepted call creates a real gateway session plus a payments row, so it is
+// rate limited per IP. Without this it can be driven to mass-create DK/Stripe
+// sessions and flood the payments table — the same class of finding the
+// penetration test raised against the other public POST endpoints.
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60_000;
 
 type CheckoutBody = Record<string, unknown>;
 
@@ -32,6 +41,13 @@ function str(v: unknown): string {
 }
 
 export async function POST(req: Request) {
+  const limited = rateLimit(
+    `payment:${clientIp(req)}`,
+    RATE_LIMIT,
+    RATE_WINDOW_MS,
+  );
+  if (limited) return limited;
+
   let body: CheckoutBody;
   try {
     body = (await req.json()) as CheckoutBody;

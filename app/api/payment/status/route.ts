@@ -8,8 +8,22 @@
 
 import { dkCheckStatus } from "@/lib/dk";
 import { markPaymentStatus, bumpPoll } from "@/lib/db";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
+
+// The return page polls this every ~3s for up to ~10 tries, so the ceiling is
+// set well above legitimate use while still blocking it being driven as a
+// reference-guessing or DK-proxying oracle.
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
 
 export async function GET(req: Request) {
+  const limited = rateLimit(
+    `paystatus:${clientIp(req)}`,
+    RATE_LIMIT,
+    RATE_WINDOW_MS,
+  );
+  if (limited) return limited;
+
   const ref = new URL(req.url).searchParams.get("ref")?.trim();
   if (!ref) {
     return Response.json(
