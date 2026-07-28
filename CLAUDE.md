@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 pnpm install            # install
-pnpm dev                # next dev (Turbopack) — http://localhost:3000/108
+pnpm dev                # next dev (Turbopack) — http://localhost:3000
 pnpm build              # next build
 pnpm start              # next start (production)
 pnpm lint               # eslint (eslint-config-next core-web-vitals + typescript)
@@ -24,18 +24,23 @@ There is no test suite.
 
 ## Critical config
 
-- **`basePath: "/108"`** in `next.config.ts` — the site is mounted at `/108`, not `/`. Local URLs are `http://localhost:3000/108` and `http://localhost:3000/108/brochure`. `next/link` prepends the basePath automatically; raw `<a href>` and asset URLs in JSX/CSS do not — references to `/assets/...` and `/scroll/...` work because the server serves `public/` under the basePath.
+- **The site is served at the root of its own subdomain: `https://108.gmc.bt`.** It used to be mounted at `gmc.bt/108`; that path now 301s to the subdomain (nginx `location ^~ /108`), so old links and QR codes keep working.
+- **`basePath` is env-driven, not hardcoded.** `next.config.ts` reads `process.env.BASE_PATH` and only falls back to `/108` when the var is *undefined*. Both the server `.env` and `.env.development` set `BASE_PATH=` (empty), so the app builds at the root in prod and dev alike. Don't reintroduce a hardcoded prefix — flipping the mount point is an env change plus an nginx `proxy_pass`, nothing more.
+- Client code detects the prefix at runtime (`pathname.startsWith("/108") ? "/108" : ""` in `public/scroll/form.js` and `components/ui/OrgFormModal.tsx`). On the subdomain this resolves to `""`; the `/108` branch is retained only so any still-cached page under the old path keeps calling the right API.
 - TS path alias: `@/*` → repo root.
 
 ## Routes & architecture
 
-The site is a **single product in two registers** — both render the same Project 108 brand content. There is no API layer, no database, no auth.
+A single cinematic scrollytelling page plus a thin API layer. There is no database and no auth in this app — form submissions are proxied to the gmc-app backend, which owns the data.
 
-- **`app/page.tsx`** → `/108` — cinematic scrollytelling. One large client component with 15 inline `<section className="scene scene-*">` stages. Most SVG illustrations (chorten anatomy, scale figures, mountain silhouettes, "why 108" diagrams) are inlined in JSX, not imported as files. Styling lives in `app/scroll.css`. Behaviour is driven by **`public/scroll/scrollytelling.js`** (loaded via `<Script strategy="afterInteractive">`), which runs a `requestAnimationFrame` loop that sets a `--p` custom property (0..1) on each scene each frame; CSS interpolates from there. Headless tools can advance frames via `window.__p108Tick()` (rAF is paused when `document.hidden`). The signup form is wired up by **`public/scroll/form.js`** against the inline `<div id="form-modal">` markup at the bottom of the page.
-- **`app/brochure/page.tsx`** → `/108/brochure` — long-read brochure, server component composed from `components/{Nav,Hero,StatStrip,Section,Glossary,ReadinessCards,TakePart,Contact,Footer,Modal}.tsx`. The brochure modal is a **React** component (`components/Modal.tsx`) that exposes `window.openP108Modal(role)` — a different mechanism from the scroll page's vanilla-JS form.
-- **`app/layout.tsx`** sets metadata + favicon links and imports `app/globals.css` (which holds the design tokens).
+- **`app/page.tsx`** → `/` — cinematic scrollytelling. A client component composing the `components/scenes/Scene*.tsx` stages. Most SVG illustrations (chorten anatomy, scale figures, mountain silhouettes, "why 108" diagrams) are inlined in JSX, not imported as files. Styling lives in `app/scroll.css`. Behaviour is driven by **`public/scroll/scrollytelling.js`** (loaded via `<Script strategy="afterInteractive">`), which runs a `requestAnimationFrame` loop that sets a `--p` custom property (0..1) on each scene each frame; CSS interpolates from there. Headless tools can advance frames via `window.__p108Tick()` (rAF is paused when `document.hidden`).
+- **Forms** are a hybrid: `public/scroll/form.js` (vanilla, drives the patron/volunteer modal via `[data-open-form]`) plus React modals in `components/ui/` — `FormModal.tsx` and `OrgFormModal.tsx`, the latter opened by the `p108:open-org-form` CustomEvent that `form.js` dispatches. `?form=patron|volunteer|volunteer-org` auto-opens a modal on load.
+- **`app/api/submit/[role]/route.ts`** → same-origin proxy to `https://gmc.bt/api/{patrons|volunteers}`, which exists to sidestep upstream CORS preflight failures. It rate limits per IP and collapses upstream's 409 duplicate messages into one generic string (see the header comment — both are penetration-test remediations, don't remove them).
+- **`app/api/online/route.ts`** → in-memory active-visitor counter (resets on restart).
+- **`app/layout.tsx`** sets metadata, JSON-LD and GA4. Canonical/OG URLs point at `https://108.gmc.bt`; the organizer/publisher URLs deliberately stay `https://gmc.bt` (parent authority).
+- **`lib/rateLimit.ts`** — shared in-memory per-IP limiter. Counters are per-process, which is fine because prod is a single PM2 fork; move to Redis or the nginx edge if it is ever scaled out.
 
-The two pages cross-link via the top-bar "View as brochure" / nav link. They share design tokens but **not** components or JS — the scroll page is intentionally hand-written JSX + plain JS to keep the cinematic motion lean.
+There is no brochure route — `README.md`/`SKILL.md` may still reference one.
 
 ## Brand & design system
 
@@ -50,4 +55,8 @@ Non-obvious rules that bite:
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main` via SSH: pulls on the server, runs `npm run build`, and `pm2 restart project-108`. Server host/user/key are repo secrets. There is no preview/staging environment.
+GitHub Actions (`.github/workflows/deploy.yml`) deploys on push to `main` via SSH: resets to `origin/main` on the server, runs `npm run build`, and `pm2 restart project-108`. Server host/user/key are repo secrets. **Pushing to `main` deploys straight to production — there is no preview/staging environment**, so use a branch for anything unproven.
+
+- Prod runs as PM2 process `project-108` on port **3003**, at `/home/ubuntu/Project-108`, fronted by nginx (`/etc/nginx/sites-available/108.gmc.bt` → `proxy_pass http://127.0.0.1:3003`).
+- Server secrets live in `/home/ubuntu/Project-108/.env`, which is gitignored and therefore **never touched by a deploy** — add new env vars there manually.
+- `.github/workflows/security.yml` runs Semgrep (SAST) + Trivy (deps/secrets/IaC) on PRs to `main`, report-only.
