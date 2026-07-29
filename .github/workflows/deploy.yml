@@ -11,19 +11,72 @@ jobs:
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          # Secrets are forwarded via `envs:` below rather than interpolated into
+          # the script text, so a value containing quotes or shell metacharacters
+          # cannot break the script or be injected into it.
+          DK_API_KEY: ${{ secrets.DK_API_KEY }}
+          DK_SUBMERCHANT_ID: ${{ secrets.DK_SUBMERCHANT_ID }}
+          DK_ACCOUNT: ${{ secrets.DK_ACCOUNT }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PAYMENT_ACCESS_TOKEN: ${{ secrets.PAYMENT_ACCESS_TOKEN }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: DK_API_KEY,DK_SUBMERCHANT_ID,DK_ACCOUNT,DATABASE_URL,PAYMENT_ACCESS_TOKEN
           script: |
-            set -e
+            set -eu
             cd ~/Project-108
+
+            # ---- 1. Fail before touching the running app -------------------
+            # A missing or misnamed secret must abort here. Writing a .env with
+            # empty values and then restarting is how the site previously came
+            # back up serving 502s.
+            : "${DK_API_KEY:?missing GitHub secret DK_API_KEY}"
+            : "${DK_SUBMERCHANT_ID:?missing GitHub secret DK_SUBMERCHANT_ID}"
+            : "${DK_ACCOUNT:?missing GitHub secret DK_ACCOUNT}"
+            : "${DATABASE_URL:?missing GitHub secret DATABASE_URL}"
+            : "${PAYMENT_ACCESS_TOKEN:?missing GitHub secret PAYMENT_ACCESS_TOKEN}"
+
             git fetch origin && git reset --hard origin/main
-            # Install first: a commit that adds a dependency (e.g. pg) would
-            # otherwise fail the build, and because `pm2 restart` still ran, the
-            # app came back up with no .next directory and served 502s.
+
+            # ---- 2. Write .env (0600), keeping a rollback copy -------------
+            # BASE_PATH / NEXT_PUBLIC_BASE_PATH are intentionally EMPTY: the app
+            # serves at the root of 108.gmc.bt. next.config.ts falls back to the
+            # legacy /108 prefix only when BASE_PATH is *undefined*, so the keys
+            # must be present-but-empty, not omitted.
+            cp -f .env .env.rollback 2>/dev/null || true
+            umask 077
+            cat > .env <<EOF
+            BASE_PATH=
+            NEXT_PUBLIC_BASE_PATH=
+            DK_API_BASE=https://nonbanking-api-gateway.digitalkidu.bt:8082/stripe/api
+            DK_AGENCY_NAME=Project108
+            PAYMENT_RETURN_URL=https://108.gmc.bt/contribute/return
+            DK_API_KEY=${DK_API_KEY}
+            DK_SUBMERCHANT_ID=${DK_SUBMERCHANT_ID}
+            DK_ACCOUNT=${DK_ACCOUNT}
+            DATABASE_URL=${DATABASE_URL}
+            PAYMENT_ACCESS_TOKEN=${PAYMENT_ACCESS_TOKEN}
+            EOF
+            chmod 600 .env
+
+            # ---- 3. Install, then build ------------------------------------
+            # Install first so a commit that adds a dependency (e.g. pg) does not
+            # fail the build. `set -e` aborts on a bad build, leaving the previous
+            # working .next and the running process untouched.
             npm install --no-audit --no-fund
-            # `set -e` aborts here on a bad build, leaving the previous (working)
-            # .next in place and the running process untouched.
             npm run build
+
+            # ---- 4. Restart and smoke-test --------------------------------
             pm2 restart project-108
+            sleep 6
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3003/)
+            echo "post-deploy homepage check: HTTP $code"
+            if [ "$code" != "200" ]; then
+              echo "Deploy smoke test FAILED — restoring previous .env and restarting"
+              [ -f .env.rollback ] && cp -f .env.rollback .env && chmod 600 .env
+              pm2 restart project-108
+              exit 1
+            fi
