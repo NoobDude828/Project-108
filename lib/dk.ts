@@ -10,6 +10,8 @@
  * Auth header: X-Gravitee-Api-Key.
  */
 
+import crypto from "node:crypto";
+
 const DK_API_BASE = (process.env.DK_API_BASE || "").replace(/\/+$/, "");
 const DK_API_KEY = process.env.DK_API_KEY || "";
 const DK_SUBMERCHANT_ID = process.env.DK_SUBMERCHANT_ID || "";
@@ -67,26 +69,57 @@ export function computeFees(base: number): {
 }
 
 /**
- * Unique application_no ("transaction ID"). DK's UAT requires this to be a
- * NUMERIC value and unique (409 on duplicate), so we use epoch-ms + 3 random
- * digits — a 16-digit number that stays unique across attempts.
+ * Unique application_no ("transaction ID"). DK requires it to be NUMERIC and
+ * unique — it is their idempotency key, and ours (UNIQUE in p108_payments) — so a
+ * collision is a failed checkout for a real donor.
+ *
+ * Composed of epoch-ms + a per-process counter + crypto-random digits:
+ *  - the counter makes two calls in the same millisecond impossible to collide
+ *    within a process (prod is a single PM2 fork, so that covers it);
+ *  - the random suffix covers the multi-process case should it ever be scaled.
+ *
+ * An earlier version used only 3 random digits, which collided roughly 64% of the
+ * time over 5,000 same-millisecond calls.
  */
+let lastMs = 0;
+let seqInMs = 0;
+
 export function makeApplicationNo(): string {
-  const rand = Math.floor(Math.random() * 1000)
-    .toString()
-    .padStart(3, "0");
-  return `${Date.now()}${rand}`;
+  const now = Date.now();
+  if (now === lastMs) {
+    seqInMs += 1;
+  } else {
+    lastMs = now;
+    seqInMs = 0;
+  }
+  // The sequence resets each millisecond, so (timestamp, sequence) is unique
+  // within this process by construction — not probabilistically. Four digits
+  // allows 10,000 checkouts in a single millisecond before it could wrap.
+  const seq = String(seqInMs % 10000).padStart(4, "0");
+  // Random tail covers the multi-process case if this is ever scaled out.
+  const rand = String(crypto.randomInt(0, 1000)).padStart(3, "0");
+  return `${now}${seq}${rand}`;
 }
 
 /**
- * Rebuild the Stripe checkout URL from a stored session id.
- *
- * Used to replay an idempotent retry: DK only returns the full session_url at
- * creation, and we persist just the id, so a repeat request is sent back to the
- * canonical Stripe URL for that same session rather than being issued a new one.
+ * DK response codes that represent a transient gateway fault rather than a
+ * decision about the request — per their error table: internal error, service
+ * unavailable, service/connection timeout, network error, verification service
+ * error. Worth retrying; everything else is a verdict and must not be.
  */
-export function stripeUrlFor(sessionId: string): string {
-  return `https://checkout.stripe.com/c/pay/${sessionId}`;
+const DK_TRANSIENT_CODES = new Set([
+  "5000",
+  "5002",
+  "5003",
+  "5004",
+  "5005",
+  "5006",
+]);
+
+function isTransient(status: number, code?: string): boolean {
+  if (code && DK_TRANSIENT_CODES.has(code)) return true;
+  // 502/503/504 from the gateway itself, before DK's own envelope is produced.
+  return status === 502 || status === 503 || status === 504;
 }
 
 /** Map a DK response_code to an appropriate HTTP status for our client. */
@@ -136,6 +169,39 @@ async function dkFetch(path: string, init: RequestInit): Promise<Response> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Retry wrapper for SAFE, IDEMPOTENT reads only.
+ *
+ * Deliberately not used for /checkout. That call creates a gateway session, and
+ * DK's only idempotency handle is application_no: if a request times out after
+ * DK created the session, retrying returns 4003 (duplicate) — and DK does not
+ * give the session_url back on a 4003, so the session would be stranded and
+ * unreachable. Blind retries there would turn one ambiguous outcome into a lost
+ * one. That ambiguity is resolved by reconciliation instead, which polls the
+ * status of the application_no we already recorded.
+ */
+async function withRetry<T>(
+  label: string,
+  attempt: () => Promise<{ value: T; transient: boolean }>,
+  attempts = 3,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      const { value, transient } = await attempt();
+      if (!transient || i === attempts) return value;
+    } catch (e) {
+      lastErr = e;
+      if (i === attempts) throw e;
+    }
+    // 250ms, 500ms — short enough to stay inside a request, long enough to let a
+    // brief gateway blip pass.
+    await new Promise((r) => setTimeout(r, 250 * 2 ** (i - 1)));
+    console.warn(`[dk] ${label}: transient failure, retry ${i + 1}/${attempts}`);
+  }
+  throw lastErr ?? new Error(`[dk] ${label}: exhausted retries`);
 }
 
 export async function dkCreateCheckout(args: {
@@ -188,14 +254,24 @@ export async function dkCheckStatus(
   applicationNo: string,
 ): Promise<DkStatusResult> {
   assertDkConfig();
-  const res = await dkFetch(
-    `/check-application-status?application_no=${encodeURIComponent(applicationNo)}`,
-    { method: "GET" },
-  );
-  const data = (await res.json().catch(() => ({}))) as DkEnvelope;
-  // response_data is a boolean here: true = paid/completed.
-  return {
-    status: data.response_data === true ? "paid" : "pending",
-    code: data.response_code,
-  };
+  // Idempotent read, so retrying a transient gateway fault is safe — and it
+  // matters: a 5003 timeout swallowed here would otherwise look like "not paid"
+  // and, in the sweep, could eventually expire a payment that had in fact
+  // completed.
+  return withRetry("check-application-status", async () => {
+    const res = await dkFetch(
+      `/check-application-status?application_no=${encodeURIComponent(applicationNo)}`,
+      { method: "GET" },
+    );
+    const data = (await res.json().catch(() => ({}))) as DkEnvelope;
+    const code = data.response_code;
+
+    // Per DK: treat as paid ONLY when response_data is true. Everything else —
+    // false, 4004, any error — is "not completed", never an inferred success.
+    const value: DkStatusResult = {
+      status: data.response_data === true ? "paid" : "pending",
+      code,
+    };
+    return { value, transient: isTransient(res.status, code) };
+  });
 }

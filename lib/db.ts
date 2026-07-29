@@ -100,6 +100,8 @@ export type ExistingPayment = {
   applicationNo: string;
   status: string;
   dkSessionId: string | null;
+  /** The URL DK actually returned. Never rebuild this from the id. */
+  dkSessionUrl: string | null;
 };
 
 /**
@@ -115,7 +117,7 @@ export async function findByIdempotencyKey(
 ): Promise<ExistingPayment | null> {
   if (!pool) return null;
   const r = await pool.query(
-    `SELECT application_no, status, dk_session_id
+    `SELECT application_no, status, dk_session_id, dk_session_url
        FROM p108_payments WHERE idempotency_key = $1`,
     [key],
   );
@@ -125,6 +127,7 @@ export async function findByIdempotencyKey(
     applicationNo: row.application_no,
     status: row.status,
     dkSessionId: row.dk_session_id,
+    dkSessionUrl: row.dk_session_url,
   };
 }
 
@@ -231,6 +234,7 @@ export async function markPaymentStatus(
   toStatus: string,
   opts: {
     dkSessionId?: string;
+    dkSessionUrl?: string;
     dkResponseCode?: string;
     dkResponseMessage?: string;
     dkResponseDescription?: string;
@@ -253,6 +257,7 @@ export async function markPaymentStatus(
       `UPDATE p108_payments
           SET status = $2,
               dk_session_id = COALESCE($3, dk_session_id),
+              dk_session_url = COALESCE($7, dk_session_url),
               dk_response_code = COALESCE($4, dk_response_code),
               dk_response_message = COALESCE($5, dk_response_message),
               dk_response_description = COALESCE($6, dk_response_description),
@@ -269,6 +274,7 @@ export async function markPaymentStatus(
         opts.dkResponseCode ?? null,
         opts.dkResponseMessage ?? null,
         opts.dkResponseDescription ?? null,
+        opts.dkSessionUrl ?? null,
       ],
     );
 
@@ -283,6 +289,176 @@ export async function markPaymentStatus(
   } catch (e) {
     console.error("[db] markPaymentStatus failed", e);
   }
+}
+
+/**
+ * Payments that still need an answer from DK.
+ *
+ * Confirmation otherwise only happens while the donor's browser sits on the
+ * return page — and real donors close the tab. Anything DK confirms after they
+ * leave would never be recorded without this sweep.
+ *
+ * `graceSeconds` skips rows created moments ago, which the browser is probably
+ * still polling itself, so the two do not race over the same record.
+ */
+export async function findPendingForSweep(
+  graceSeconds: number,
+  limit: number,
+): Promise<Array<{ applicationNo: string; ageSeconds: number }>> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `SELECT application_no,
+            EXTRACT(EPOCH FROM (now() - created_at))::int AS age_seconds
+       FROM p108_payments
+      WHERE status IN ('created','redirected','pending')
+        AND created_at < now() - make_interval(secs => $1::double precision)
+      ORDER BY created_at ASC
+      LIMIT $2`,
+    [graceSeconds, limit],
+  );
+  return r.rows.map((x) => ({
+    applicationNo: x.application_no,
+    ageSeconds: x.age_seconds,
+  }));
+}
+
+/**
+ * Advisory lock guarding the sweep, so overlapping cron runs cannot both poll
+ * the same payments. Session-scoped, so it is released even if the process dies
+ * mid-run — which a row flag or a "running" column would not do.
+ *
+ * The lock is held on a dedicated client that the caller must release.
+ */
+export async function acquireSweepLock(): Promise<{
+  acquired: boolean;
+  release: () => Promise<void>;
+}> {
+  if (!pool) return { acquired: false, release: async () => {} };
+  const client = await pool.connect();
+  try {
+    // Arbitrary but fixed key; anything else taking this key is also a sweep.
+    const r = await client.query(
+      `SELECT pg_try_advisory_lock(hashtext('p108_payment_sweep')) AS ok`,
+    );
+    const acquired = Boolean(r.rows[0]?.ok);
+    if (!acquired) {
+      client.release();
+      return { acquired: false, release: async () => {} };
+    }
+    return {
+      acquired: true,
+      release: async () => {
+        try {
+          await client.query(
+            `SELECT pg_advisory_unlock(hashtext('p108_payment_sweep'))`,
+          );
+        } finally {
+          client.release();
+        }
+      },
+    };
+  } catch (e) {
+    client.release();
+    console.error("[db] acquireSweepLock failed", e);
+    return { acquired: false, release: async () => {} };
+  }
+}
+
+export type SweepOutcome = {
+  examined: number;
+  confirmedPaid: number;
+  expired: number;
+  stillPending: number;
+  errors: number;
+  durationMs: number;
+  skippedLocked?: boolean;
+  detail?: unknown;
+};
+
+/**
+ * Persist a sweep run.
+ *
+ * Replaces writing JSON to stdout, which could not be queried or alerted on and
+ * disappeared on log rotation — so "is reconciliation actually working?" had no
+ * auditable answer.
+ */
+export async function recordSweepRun(o: SweepOutcome): Promise<void> {
+  if (!pool) return;
+  try {
+    await pool.query(
+      `INSERT INTO p108_sweep_runs
+         (finished_at, duration_ms, examined, confirmed_paid, expired,
+          still_pending, errors, detail, skipped_locked)
+       VALUES (now(), $1,$2,$3,$4,$5,$6,$7::jsonb,$8)`,
+      [
+        o.durationMs,
+        o.examined,
+        o.confirmedPaid,
+        o.expired,
+        o.stillPending,
+        o.errors,
+        o.detail != null ? JSON.stringify(o.detail) : null,
+        o.skippedLocked ?? false,
+      ],
+    );
+  } catch (e) {
+    console.error("[db] recordSweepRun failed", e);
+  }
+}
+
+/**
+ * Give up on a checkout that was never completed.
+ *
+ * Guarded to non-terminal rows so a payment DK has since confirmed can never be
+ * expired out from under us. Without this, every abandoned checkout would sit at
+ * `redirected` forever and quietly distort the books.
+ */
+export async function markExpiredIfPending(
+  applicationNo: string,
+): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    const r = await pool.query(
+      `UPDATE p108_payments
+          SET status = 'expired', expired_at = now()
+        WHERE application_no = $1
+          AND status IN ('created','redirected','pending')`,
+      [applicationNo],
+    );
+    if (r.rowCount && r.rowCount > 0) {
+      await addEvent(applicationNo, "expired_by_sweep", {
+        toStatus: "expired",
+        actor: "cron",
+      });
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.error("[db] markExpiredIfPending failed", e);
+    return false;
+  }
+}
+
+/** Counts and USD totals by status — the daily reconciliation report. */
+export async function statusSummary(): Promise<
+  Array<{ status: string; count: number; baseTotal: string; chargedTotal: string }>
+> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `SELECT status,
+            count(*)::int                      AS count,
+            COALESCE(sum(amount),0)::text      AS base_total,
+            COALESCE(sum(customer_pays),0)::text AS charged_total
+       FROM p108_payments
+      GROUP BY status
+      ORDER BY status`,
+  );
+  return r.rows.map((x) => ({
+    status: x.status,
+    count: x.count,
+    baseTotal: x.base_total,
+    chargedTotal: x.charged_total,
+  }));
 }
 
 /** Record a status poll against DK (last_polled_at + poll_count). Best-effort. */

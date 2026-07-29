@@ -19,7 +19,6 @@ import {
   makeApplicationNo,
   dkErrorStatus,
   computeFees,
-  stripeUrlFor,
 } from "@/lib/dk";
 import {
   insertPaymentCreated,
@@ -190,10 +189,10 @@ export async function POST(req: Request) {
         { status: 503 },
       );
     }
-    if (prior?.dkSessionId && prior.status !== "failed") {
-      // Same intent, already has a session — hand back the original.
+    if (prior?.dkSessionUrl && prior.status !== "failed") {
+      // Same intent, already has a session — hand back the original URL verbatim.
       return Response.json(
-        { ref: prior.applicationNo, sessionUrl: stripeUrlFor(prior.dkSessionId) },
+        { ref: prior.applicationNo, sessionUrl: prior.dkSessionUrl },
         { status: 200 },
       );
     }
@@ -233,9 +232,9 @@ export async function POST(req: Request) {
     // inserted. Read back its session rather than creating a second one.
     if (isUniqueViolation(err) && idempotencyKey) {
       const winner = await findByIdempotencyKey(idempotencyKey).catch(() => null);
-      if (winner?.dkSessionId) {
+      if (winner?.dkSessionUrl) {
         return Response.json(
-          { ref: winner.applicationNo, sessionUrl: stripeUrlFor(winner.dkSessionId) },
+          { ref: winner.applicationNo, sessionUrl: winner.dkSessionUrl },
           { status: 200 },
         );
       }
@@ -262,13 +261,22 @@ export async function POST(req: Request) {
       cancelUrl,
     });
   } catch (err) {
+    // Do NOT mark this failed. A timeout or network fault leaves it genuinely
+    // ambiguous: DK may already have created the session, and if the donor
+    // somehow reaches and pays it, a terminal `failed` would make the sweep skip
+    // the row and we would never record the payment. Leaving it non-terminal
+    // means reconciliation polls this application_no and resolves it properly —
+    // to paid if DK confirms, to expired if it was never completed.
     console.error("[/api/payment/checkout] DK request failed", err);
-    await markPaymentStatus(appNo, "failed", {
-      eventType: "dk_error",
-      detail: { error: String(err) },
+    await markPaymentStatus(appNo, "created", {
+      eventType: "dk_unreachable",
+      detail: {
+        error: String(err),
+        note: "left non-terminal for reconciliation",
+      },
     });
     return Response.json(
-      { success: false, error: "Couldn't reach the payment gateway." },
+      { success: false, error: "Couldn't reach the payment gateway. Please try again." },
       { status: 502 },
     );
   }
@@ -276,6 +284,10 @@ export async function POST(req: Request) {
   if (result.ok) {
     await markPaymentStatus(appNo, "redirected", {
       dkSessionId: result.sessionId,
+      // Store the URL DK actually returned. An idempotent replay serves this
+      // verbatim rather than rebuilding it from the id, so we never depend on
+      // Stripe's URL format staying the same.
+      dkSessionUrl: result.sessionUrl,
       eventType: "dk_checkout_response",
       httpStatus: 201,
     });
