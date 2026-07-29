@@ -6,9 +6,13 @@ import { useEffect, useRef, useState } from "react";
 //
 // success_url / cancel_url from the DK/Stripe checkout land here. The browser
 // redirect is NEVER treated as proof of payment — we confirm by polling
-// /api/payment/status (which the gmc-app module verifies against DK's
-// check-application-status). The payment reference comes from ?ref= or, as a
-// fallback, sessionStorage set by PaymentModal before the redirect.
+// /api/payment/status, which verifies against DK's check-application-status.
+//
+// The payment reference comes from the ?ref= query param that we append to the
+// success/cancel URLs before handing them to DK. (It also falls back to a
+// sessionStorage key, which a future checkout UI can set before redirecting —
+// there is deliberately no payment UI on the site at present, so today the
+// query param is the only source.)
 
 type View = "loading" | "confirmed" | "pending" | "cancelled" | "failed" | "unknown";
 
