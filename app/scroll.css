@@ -4768,3 +4768,115 @@ body.scrolled .status .brand {
     margin-top: 0.5rem;
   }
 }
+
+/* ── Unlisted /contribute page ──────────────────────────────────────────
+   Presented as the Patronage modal (same .form-modal classes) so there is no
+   visual drift when it is eventually surfaced from the invitation scene.
+   The additions below exist for one reason: make the amount the hero. In the
+   first draft all ten fields carried identical weight, so the amount looked
+   exactly like the postcode field. */
+.contribute-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(200, 166, 99, 0.06) 0%, transparent 60%),
+    var(--maroon-night);
+  padding: 3rem 1rem 4rem;
+}
+/* Static, not an overlay: no backdrop, no entry transform. */
+.contribute-modal {
+  position: static;
+  display: block;
+  background: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+.contribute-modal .form-modal__sheet {
+  margin: 0 auto;
+  max-height: none;
+  transform: none;
+}
+
+/* The amount block — the one element allowed to dominate. */
+.contribute-amount {
+  padding-bottom: 1.6rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--gold-faint-2);
+}
+.contribute-amount__lbl {
+  display: block;
+  font-family: var(--font-utility);
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.7rem;
+}
+.contribute-amount__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  border-bottom: 1px solid var(--gold-faint);
+  padding-bottom: 0.4rem;
+}
+.contribute-amount__cur {
+  font-family: var(--font-utility);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: rgba(242, 233, 216, 0.62);
+  flex: 0 0 auto;
+}
+/* Display scale + oldstyle figures, matching how the site sets 108 and the
+   USD 200,000 patronage figure. */
+.contribute-amount__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-feature-settings: "onum";
+  font-size: clamp(2.6rem, 9vw, 4.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--gold-bright);
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.contribute-amount__input::placeholder {
+  color: rgba(200, 166, 99, 0.28);
+}
+.contribute-amount__input:focus {
+  outline: none;
+}
+.contribute-amount__row:focus-within {
+  border-bottom-color: var(--gold-bright);
+}
+
+/* The charge disclosure. Kept at 0.78 alpha rather than the 0.55 used for
+   decorative microtext, so it clears WCAG AA at this size. */
+.contribute-fee {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(242, 233, 216, 0.78);
+}
+.contribute-fee strong {
+  font-weight: 400;
+  color: var(--cream);
+}
+.contribute-fee__total {
+  color: var(--gold-bright) !important;
+}
+
+/* Single action, full width — there is nothing to weigh it against. */
+.contribute-actions {
+  justify-content: stretch;
+}
+.contribute-actions .btn {
+  width: 100%;
+  text-align: center;
+}

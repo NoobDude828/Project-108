@@ -78,6 +78,17 @@ export function makeApplicationNo(): string {
   return `${Date.now()}${rand}`;
 }
 
+/**
+ * Rebuild the Stripe checkout URL from a stored session id.
+ *
+ * Used to replay an idempotent retry: DK only returns the full session_url at
+ * creation, and we persist just the id, so a repeat request is sent back to the
+ * canonical Stripe URL for that same session rather than being issued a new one.
+ */
+export function stripeUrlFor(sessionId: string): string {
+  return `https://checkout.stripe.com/c/pay/${sessionId}`;
+}
+
 /** Map a DK response_code to an appropriate HTTP status for our client. */
 export function dkErrorStatus(code?: string): number {
   switch (code) {

@@ -19,9 +19,16 @@ import {
   makeApplicationNo,
   dkErrorStatus,
   computeFees,
+  stripeUrlFor,
 } from "@/lib/dk";
-import { insertPaymentCreated, markPaymentStatus } from "@/lib/db";
+import {
+  insertPaymentCreated,
+  markPaymentStatus,
+  findByIdempotencyKey,
+  isUniqueViolation,
+} from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import { verifyGrant } from "@/lib/paymentGrant";
 
 const MIN_USD = 1; // DK minimum transaction is $1.00
 const MAX_USD = 1_000_000; // sane upper cap
@@ -71,13 +78,16 @@ export async function POST(req: Request) {
   );
   if (limited) return limited;
 
-  // Pre-launch gate (see PAYMENT_ACCESS_TOKEN above). 404 rather than 401 so an
-  // unauthorised caller cannot even confirm a payment endpoint exists here.
-  if (
-    PAYMENT_ACCESS_TOKEN &&
-    !tokenMatches(req.headers.get("x-payment-access") || "")
-  ) {
-    return Response.json({ error: "Not found" }, { status: 404 });
+  // Pre-launch gate (see PAYMENT_ACCESS_TOKEN above). Accepts either the raw
+  // token — for our own server-side calls — or a short-lived signed grant minted
+  // by the unlisted /contribute page, so that page never has to embed the secret
+  // in its HTML. 404 rather than 401 so an unauthorised caller cannot even
+  // confirm a payment endpoint exists here.
+  if (PAYMENT_ACCESS_TOKEN) {
+    const presented = req.headers.get("x-payment-access") || "";
+    if (!tokenMatches(presented) && !verifyGrant(presented)) {
+      return Response.json({ error: "Not found" }, { status: 404 });
+    }
   }
 
   let body: CheckoutBody;
@@ -160,32 +170,88 @@ export async function POST(req: Request) {
     )
     .digest("hex");
 
+  // ---- Idempotency -----------------------------------------------------
+  // The client sends a stable key per checkout intent and reuses it when
+  // retrying. Without this, a retry after a network error (or a double-click)
+  // minted a second live gateway session for the same intent and the donor
+  // could pay twice.
+  const idempotencyKey = str(body.idempotencyKey) || undefined;
+
+  if (idempotencyKey) {
+    let prior;
+    try {
+      prior = await findByIdempotencyKey(idempotencyKey);
+    } catch (err) {
+      // Refuse rather than guess: treating a failed lookup as "no prior
+      // attempt" is precisely how a duplicate charge gets created.
+      console.error("[/api/payment/checkout] idempotency lookup failed", err);
+      return Response.json(
+        { success: false, error: "Couldn't verify the request. Please try again." },
+        { status: 503 },
+      );
+    }
+    if (prior?.dkSessionId && prior.status !== "failed") {
+      // Same intent, already has a session — hand back the original.
+      return Response.json(
+        { ref: prior.applicationNo, sessionUrl: stripeUrlFor(prior.dkSessionId) },
+        { status: 200 },
+      );
+    }
+  }
+
   const appNo = makeApplicationNo();
   const successUrl = `${returnBase}?ref=${encodeURIComponent(appNo)}&result=success`;
   const cancelUrl = `${returnBase}?ref=${encodeURIComponent(appNo)}&result=cancel`;
 
-  // Persist a durable record BEFORE calling DK (so we have it even on failure).
-  await insertPaymentCreated({
-    applicationNo: appNo,
-    amount: roundedAmount,
-    currency: "usd",
-    feeTotal: fees.feeTotal,
-    customerPays: fees.customerPays,
-    netToProject: fees.netToProject,
-    requestHash,
-    donorName,
-    donorEmail,
-    donorPhone: [phoneCountryCode, donorPhone].filter(Boolean).join(" "),
-    country,
-    addressLine1,
-    addressLine2: addressLine2 || undefined,
-    city,
-    state,
-    postalCode,
-    message: message || undefined,
-    successUrl,
-    cancelUrl,
-  });
+  // Record the intent BEFORE calling DK. This insert is mandatory: handing out
+  // a payable session we failed to record would be money taken with no trace.
+  try {
+    await insertPaymentCreated({
+      applicationNo: appNo,
+      amount: roundedAmount,
+      currency: "usd",
+      feeTotal: fees.feeTotal,
+      customerPays: fees.customerPays,
+      netToProject: fees.netToProject,
+      requestHash,
+      idempotencyKey,
+      donorName,
+      donorEmail,
+      donorPhone: [phoneCountryCode, donorPhone].filter(Boolean).join(" "),
+      country,
+      addressLine1,
+      addressLine2: addressLine2 || undefined,
+      city,
+      state,
+      postalCode,
+      message: message || undefined,
+      successUrl,
+      cancelUrl,
+    });
+  } catch (err) {
+    // Lost the idempotency race: a concurrent request with the same key already
+    // inserted. Read back its session rather than creating a second one.
+    if (isUniqueViolation(err) && idempotencyKey) {
+      const winner = await findByIdempotencyKey(idempotencyKey).catch(() => null);
+      if (winner?.dkSessionId) {
+        return Response.json(
+          { ref: winner.applicationNo, sessionUrl: stripeUrlFor(winner.dkSessionId) },
+          { status: 200 },
+        );
+      }
+      // The winner exists but has not got its session yet — ask the client to
+      // retry with the same key rather than racing it.
+      return Response.json(
+        { success: false, error: "This contribution is already being prepared. Please try again in a moment." },
+        { status: 409 },
+      );
+    }
+    console.error("[/api/payment/checkout] could not record the payment", err);
+    return Response.json(
+      { success: false, error: "Couldn't start the payment. Please try again." },
+      { status: 503 },
+    );
+  }
 
   let result;
   try {
