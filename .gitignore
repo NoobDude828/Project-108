@@ -33,6 +33,14 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local operational notes (server access / infra topology — keep out of git)
+INFRA.local.md
+*.local.md
+
+# DK gateway docs are image PDFs that contain live X-Gravitee-Api-Key values
+# (both the UAT and production keys) — never commit them.
+Stripe Payment Processing API Documentation*.pdf
+
 # vercel
 .vercel
 
