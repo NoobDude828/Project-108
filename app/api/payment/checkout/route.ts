@@ -26,6 +26,29 @@ import { clientIp, rateLimit } from "@/lib/rateLimit";
 const MIN_USD = 1; // DK minimum transaction is $1.00
 const MAX_USD = 1_000_000; // sane upper cap
 
+/**
+ * Pre-launch access gate.
+ *
+ * There is deliberately no payment UI on the site yet, but this route is
+ * publicly reachable and — with production DK credentials — mints *live* Stripe
+ * sessions. Left open it is an abuse surface: card-testing against a live
+ * gateway, and payment-row flooding. While PAYMENT_ACCESS_TOKEN is set, callers
+ * must present it, so only our own verification requests get through.
+ *
+ * REMOVE this (and replace it with the real anti-abuse controls a public
+ * donation form needs — captcha/proof-of-work plus tighter limits) at the point
+ * the contribution UI actually launches. If the var is unset the route is open,
+ * which is correct once the form is public but must be a deliberate choice.
+ */
+const PAYMENT_ACCESS_TOKEN = process.env.PAYMENT_ACCESS_TOKEN || "";
+
+/** Constant-time compare so the check cannot be probed by timing. */
+function tokenMatches(provided: string): boolean {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(PAYMENT_ACCESS_TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 // This route is unauthenticated by necessity (donors are anonymous) and every
 // accepted call creates a real gateway session plus a payments row, so it is
 // rate limited per IP. Without this it can be driven to mass-create DK/Stripe
@@ -47,6 +70,15 @@ export async function POST(req: Request) {
     RATE_WINDOW_MS,
   );
   if (limited) return limited;
+
+  // Pre-launch gate (see PAYMENT_ACCESS_TOKEN above). 404 rather than 401 so an
+  // unauthorised caller cannot even confirm a payment endpoint exists here.
+  if (
+    PAYMENT_ACCESS_TOKEN &&
+    !tokenMatches(req.headers.get("x-payment-access") || "")
+  ) {
+    return Response.json({ error: "Not found" }, { status: 404 });
+  }
 
   let body: CheckoutBody;
   try {
