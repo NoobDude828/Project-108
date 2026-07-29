@@ -323,43 +323,58 @@ export async function findPendingForSweep(
 }
 
 /**
- * Advisory lock guarding the sweep, so overlapping cron runs cannot both poll
- * the same payments. Session-scoped, so it is released even if the process dies
- * mid-run — which a row flag or a "running" column would not do.
+ * Claim the sweep lease, so overlapping cron runs cannot both poll the same
+ * payments against DK.
  *
- * The lock is held on a dedicated client that the caller must release.
+ * A lease row rather than pg_try_advisory_lock: advisory locks are session-scoped
+ * and silently unreliable through a transaction-pooling pooler (Neon's `-pooler`
+ * endpoint, pgbouncer, RDS Proxy), where consecutive queries are not guaranteed
+ * the same backend. That was verified — two simultaneous sweeps both "acquired"
+ * an advisory lock and both ran.
+ *
+ * The claim is one atomic UPDATE whose WHERE clause only matches an expired
+ * lease, so exactly one caller can win. The lease self-expires, so a process
+ * killed mid-sweep cannot wedge reconciliation permanently.
  */
-export async function acquireSweepLock(): Promise<{
+export async function acquireSweepLease(ttlSeconds: number): Promise<{
   acquired: boolean;
   release: () => Promise<void>;
 }> {
   if (!pool) return { acquired: false, release: async () => {} };
-  const client = await pool.connect();
+  const holder = `${process.pid}-${Date.now()}`;
   try {
-    // Arbitrary but fixed key; anything else taking this key is also a sweep.
-    const r = await client.query(
-      `SELECT pg_try_advisory_lock(hashtext('p108_payment_sweep')) AS ok`,
+    const r = await pool.query(
+      `UPDATE p108_sweep_lease
+          SET holder = $1,
+              claimed_at = now(),
+              expires_at = now() + make_interval(secs => $2::double precision)
+        WHERE id = 1
+          AND expires_at <= now()
+        RETURNING holder`,
+      [holder, ttlSeconds],
     );
-    const acquired = Boolean(r.rows[0]?.ok);
-    if (!acquired) {
-      client.release();
-      return { acquired: false, release: async () => {} };
-    }
+    if (r.rowCount !== 1) return { acquired: false, release: async () => {} };
+
     return {
       acquired: true,
       release: async () => {
         try {
-          await client.query(
-            `SELECT pg_advisory_unlock(hashtext('p108_payment_sweep'))`,
+          // Expire it immediately, but only if we still hold it — otherwise a
+          // slow run could release a lease that has since been taken over.
+          await pool!.query(
+            `UPDATE p108_sweep_lease
+                SET expires_at = now()
+              WHERE id = 1 AND holder = $1`,
+            [holder],
           );
-        } finally {
-          client.release();
+        } catch (e) {
+          // Not fatal: the lease expires on its own.
+          console.error("[db] releasing sweep lease failed", e);
         }
       },
     };
   } catch (e) {
-    client.release();
-    console.error("[db] acquireSweepLock failed", e);
+    console.error("[db] acquireSweepLease failed", e);
     return { acquired: false, release: async () => {} };
   }
 }

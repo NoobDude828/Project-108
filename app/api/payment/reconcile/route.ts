@@ -31,7 +31,7 @@ import {
   statusSummary,
   bumpPoll,
   dbEnabled,
-  acquireSweepLock,
+  acquireSweepLease,
   recordSweepRun,
 } from "@/lib/db";
 
@@ -48,6 +48,10 @@ const EXPIRE_AFTER_SECONDS = 24 * 60 * 60;
 // Bounded so a backlog drains over several runs rather than one long request.
 const BATCH = 25;
 const DELAY_MS = 250;
+
+// Longer than a worst-case batch (25 payments x ~2s of DK latency), short enough
+// that a crashed run resumes on the next cron tick rather than hours later.
+const LEASE_TTL_SECONDS = 300;
 
 function authorised(req: Request): boolean {
   if (!CRON_SECRET) return false; // fail closed: no secret configured, no access
@@ -74,8 +78,10 @@ export async function POST(req: Request) {
 
   // Only one sweep at a time. Cron fires on a fixed interval, so a run that
   // takes longer than the interval would otherwise overlap with the next and
-  // both would poll the same payments against DK.
-  const lock = await acquireSweepLock();
+  // both would poll the same payments against DK. The TTL is comfortably longer
+  // than a full batch takes, and self-expires so a killed process cannot wedge
+  // reconciliation.
+  const lock = await acquireSweepLease(LEASE_TTL_SECONDS);
   if (!lock.acquired) {
     await recordSweepRun({
       examined: 0,
