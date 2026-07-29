@@ -16,7 +16,14 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
             cd ~/Project-108
             git fetch origin && git reset --hard origin/main
+            # Install first: a commit that adds a dependency (e.g. pg) would
+            # otherwise fail the build, and because `pm2 restart` still ran, the
+            # app came back up with no .next directory and served 502s.
+            npm install --no-audit --no-fund
+            # `set -e` aborts here on a bad build, leaving the previous (working)
+            # .next in place and the running process untouched.
             npm run build
             pm2 restart project-108
