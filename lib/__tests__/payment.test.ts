@@ -17,8 +17,13 @@ import nodeCrypto from "node:crypto";
 // The grant module reads PAYMENT_ACCESS_TOKEN at call time, so set it before import.
 process.env.PAYMENT_ACCESS_TOKEN = "test-secret-for-grants";
 
-const { computeFees, makeApplicationNo, dkErrorStatus, FEE_FORMULA_VERSION } =
-  await import("../dk.ts");
+const {
+  computeFees,
+  baseForTotal,
+  makeApplicationNo,
+  dkErrorStatus,
+  FEE_FORMULA_VERSION,
+} = await import("../dk.ts");
 const { mintGrant, verifyGrant } = await import("../paymentGrant.ts");
 const { rateLimit, clientIp } = await import("../rateLimit.ts");
 
@@ -75,6 +80,83 @@ describe("computeFees — money maths", () => {
 
   test("fee formula version is recorded, so a DK change cannot rewrite history", () => {
     assert.match(FEE_FORMULA_VERSION, /4\.85/);
+  });
+});
+
+describe("baseForTotal — donor declines to cover the fee", () => {
+  test("grosses down so the donor is charged what they offered", () => {
+    // DK always adds its fee on top, so to charge $108 we must send a smaller
+    // base that grosses up to it.
+    const base = baseForTotal(108);
+    assert.equal(computeFees(base).customerPays, 108);
+    assert.ok(base < 108, "base must be below the offer");
+  });
+
+  test("NEVER charges more than the donor chose", () => {
+    // The whole point of the choice is that the amount shown is the amount taken.
+    // Not every total is exactly reachable (the fee is itself rounded to cents),
+    // so where it is not, we must land under rather than over.
+    for (const total of [
+      1, 1.65, 2, 5, 7.77, 10, 19.99, 25, 50, 99.99, 100, 108, 250, 500,
+      1000, 1234.56, 5000, 200000,
+    ]) {
+      const charged = computeFees(baseForTotal(total)).customerPays;
+      assert.ok(
+        charged <= total,
+        `offer ${total} would be charged ${charged} — must never exceed the offer`,
+      );
+      // And it must be within a couple of cents, not merely "under".
+      assert.ok(
+        total - charged <= 0.02,
+        `offer ${total} charged ${charged} — drifted too far below`,
+      );
+    }
+  });
+
+  test("$10 is a known-unreachable total and lands just under", () => {
+    // base 8.96 -> 9.99, base 8.97 -> 10.01, so 10.00 does not exist.
+    const charged = computeFees(baseForTotal(10)).customerPays;
+    assert.equal(charged, 9.99);
+  });
+
+  test("the two paths differ by roughly the fee, and both are self-consistent", () => {
+    const offer = 108;
+    // Covering: project gets the full offer, donor pays more.
+    const covered = computeFees(offer);
+    assert.equal(covered.netToProject, 108);
+    assert.equal(covered.customerPays, 113.84);
+    // Not covering: donor pays the offer, project absorbs the fee.
+    const base = baseForTotal(offer);
+    const notCovered = computeFees(base);
+    assert.equal(notCovered.customerPays, 108);
+    // The exact figure quoted in the product feedback that prompted the choice.
+    // Pinned, because both the form and the receipt state it to the donor.
+    assert.equal(notCovered.netToProject, 102.43);
+  });
+
+  test("never produces sub-cent precision", () => {
+    for (const total of [1, 3.33, 19.99, 108, 1234.56]) {
+      const base = baseForTotal(total);
+      assert.equal(Number(base.toFixed(2)), base, `${base} has sub-cent precision`);
+    }
+  });
+});
+
+describe("consent wording — one list, one permission", () => {
+  test("scope extends beyond the single event, so the list survives 1 November", async () => {
+    const { CONSENT_TEXT, CONSENT_VERSION, consentRecord } = await import(
+      "../consent.ts"
+    );
+    assert.match(CONSENT_TEXT, /livestream/i);
+    // The crucial part: if it only mentioned November, the addresses would be
+    // spent the day after.
+    assert.match(CONSENT_TEXT, /Gelephu Mindfulness City/i);
+    assert.ok(CONSENT_VERSION.length > 0);
+    // The wording is stored with each opt-in, so scope is provable later.
+    const r = consentRecord(true);
+    assert.equal(r.granted, true);
+    assert.equal(r.text, CONSENT_TEXT);
+    assert.equal(r.version, CONSENT_VERSION);
   });
 });
 
