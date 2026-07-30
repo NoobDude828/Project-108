@@ -4880,3 +4880,145 @@ body.scrolled .status .brand {
   width: 100%;
   text-align: center;
 }
+
+/* ---------------------------------------------------------------------------
+   Check-box — the processing-fee choice and the mailing-list consent.
+   The native input IS the box: `appearance: none` strips the platform control and
+   leaves an element that still focuses, still toggles on label click, still
+   reports state to assistive tech. An earlier version hid the input off-flow and
+   drew a decorative span beside it — an invisible, absolutely-positioned control
+   that escaped its own label's box and got toggled by clicks meant for the amount
+   field. Styling the real element cannot drift from it.
+   The tick is two borders of an empty box, rotated: a shape, not an icon.
+--------------------------------------------------------------------------- */
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  cursor: pointer;
+  /* The box itself is 17px, but the whole label toggles it, so the label is the
+     real target and it has to clear 44px on touch. `align-items: start` keeps the
+     text where it was — the extra height only extends the tappable area. */
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(242, 233, 216, 0.82);
+}
+.check input[type="checkbox"] {
+  position: relative;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0.18rem 0 0;
+  padding: 0;
+  flex: 0 0 auto;
+  border: 1px solid var(--gold-faint);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+.check:hover input[type="checkbox"] {
+  border-color: var(--gold);
+}
+.check input[type="checkbox"]:checked {
+  border-color: var(--gold-bright);
+  background: rgba(200, 166, 99, 0.14);
+}
+.check input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.24rem;
+  top: 0.02rem;
+  width: 0.32rem;
+  height: 0.58rem;
+  border-right: 1.5px solid var(--gold-bright);
+  border-bottom: 1.5px solid var(--gold-bright);
+  transform: rotate(42deg);
+}
+.check input[type="checkbox"]:focus-visible {
+  outline: 1px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+.check__txt {
+  min-width: 0;
+}
+/* Sits inside the amount block, tight to the figure it changes. */
+.check--fee {
+  margin-top: 1.1rem;
+}
+/* Quieter than the fee choice: this one asks nothing of the transaction. */
+.check--consent {
+  margin-top: 0.3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--gold-faint-2);
+  font-size: 0.82rem;
+  color: rgba(242, 233, 216, 0.74);
+}
+
+/* ---------------------------------------------------------------------------
+   Contribute page — responsive.
+   The shared .form-modal styles turn into a bottom sheet below 600px: full-bleed,
+   squared-off at the bottom, with a drag handle. Correct for a modal that slides
+   up over the scroll page; wrong here, where this is a standalone page that was
+   never dragged open and has nothing behind it. So the card is restored on small
+   screens and only its padding tightens.
+--------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .contribute-page {
+    padding: 1.25rem 0.75rem 2.5rem;
+  }
+  .contribute-modal .form-modal__sheet {
+    width: 100%;
+    max-height: none;
+    border: 1px solid rgba(200, 166, 99, 0.18);
+    border-top: 2px solid var(--gold);
+    border-radius: 6px;
+    padding-bottom: 0;
+  }
+  /* The drag handle is an affordance for a gesture this page does not have. */
+  .contribute-modal .form-modal__sheet::before {
+    content: none;
+  }
+  .contribute-modal .form-modal__lbl {
+    padding-top: 1.6rem;
+  }
+}
+
+/* Very narrow phones (320–360px): the amount can still lead, but the gap between
+   "USD" and the figure is what breaks first, so it closes before the type does. */
+@media (max-width: 360px) {
+  .contribute-page {
+    padding: 1rem 0.5rem 2rem;
+  }
+  .contribute-modal .form-modal__sheet > * {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+  .contribute-amount__row {
+    gap: 0.45rem;
+  }
+  .contribute-amount__input {
+    font-size: clamp(2.1rem, 11vw, 3rem);
+  }
+  .check {
+    gap: 0.55rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* From tablet up the sheet is a fixed-width card centred in the page, and the
+   amount gets room to breathe. */
+@media (min-width: 601px) {
+  .contribute-page {
+    padding: 4rem 1.5rem 5rem;
+  }
+  .contribute-amount {
+    padding-bottom: 1.9rem;
+  }
+}
