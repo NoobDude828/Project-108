@@ -11,6 +11,7 @@
  * connections (same pattern as app/api/online).
  */
 
+import crypto from "node:crypto";
 import { Pool } from "pg";
 
 function makePool(): Pool | null {
@@ -45,6 +46,16 @@ export type PaymentInsert = {
   requestHash?: string;
   /** Client-supplied, stable per checkout intent. Unique when present. */
   idempotencyKey?: string;
+  /** What the donor typed, before any fee arithmetic. */
+  offeredAmount?: number;
+  /** Did they choose to cover the processing fee? */
+  coversFee?: boolean;
+  /** What the donor is actually charged. */
+  chargedTotal?: number;
+  /** Mailing-list permission, stored with the wording it was granted under. */
+  consentUpdates?: boolean;
+  consentText?: string;
+  consentVersion?: string;
   donorName: string;
   donorEmail: string;
   donorPhone?: string;
@@ -186,8 +197,12 @@ export async function insertPaymentCreated(p: PaymentInsert): Promise<void> {
        (application_no, amount, currency, status, fee_total, customer_pays, net_to_project,
         request_hash, idempotency_key, donor_name, donor_email, donor_phone, donor_country,
         donor_address_line1, donor_address_line2, donor_city, donor_state, donor_postal_code,
-        message, success_url, cancel_url, source)
-     VALUES ($1,$2,$3,'created',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,'project108')`,
+        message, success_url, cancel_url, source,
+        offered_amount, covers_fee, charged_total,
+        consent_updates, consent_text, consent_version, consent_at)
+     VALUES ($1,$2,$3,'created',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,'project108',
+             $21,$22,$23,$24,$25,$26,
+             CASE WHEN $24 THEN now() ELSE NULL END)`,
     [
       p.applicationNo,
       p.amount,
@@ -209,6 +224,12 @@ export async function insertPaymentCreated(p: PaymentInsert): Promise<void> {
       p.message ?? null,
       p.successUrl ?? null,
       p.cancelUrl ?? null,
+      p.offeredAmount ?? null,
+      p.coversFee ?? null,
+      p.chargedTotal ?? null,
+      p.consentUpdates ?? false,
+      p.consentText ?? null,
+      p.consentVersion ?? null,
     ],
   );
   // The audit event stays best-effort: the row is already safely recorded, and
@@ -473,6 +494,45 @@ export async function statusSummary(): Promise<
     count: x.count,
     baseTotal: x.base_total,
     chargedTotal: x.charged_total,
+  }));
+}
+
+/**
+ * Addresses that opted in to updates, newest first.
+ *
+ * Project 108 keeps NO separate subscriber table. The consent is already recorded
+ * on the payment row that captured it — flag, exact wording, version and
+ * timestamp — so a second table would only be a copy that can fall out of step
+ * with its own evidence.
+ *
+ * Nor does Project 108 write into gmc-app's `newsletters` table. That list feeds
+ * gmc's automated stream (news, events, announcements and job postings), which is
+ * broader than the permission we asked a donor for. Writing there would enrol
+ * them in sends they did not agree to.
+ *
+ * So this is the send list: query it when the 1 November livestream link goes out.
+ * `sinceVersion` guards against a future wording change silently widening who is
+ * treated as having agreed — pass the version the send is authorised under.
+ */
+export async function consentedEmails(opts: { sinceVersion?: string } = {}): Promise<
+  { email: string; name: string; consentAt: Date; consentVersion: string }[]
+> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `SELECT DISTINCT ON (lower(donor_email))
+            donor_email, donor_name, consent_at, consent_version
+       FROM p108_payments
+      WHERE consent_updates = true
+        AND consent_at IS NOT NULL
+        ${opts.sinceVersion ? "AND consent_version = $1" : ""}
+      ORDER BY lower(donor_email), consent_at DESC`,
+    opts.sinceVersion ? [opts.sinceVersion] : [],
+  );
+  return r.rows.map((x) => ({
+    email: x.donor_email,
+    name: x.donor_name,
+    consentAt: x.consent_at,
+    consentVersion: x.consent_version,
   }));
 }
 

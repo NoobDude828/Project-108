@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { COUNTRIES, dialCodeOptions } from "./countries";
+import { CONSENT_TEXT } from "@/lib/consent";
 
 /**
  * Contribution form, presented as the Patronage modal is (same .form-modal
@@ -19,14 +20,46 @@ import { COUNTRIES, dialCodeOptions } from "./countries";
 const MIN_USD = 1;
 const MAX_USD = 1_000_000;
 
-// Mirrors DK's published fee model (Stripe 4.15% + DK 0.7% + $0.60 fixed,
-// ROUND_HALF_UP) so the figure shown matches what Stripe charges to the cent.
-// The server recomputes this independently — this is for disclosure only.
-const FEE_PCT = 0.0485;
-const FEE_FIXED = 0.6;
-const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+/**
+ * Mirrors DK's published fee model (Stripe 4.15% + DK 0.7% + $0.60 fixed,
+ * ROUND_HALF_UP): the same integer-cent arithmetic as lib/dk.ts, so the figure
+ * shown here and the figure charged cannot disagree. Kept in step by the tests
+ * that pin both. Disclosure only — the server recomputes and is authoritative.
+ *
+ * Cents, not dollars: 4.85% of $10.00 is exactly $0.485 and must round up to
+ * $0.49, but in floating point the product is 0.48499999999999998 and rounds
+ * down. Quoting a cent less here than Stripe charges is the one error this screen
+ * must not make.
+ */
+const FEE_PCT_NUM = 485;
+const FEE_PCT_DEN = 10000;
+const FEE_FIXED_CENTS = 60;
+
+const toCents = (d: number) => Math.round(d * 100);
+const toDollars = (c: number) => c / 100;
+const feeCents = (baseCents: number) =>
+  Math.floor((baseCents * FEE_PCT_NUM + FEE_PCT_DEN / 2) / FEE_PCT_DEN) +
+  FEE_FIXED_CENTS;
+
 const money = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * Mirror of the server's baseForTotal (lib/dk.ts) — the largest base that grosses
+ * up to `total` without exceeding it. Needed for the not-covering case, where the
+ * donor is charged exactly what they offered and the project receives the rest.
+ */
+function baseCentsForTotal(totalCents: number): number {
+  const estimate = Math.round(
+    ((totalCents - FEE_FIXED_CENTS) * FEE_PCT_DEN) / (FEE_PCT_DEN + FEE_PCT_NUM),
+  );
+  let best: number | null = null;
+  for (let c = estimate - 5; c <= estimate + 5; c++) {
+    if (c <= 0) continue;
+    if (c + feeCents(c) <= totalCents && (best === null || c > best)) best = c;
+  }
+  return best ?? estimate;
+}
 
 type Status = "idle" | "submitting" | "redirecting" | "error";
 
@@ -43,6 +76,11 @@ const initialForm = {
   state: "",
   postalCode: "",
   message: "",
+  // Pre-ticked: most donors do choose to cover it, and the project is made
+  // whole when they do. Still a choice, not an imposition.
+  coversFee: true,
+  // Unticked by design — consent must be given, not assumed.
+  consentUpdates: false,
 };
 
 export default function ContributeForm({ grant }: { grant: string }) {
@@ -79,6 +117,10 @@ export default function ContributeForm({ grant }: { grant: string }) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function toggle(key: "coversFee" | "consentUpdates", value: boolean) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
   // Digits plus a single decimal point, at most two decimals.
   function onAmountChange(raw: string) {
     let v = raw.replace(/[^\d.]/g, "");
@@ -92,8 +134,21 @@ export default function ContributeForm({ grant }: { grant: string }) {
   const amountNum = Number(form.amount);
   const amountValid =
     Number.isFinite(amountNum) && amountNum >= MIN_USD && amountNum <= MAX_USD;
-  const fee = amountValid ? round2(amountNum * FEE_PCT + FEE_FIXED) : 0;
-  const total = amountValid ? round2(amountNum + fee) : 0;
+
+  /**
+   * Two paths from the same offered figure:
+   *   covering     charged = offer + fee, project receives the whole offer
+   *   not covering charged = the offer itself, project receives offer − fee
+   * The base sent to DK differs accordingly, so both figures are derived here and
+   * stated plainly — the donor should never discover the difference on Stripe.
+   */
+  const offeredCents = amountValid ? toCents(amountNum) : 0;
+  const baseCents = form.coversFee
+    ? offeredCents
+    : baseCentsForTotal(offeredCents);
+  const fee = amountValid ? toDollars(feeCents(baseCents)) : 0;
+  const total = amountValid ? toDollars(baseCents + feeCents(baseCents)) : 0;
+  const netToProject = toDollars(baseCents);
 
   function validate(): string | null {
     if (!amountValid)
@@ -101,12 +156,8 @@ export default function ContributeForm({ grant }: { grant: string }) {
     if (!form.donorName.trim()) return "Please enter your full name.";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.donorEmail.trim()))
       return "Please enter a valid email address.";
-    if (!form.donorPhone.trim()) return "Please enter your phone number.";
-    if (!form.country) return "Please select your country.";
-    if (!form.addressLine1.trim()) return "Please enter your address.";
-    if (!form.city.trim()) return "Please enter your city or town.";
-    if (!form.state.trim()) return "Please enter your state, province, or region.";
-    if (!form.postalCode.trim()) return "Please enter your postal or ZIP code.";
+    // Phone and address are not required: Stripe asks for billing details on its
+    // own page anyway, so requiring them here is the same question twice.
     return null;
   }
 
@@ -120,12 +171,16 @@ export default function ContributeForm({ grant }: { grant: string }) {
     setStatus("submitting");
     setErrorMsg(null);
 
+    // `amount` is the figure the donor offered; the server derives the base to
+    // send DK from it and `coversFee`, so the two cannot disagree.
+    const phone = form.donorPhone.trim();
     const payload = {
       amount: amountNum,
+      coversFee: form.coversFee,
+      consentUpdates: form.consentUpdates,
       donorName: form.donorName.trim(),
       donorEmail: form.donorEmail.trim(),
-      phoneCountryCode: form.phoneCountryCode,
-      donorPhone: form.donorPhone.trim(),
+      ...(phone ? { phoneCountryCode: form.phoneCountryCode, donorPhone: phone } : {}),
       country: form.country,
       addressLine1: form.addressLine1.trim(),
       addressLine2: form.addressLine2.trim() || undefined,
@@ -221,21 +276,47 @@ export default function ContributeForm({ grant }: { grant: string }) {
                 />
               </div>
 
+              {/* The choice sits with the amount, because it changes the amount.
+                  Pre-ticked, so the generous path is the effortless one. */}
+              <label className="check check--fee">
+                <input
+                  type="checkbox"
+                  checked={form.coversFee}
+                  onChange={(e) => toggle("coversFee", e.target.checked)}
+                />
+                  <span className="check__txt">
+                  I would like to cover the processing fee, so the full amount
+                  reaches the project.
+                </span>
+              </label>
+
               <p id="amount-fee" className="contribute-fee" aria-live="polite">
                 {amountValid ? (
-                  <>
-                    A processing fee of{" "}
-                    <strong>${money(fee)}</strong> is added at checkout, so you
-                    will be charged{" "}
-                    <strong className="contribute-fee__total">
-                      ${money(total)}
-                    </strong>
-                    . Project 108 receives your full ${money(amountNum)}.
-                  </>
+                  form.coversFee ? (
+                    <>
+                      You will be charged{" "}
+                      <strong className="contribute-fee__total">
+                        ${money(total)}
+                      </strong>{" "}
+                      — your contribution of ${money(amountNum)} plus $
+                      {money(fee)} in processing. Project 108 receives the full{" "}
+                      <strong>${money(netToProject)}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      You will be charged{" "}
+                      <strong className="contribute-fee__total">
+                        ${money(total)}
+                      </strong>
+                      . After ${money(fee)} in processing, Project 108 receives{" "}
+                      <strong>${money(netToProject)}</strong>.
+                    </>
+                  )
                 ) : (
                   <>
-                    A processing fee of 4.85% plus $0.60 is added at checkout.
-                    Project 108 receives the full amount you enter.
+                    Card processing costs 4.85% plus $0.60. Cover it and the whole
+                    of your contribution reaches the project; leave it and it is
+                    taken from your contribution instead.
                   </>
                 )}
               </p>
@@ -279,27 +360,27 @@ export default function ContributeForm({ grant }: { grant: string }) {
                 </select>
               </label>
               <label className="field">
-                <span className="field__lbl">Phone number</span>
+                <span className="field__lbl">
+                  Phone number <span className="field__opt">(optional)</span>
+                </span>
                 <input
                   type="tel"
                   value={form.donorPhone}
                   onChange={(e) => update("donorPhone", e.target.value)}
                   inputMode="numeric"
                   autoComplete="tel-national"
-                  required
                 />
               </label>
             </div>
 
             <label className="field">
-              <span className="field__lbl">Address</span>
+              <span className="field__lbl">Address <span className="field__opt">(optional)</span></span>
               <input
                 type="text"
                 value={form.addressLine1}
                 onChange={(e) => update("addressLine1", e.target.value)}
                 placeholder="Street address"
                 autoComplete="address-line1"
-                required
               />
             </label>
 
@@ -317,36 +398,37 @@ export default function ContributeForm({ grant }: { grant: string }) {
 
             <div className="form-row form-row--double">
               <label className="field">
-                <span className="field__lbl">City / town</span>
+                <span className="field__lbl">City / town <span className="field__opt">(optional)</span></span>
                 <input
                   type="text"
                   value={form.city}
                   onChange={(e) => update("city", e.target.value)}
                   autoComplete="address-level2"
-                  required
                 />
               </label>
               <label className="field">
-                <span className="field__lbl">State / province / region</span>
+                <span className="field__lbl">
+                  State / region <span className="field__opt">(optional)</span>
+                </span>
                 <input
                   type="text"
                   value={form.state}
                   onChange={(e) => update("state", e.target.value)}
                   autoComplete="address-level1"
-                  required
                 />
               </label>
             </div>
 
             <div className="form-row form-row--double">
               <label className="field">
-                <span className="field__lbl">Postal / ZIP code</span>
+                <span className="field__lbl">
+                  Postal code <span className="field__opt">(optional)</span>
+                </span>
                 <input
                   type="text"
                   value={form.postalCode}
                   onChange={(e) => update("postalCode", e.target.value)}
                   autoComplete="postal-code"
-                  required
                 />
               </label>
               <label className="field">
@@ -375,6 +457,18 @@ export default function ContributeForm({ grant }: { grant: string }) {
                 rows={2}
                 placeholder="In honour of a loved one, or all sentient beings."
               />
+            </label>
+
+            {/* Unticked by design. One list, one permission — the wording is
+                imported, never restated, so the checkout box, the sign-up page and
+                the thank-you email cannot grant different things. */}
+            <label className="check check--consent">
+              <input
+                type="checkbox"
+                checked={form.consentUpdates}
+                onChange={(e) => toggle("consentUpdates", e.target.checked)}
+              />
+              <span className="check__txt">{CONSENT_TEXT}</span>
             </label>
 
             <p

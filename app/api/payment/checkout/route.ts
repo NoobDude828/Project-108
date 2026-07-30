@@ -19,6 +19,7 @@ import {
   makeApplicationNo,
   dkErrorStatus,
   computeFees,
+  baseForTotal,
 } from "@/lib/dk";
 import {
   insertPaymentCreated,
@@ -28,6 +29,7 @@ import {
 } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { verifyGrant } from "@/lib/paymentGrant";
+import { consentRecord } from "@/lib/consent";
 
 const MIN_USD = 1; // DK minimum transaction is $1.00
 const MAX_USD = 1_000_000; // sane upper cap
@@ -122,12 +124,10 @@ export async function POST(req: Request) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(donorEmail)) {
     fieldErrors.donorEmail = ["Please enter a valid email address."];
   }
-  if (!donorPhone) fieldErrors.donorPhone = ["Please enter your phone number."];
-  if (!country) fieldErrors.country = ["Please select your country."];
-  if (!addressLine1) fieldErrors.addressLine1 = ["Please enter your address."];
-  if (!city) fieldErrors.city = ["Please enter your city or town."];
-  if (!state) fieldErrors.state = ["Please enter your state/province/region."];
-  if (!postalCode) fieldErrors.postalCode = ["Please enter your postal/ZIP code."];
+  // Phone and address are deliberately OPTIONAL. Stripe collects billing details
+  // on its own checkout page for card verification, so requiring them here asks
+  // the donor for the same thing twice — and Western donors are frequently
+  // reluctant to hand over a phone number for a donation at all.
   if (Object.keys(fieldErrors).length > 0) {
     return Response.json(
       { success: false, error: "Please check the form.", details: { fieldErrors } },
@@ -135,7 +135,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const roundedAmount = Math.round(amount * 100) / 100;
+  const offeredAmount = Math.round(amount * 100) / 100;
+
+  // Covering the processing fee is the donor's choice.
+  //   covering     -> send the offer; DK grosses it up, project receives the offer
+  //   not covering -> send a grossed-DOWN base so the donor is charged the offer,
+  //                   and the project absorbs the fee (~6%)
+  // Defaults to covering when unspecified, matching the long-standing behaviour.
+  const coversFee = body.coversFee !== false;
+  const roundedAmount = coversFee ? offeredAmount : baseForTotal(offeredAmount);
 
   // Return URL comes straight from the environment (DK requires a valid HTTPS
   // success/cancel URL — never composed/guessed here).
@@ -151,6 +159,7 @@ export async function POST(req: Request) {
   // Money components from DK's published fee formula (DK never returns the
   // settled fee, so we store our computed values).
   const fees = computeFees(roundedAmount);
+  const consent = consentRecord(body.consentUpdates === true);
   // Fingerprint the request for forensic traceability.
   const requestHash = crypto
     .createHash("sha256")
@@ -214,6 +223,12 @@ export async function POST(req: Request) {
       netToProject: fees.netToProject,
       requestHash,
       idempotencyKey,
+      offeredAmount,
+      coversFee,
+      chargedTotal: fees.customerPays,
+      consentUpdates: consent.granted,
+      consentText: consent.granted ? consent.text : undefined,
+      consentVersion: consent.granted ? consent.version : undefined,
       donorName,
       donorEmail,
       donorPhone: [phoneCountryCode, donorPhone].filter(Boolean).join(" "),
