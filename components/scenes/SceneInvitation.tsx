@@ -46,16 +46,18 @@ export default function SceneInvitation() {
               </div>
               <div className="inv-card ghost">
                 <p className="lbl">Patronage</p>
-                <p className="ttl">
-                  Offer a <em>chorten</em>.
+                <p className="ttl">Support the project</p>
+                <p className="subtitle">
+                  Make an offering of any size toward the raising of the 108
+                  chortens—every offering becomes part of the whole.
                 </p>
-                <p className="amt">
+                {/* <p className="amt">
                   <span className="from">From</span>
                   <strong>USD 200,000</strong>
                   <span className="per">
                     per chorten · flexible by conversation
                   </span>
-                </p>
+                </p> */}
                 <p className="body">
                   Each Jangchub Chorten may be offered by an individual, a
                   family, a community, or an institution. Patronage covers
