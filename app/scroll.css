@@ -5022,3 +5022,249 @@ body.scrolled .status .brand {
     padding-bottom: 1.9rem;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Sign-up page (/sign-up) — an invitation, not a form.
+   No sheet, no card, no border. The earlier version reused .form-modal__sheet and
+   read as a modal nobody had closed. Page-level composition on the site's own
+   ground instead, left-aligned like a letter rather than centred like a poster.
+--------------------------------------------------------------------------- */
+.su-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  /* One faint radial, the same ground the rest of the site stands on — this page
+     has to feel like part of it, not a bare utility screen. Nothing more. */
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(200, 166, 99, 0.05) 0%, transparent 62%),
+    var(--maroon-night);
+  padding: 4.5rem 1.5rem;
+}
+.su-col {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.su-eyebrow {
+  margin: 0 0 1.9rem;
+  font-family: var(--font-utility);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* The hero: the day. Oldstyle figures, as the site sets every other numeral. */
+.su-hero {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-feature-settings: "onum";
+  font-size: clamp(2.35rem, 8.5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--cream);
+}
+.su-hero em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+
+/* The site's established ceremonial divider. One instance, marking the turn from
+   the moment to the act. */
+.su-rule {
+  width: 2.25rem;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+  margin: 2rem 0;
+}
+
+.su-lede {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  /* 11.9:1 on this ground — comfortably past AA for body text. */
+  color: rgba(242, 233, 216, 0.86);
+}
+
+/* --- the single field --------------------------------------------------- */
+.su-form {
+  margin-top: 3.25rem;
+}
+/* Borrows the amount input's language: no box, one gold underline. */
+.su-field {
+  border-bottom: 1px solid var(--gold-faint);
+  transition: border-color 0.18s ease;
+}
+.su-field:focus-within {
+  border-bottom-color: var(--gold-bright);
+}
+.su-input {
+  width: 100%;
+  padding: 0.55rem 0 0.7rem;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1.4;
+  color: var(--cream);
+  background: none;
+  border: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.su-input::placeholder {
+  color: rgba(242, 233, 216, 0.38);
+}
+.su-input:focus {
+  outline: none;
+}
+
+/* Visually hidden but present for assistive tech — a placeholder is not a label. */
+.su-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Honeypot: off-screen rather than display:none, which some bots detect. */
+.su-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* The permission. Quieter than the lede but still body-weight and 8.5:1 — it is
+   the thing being agreed to, not decorative small print. */
+.su-consent {
+  margin: 1.5rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: rgba(242, 233, 216, 0.72);
+}
+
+.su-error {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #e8a0a0;
+}
+.su-error[hidden] {
+  display: none;
+}
+
+/* Defined outright rather than borrowing .btn, which only exists nested inside
+   .form-actions and carries that container's flex assumptions. Same visual
+   language as the site's primary action: gold pill, wide-tracked utility caps. */
+.su-btn {
+  display: block;
+  width: 100%;
+  margin-top: 1.9rem;
+  padding: 0.95rem 1.6rem;
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--maroon-deep);
+  background: var(--gold);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease;
+}
+.su-btn:hover:not(:disabled) {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+}
+.su-btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+/* Disabled must still be legible — a greyed-out gold on this ground fails contrast
+   badly, so it becomes an outline instead of a dimmed fill. */
+.su-btn:disabled {
+  background: transparent;
+  border-color: var(--gold-faint);
+  color: rgba(242, 233, 216, 0.72);
+  cursor: not-allowed;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .su-btn {
+    transition: none;
+  }
+  .su-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.su-micro {
+  margin: 1.2rem 0 0;
+  font-family: var(--font-utility);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* 6.5:1 — passes AA even at this size. */
+  color: rgba(242, 233, 216, 0.62);
+}
+
+/* --- confirmation ------------------------------------------------------- */
+/* The completed act is the one thing here that earns the centre. */
+.su-done {
+  margin-top: 3.25rem;
+  text-align: center;
+}
+.su-done .su-rule {
+  margin-inline: auto;
+}
+.su-done__ttl {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.6rem, 5.5vw, 2.15rem);
+  line-height: 1.2;
+  color: var(--cream);
+}
+.su-done__ttl em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+.su-done__body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: rgba(242, 233, 216, 0.8);
+}
+
+@media (max-width: 480px) {
+  .su-page {
+    padding: 3rem 1.25rem;
+    /* Top-aligned on a short screen: vertical centring pushes the hero under the
+       fold on a landscape phone. */
+    align-items: flex-start;
+  }
+  .su-form {
+    margin-top: 2.5rem;
+  }
+  .su-rule {
+    margin: 1.6rem 0;
+  }
+}
