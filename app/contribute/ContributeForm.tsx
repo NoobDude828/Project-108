@@ -17,8 +17,14 @@ import { CONSENT_TEXT } from "@/lib/consent";
  * charged $11.09, not $10.00" is the most trust-critical fact here.
  */
 
-const MIN_USD = 1;
 const MAX_USD = 1_000_000;
+/**
+ * DK will not process a base below $1.00, and the payments table enforces the same
+ * floor. Both apply to the amount SENT, not the amount typed — so when the donor
+ * declines to cover the fee the offer must be large enough that what remains after
+ * the fee still clears $1.00. Mirrors minOfferUsd() in lib/dk.ts.
+ */
+const MIN_BASE_CENTS = 100;
 
 /**
  * Mirrors DK's published fee model (Stripe 4.15% + DK 0.7% + $0.60 fixed,
@@ -43,6 +49,9 @@ const feeCents = (baseCents: number) =>
 
 const money = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const minOfferCents = (coversFee: boolean) =>
+  coversFee ? MIN_BASE_CENTS : MIN_BASE_CENTS + feeCents(MIN_BASE_CENTS);
 
 /**
  * Mirror of the server's baseForTotal (lib/dk.ts) — the largest base that grosses
@@ -132,8 +141,12 @@ export default function ContributeForm({ grant }: { grant: string }) {
   }
 
   const amountNum = Number(form.amount);
+  const minCents = minOfferCents(form.coversFee);
+  const minOffer = toDollars(minCents);
   const amountValid =
-    Number.isFinite(amountNum) && amountNum >= MIN_USD && amountNum <= MAX_USD;
+    Number.isFinite(amountNum) &&
+    toCents(amountNum) >= minCents &&
+    amountNum <= MAX_USD;
 
   /**
    * Two paths from the same offered figure:
@@ -151,8 +164,13 @@ export default function ContributeForm({ grant }: { grant: string }) {
   const netToProject = toDollars(baseCents);
 
   function validate(): string | null {
-    if (!amountValid)
-      return `Enter a contribution amount between $${MIN_USD} and $${money(MAX_USD)}.`;
+    if (!amountValid) {
+      // Naming the reason matters: "minimum $1.65" looks arbitrary until you know it
+      // is $1.00 plus the fee being taken out of the contribution.
+      return form.coversFee
+        ? `Enter a contribution amount between $${money(minOffer)} and $${money(MAX_USD)}.`
+        : `With the processing fee taken from your contribution, the smallest we can process is $${money(minOffer)} — or tick the box above to cover the fee instead.`;
+    }
     if (!form.donorName.trim()) return "Please enter your full name.";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.donorEmail.trim()))
       return "Please enter a valid email address.";
@@ -316,7 +334,8 @@ export default function ContributeForm({ grant }: { grant: string }) {
                   <>
                     Card processing costs 4.85% plus $0.60. Cover it and the whole
                     of your contribution reaches the project; leave it and it is
-                    taken from your contribution instead.
+                    taken from your contribution instead. Minimum $
+                    {money(minOffer)}.
                   </>
                 )}
               </p>

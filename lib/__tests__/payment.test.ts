@@ -20,6 +20,8 @@ process.env.PAYMENT_ACCESS_TOKEN = "test-secret-for-grants";
 const {
   computeFees,
   baseForTotal,
+  minOfferUsd,
+  MIN_BASE_USD,
   makeApplicationNo,
   dkErrorStatus,
   FEE_FORMULA_VERSION,
@@ -132,6 +134,42 @@ describe("baseForTotal — donor declines to cover the fee", () => {
     // The exact figure quoted in the product feedback that prompted the choice.
     // Pinned, because both the form and the receipt state it to the donor.
     assert.equal(notCovered.netToProject, 102.43);
+  });
+
+  /**
+   * Regression: a $1.00 offer with the fee NOT covered derived a base of $0.38,
+   * which is under DK's minimum and under p108_payments' CHECK (amount >= 1). The
+   * old validation only checked the OFFER against $1.00, so this reached the INSERT
+   * and failed there — the donor saw "Couldn't start the payment".
+   */
+  test("the derived base never falls below the floor at the minimum offer", () => {
+    const min = minOfferUsd(false);
+    assert.equal(min, 1.65, "the uncovered minimum is $1.00 plus its own fee");
+    assert.ok(
+      baseForTotal(min) >= MIN_BASE_USD,
+      `offer ${min} derives base ${baseForTotal(min)}, below the floor`,
+    );
+  });
+
+  test("just under the uncovered minimum really is unusable", () => {
+    // Proves the boundary is where we claim, not one cent out either way.
+    assert.ok(baseForTotal(1.64) < MIN_BASE_USD, "1.64 must be below the floor");
+    assert.equal(baseForTotal(1.65), 1);
+  });
+
+  test("covering the fee keeps the plain $1.00 floor", () => {
+    assert.equal(minOfferUsd(true), MIN_BASE_USD);
+  });
+
+  test("every offer at or above the minimum derives a usable base", () => {
+    const min = Math.round(minOfferUsd(false) * 100);
+    for (let cents = min; cents <= min + 400; cents++) {
+      const base = baseForTotal(cents / 100);
+      assert.ok(
+        base >= MIN_BASE_USD,
+        `offer ${(cents / 100).toFixed(2)} derived base ${base.toFixed(2)}`,
+      );
+    }
   });
 
   test("never produces sub-cent precision", () => {

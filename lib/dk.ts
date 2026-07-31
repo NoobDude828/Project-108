@@ -137,6 +137,36 @@ export function baseForTotal(total: number): number {
 }
 
 /**
+ * DK will not process a base below $1.00, and p108_payments enforces the same floor
+ * (CHECK amount >= 1). Both apply to the amount we SEND, which is not the amount the
+ * donor typed.
+ */
+export const MIN_BASE_USD = 1;
+const MIN_BASE_CENTS = 100;
+
+/**
+ * The smallest offer we can actually accept, given the donor's fee choice.
+ *
+ *   covering     -> the offer IS the base, so the floor is simply $1.00.
+ *   NOT covering -> the base is grossed DOWN from the offer, so a $1.00 offer sends
+ *                   a base of $0.38 — under DK's minimum and under the table's CHECK
+ *                   constraint. The offer has to be large enough that what remains
+ *                   after the fee still clears $1.00, which is $1.65.
+ *
+ * This existed as a live bug: validation checked the offer against $1.00 and never
+ * the derived base, so declining the fee on a $1.00 offer got all the way to the
+ * INSERT and failed there with a constraint violation the donor saw as
+ * "Couldn't start the payment".
+ *
+ * Derived from the fee formula rather than hardcoded, so it follows if DK's rates
+ * ever change.
+ */
+export function minOfferUsd(coversFee: boolean): number {
+  if (coversFee) return MIN_BASE_USD;
+  return (MIN_BASE_CENTS + feeCents(MIN_BASE_CENTS)) / 100;
+}
+
+/**
  * Unique application_no ("transaction ID"). DK requires it to be NUMERIC and
  * unique — it is their idempotency key, and ours (UNIQUE in p108_payments) — so a
  * collision is a failed checkout for a real donor.
