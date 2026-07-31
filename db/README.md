@@ -13,29 +13,64 @@ gmc-app). These migrations create the `p108_`-prefixed tables there so gmc-app c
 | `migrations/004_session_url_and_sweep_runs.sql` | `dk_session_url` (the URL DK actually returned, served verbatim on an idempotent replay) + `p108_sweep_runs` |
 | `migrations/005_sweep_lease.sql` | `p108_sweep_lease` — a self-expiring lease row giving the reconciliation sweep mutual exclusion. Replaced `pg_try_advisory_lock`, which silently does nothing over Neon's `-pooler` endpoint because the lock is session-scoped and the pooler hands out a different session per statement |
 | `migrations/006_p108_fee_choice_and_consent.sql` | `covers_fee`, `charged_total`, `offered_amount` (the donor's choice on the processing fee) + `consent_updates`/`consent_text`/`consent_version`/`consent_at` (mailing-list permission, stored with the wording it was granted under) |
-| `migrations/007_drop_p108_subscribers.sql` | Drops `p108_subscribers`, created in error by 006. Consent lives on the payment row that captured it — see below |
+| `migrations/007_drop_p108_subscribers.sql` | Drops `p108_subscribers`, created in error by 006 — at that point every consenter was a donor, so it duplicated the payment row |
+| `migrations/008_p108_subscribers.sql` | Reinstates `p108_subscribers`, now that `/sign-up` lets non-donors join and they have no payment row to live on |
 
 All migrations are **idempotent** (`CREATE TABLE IF NOT EXISTS`, etc.) and **namespaced** (`p108_` prefix),
 so they never collide with gmc's own tables and are safe to re-run.
 
-## Consent, and why there is no subscriber table
+## Consent — one list, two sources, no admin page
 
-A donor who ticks the updates box is recorded **on their payment row** — `consent_updates`,
-`consent_text`, `consent_version`, `consent_at` (migration 006). That is the whole record. There is no
-`p108_subscribers` table (007 drops it) and Project 108 writes to **no** list table, including gmc-app's.
+Someone can join the list through two doors, and both grant the identical permission
+because both import the wording from `lib/consent.ts`:
 
-- **Why not a p108 table.** It would be a copy of what `p108_payments` already holds, free to drift from
-  its own evidence. `consentedEmails()` in `lib/db.ts` is the send list — one query, always in step with
-  the consent that authorised it.
-- **Why not gmc-app's `newsletters`.** It lives in this same database, but its list feeds gmc's automated
-  stream: news, events, announcements **and job postings**. A donor agreed to the 1 November livestream
-  link and to staying connected to Project 108 — not to hearing that GMC is hiring. The wording is the
-  permission, so enrolling them there would send mail outside it. gmc-app also owns that schema through
-  Drizzle and manages the list at `/dashboard/subscribers`; this app does not write to another app's
-  tables.
-- **Sending.** Whoever sends the 1 November email queries `consentedEmails()` (optionally pinned to a
-  `consent_version`, so a later wording change cannot silently widen who counts as having agreed).
-  Project 108 has no mail transport of its own yet — that arrives with the acknowledgement receipt.
+| Door | Where the consent is recorded |
+|---|---|
+| Tick-box at checkout | `p108_payments` — `consent_updates`, `consent_text`, `consent_version`, `consent_at` |
+| `/sign-up` page | `p108_subscribers` (migration 008) |
+
+A third door — the link in the acknowledgement email — points at `/sign-up`, so it is
+the same door, not a third list.
+
+`consentedEmails()` in `lib/db.ts` is **the** send list: it unions both sources,
+de-duplicates on `lower(email)`, drops anyone who has unsubscribed (from either
+source), and can be pinned to a `consent_version` so revising the wording later
+cannot silently widen who counts as having agreed.
+
+### Reading the list without an admin page
+
+Project 108 has no auth system and should not grow one so that a list of addresses
+can occasionally be fetched. The export is a machine endpoint behind a shared
+secret, the same pattern as `/api/payment/reconcile`:
+
+```bash
+curl -H "X-Subscribe-Secret: $SUBSCRIBE_SECRET" \
+     https://108.gmc.bt/api/subscribers/export > subscribers.csv
+
+# pinned to a wording, which is what you want before an actual send
+curl -H "X-Subscribe-Secret: $SUBSCRIBE_SECRET" \
+     "https://108.gmc.bt/api/subscribers/export?version=2026-07-v1"
+```
+
+`?format=json` if something needs to consume it programmatically. It **fails closed**
+— 404, not 401 — when `SUBSCRIBE_SECRET` is unset or wrong, because it returns every
+address we hold. `SUBSCRIBE_SECRET` is optional in the deploy: without it the sign-up
+page still works and only the export and unsubscribe routes go dark.
+
+Unsubscribe is `/api/unsubscribe?e=<email>&t=<hmac>`, signed with the same secret so a
+recipient cannot edit the link to remove somebody else. It works for donors too: their
+consent sits on an immutable financial record, so withdrawal is written into
+`p108_subscribers` in an unsubscribed state and `consentedEmails()` excludes them from
+then on.
+
+### Why not gmc-app's `newsletters` table
+
+It lives in this same database, but its list feeds gmc's automated stream: news,
+events, announcements **and job postings**. A donor agreed to the 1 November
+livestream link and to staying connected to Project 108 — not to hearing that GMC is
+hiring. The wording is the permission, so enrolling them there would send mail outside
+it. gmc-app also owns that schema through Drizzle and manages the list at
+`/dashboard/subscribers`; this app does not write to another app's tables.
 
 ## Environments
 

@@ -498,41 +498,118 @@ export async function statusSummary(): Promise<
 }
 
 /**
- * Addresses that opted in to updates, newest first.
+ * Record a sign-up from /sign-up (someone who is not necessarily a donor).
  *
- * Project 108 keeps NO separate subscriber table. The consent is already recorded
- * on the payment row that captured it — flag, exact wording, version and
- * timestamp — so a second table would only be a copy that can fall out of step
- * with its own evidence.
+ * Returns nothing about whether the address was already present. The route must not
+ * disclose that either: an endpoint that answers "already subscribed" differently
+ * from "newly subscribed" is an email-enumeration oracle.
  *
- * Nor does Project 108 write into gmc-app's `newsletters` table. That list feeds
- * gmc's automated stream (news, events, announcements and job postings), which is
- * broader than the permission we asked a donor for. Writing there would enrol
- * them in sends they did not agree to.
- *
- * So this is the send list: query it when the 1 November livestream link goes out.
- * `sinceVersion` guards against a future wording change silently widening who is
- * treated as having agreed — pass the version the send is authorised under.
+ * Signing up again refreshes the consent and revives a previously unsubscribed
+ * address — someone re-consenting is asking to be on the list.
  */
-export async function consentedEmails(opts: { sinceVersion?: string } = {}): Promise<
-  { email: string; name: string; consentAt: Date; consentVersion: string }[]
-> {
+export async function addSubscriber(p: {
+  email: string;
+  name?: string;
+  source?: string;
+  consentText: string;
+  consentVersion: string;
+}): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `INSERT INTO p108_subscribers
+       (email, name, source, consent_text, consent_version, consent_at, updated_at)
+     VALUES ($1,$2,$3,$4,$5, now(), now())
+     ON CONFLICT (lower(email)) DO UPDATE
+        SET name            = COALESCE(EXCLUDED.name, p108_subscribers.name),
+            consent_text    = EXCLUDED.consent_text,
+            consent_version = EXCLUDED.consent_version,
+            consent_at      = now(),
+            unsubscribed_at = NULL,
+            updated_at      = now()`,
+    [p.email, p.name ?? null, p.source ?? "signup", p.consentText, p.consentVersion],
+  );
+}
+
+/**
+ * Take someone off the list. Idempotent, and deliberately silent about whether the
+ * address was ever on it.
+ */
+export async function unsubscribe(email: string): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE p108_subscribers
+        SET unsubscribed_at = now(), updated_at = now()
+      WHERE lower(email) = lower($1) AND unsubscribed_at IS NULL`,
+    [email],
+  );
+  // A donor's consent lives on their payment rows, which are an immutable financial
+  // record — so withdrawal is recorded by adding them to the subscribers table in an
+  // unsubscribed state, and consentedEmails() excludes them from then on.
+  await pool.query(
+    `INSERT INTO p108_subscribers
+       (email, source, consent_text, consent_version, unsubscribed_at, updated_at)
+     SELECT $1, 'unsubscribe', consent_text, consent_version, now(), now()
+       FROM p108_payments
+      WHERE lower(donor_email) = lower($1) AND consent_updates = true
+      ORDER BY consent_at DESC NULLS LAST
+      LIMIT 1
+     ON CONFLICT (lower(email)) DO UPDATE
+        SET unsubscribed_at = now(), updated_at = now()`,
+    [email],
+  );
+}
+
+export type ConsentedContact = {
+  email: string;
+  name: string | null;
+  consentAt: Date;
+  consentVersion: string;
+  source: string;
+};
+
+/**
+ * THE send list: everyone who has agreed to hear from Project 108, from either door.
+ *
+ * One list, two sources — consent captured at checkout lives on the payment row,
+ * consent captured on /sign-up lives in p108_subscribers. De-duplicated on
+ * lower(email), most recent consent winning, and anyone who has unsubscribed is
+ * excluded regardless of which door they came through.
+ *
+ * `version` pins the send to a specific wording, so revising it later cannot
+ * silently widen who counts as having agreed. Pass the version the send is
+ * authorised under.
+ */
+export async function consentedEmails(
+  opts: { version?: string } = {},
+): Promise<ConsentedContact[]> {
   if (!pool) return [];
   const r = await pool.query(
-    `SELECT DISTINCT ON (lower(donor_email))
-            donor_email, donor_name, consent_at, consent_version
-       FROM p108_payments
-      WHERE consent_updates = true
-        AND consent_at IS NOT NULL
-        ${opts.sinceVersion ? "AND consent_version = $1" : ""}
-      ORDER BY lower(donor_email), consent_at DESC`,
-    opts.sinceVersion ? [opts.sinceVersion] : [],
+    `WITH granted AS (
+       SELECT donor_email AS email, donor_name AS name, consent_at,
+              consent_version, 'contribution' AS source
+         FROM p108_payments
+        WHERE consent_updates = true AND consent_at IS NOT NULL
+       UNION ALL
+       SELECT email, name, consent_at, consent_version, source
+         FROM p108_subscribers
+        WHERE unsubscribed_at IS NULL
+     )
+     SELECT DISTINCT ON (lower(email)) email, name, consent_at, consent_version, source
+       FROM granted
+      WHERE ($1::text IS NULL OR consent_version = $1)
+        -- Excluded from both sources, so unsubscribing works for donors too.
+        AND lower(email) NOT IN (
+              SELECT lower(email) FROM p108_subscribers WHERE unsubscribed_at IS NOT NULL
+            )
+      ORDER BY lower(email), consent_at DESC`,
+    [opts.version ?? null],
   );
   return r.rows.map((x) => ({
-    email: x.donor_email,
-    name: x.donor_name,
+    email: x.email,
+    name: x.name,
     consentAt: x.consent_at,
     consentVersion: x.consent_version,
+    source: x.source,
   }));
 }
 
