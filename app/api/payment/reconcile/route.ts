@@ -34,6 +34,7 @@ import {
   acquireSweepLease,
   recordSweepRun,
 } from "@/lib/db";
+import { sendPendingReceipts } from "@/lib/sendReceipt";
 
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
@@ -165,6 +166,13 @@ async function runSweep(started: number): Promise<Response> {
     if (DELAY_MS) await new Promise((r) => setTimeout(r, DELAY_MS));
   }
 
+  /**
+   * Receipts for everything paid but unsent — whatever this sweep just confirmed,
+   * plus anything the status poll missed and anything that completed before the
+   * sender existed. Runs inside the lease, so only one sweep sends at a time.
+   */
+  const receipts = await sendPendingReceipts();
+
   let summary: Awaited<ReturnType<typeof statusSummary>> = [];
   try {
     summary = await statusSummary();
@@ -183,8 +191,8 @@ async function runSweep(started: number): Promise<Response> {
     stillPending: result.stillPending,
     errors: result.errors,
     durationMs,
-    detail: { refs: result.refs, summary },
+    detail: { refs: result.refs, summary, receipts },
   });
 
-  return Response.json({ success: true, ...result, durationMs, summary });
+  return Response.json({ success: true, ...result, receipts, durationMs, summary });
 }

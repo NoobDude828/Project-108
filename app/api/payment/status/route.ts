@@ -12,6 +12,7 @@ import {
   bumpPoll,
   markCancelledIfPending,
 } from "@/lib/db";
+import { sendReceiptFor } from "@/lib/sendReceipt";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 // The return page polls this every ~3s for up to ~10 tries, so the ceiling is
@@ -56,6 +57,10 @@ export async function GET(req: Request) {
         eventType: "status_poll",
         dkResponseCode: r.code,
       });
+      // Send the acknowledgement now that the payment is confirmed. Awaited so the
+      // common case delivers immediately, but it can never fail this response:
+      // sendReceiptFor swallows everything and the sweep retries what did not go.
+      await sendReceiptFor(ref);
       return Response.json({ status: "paid", code: r.code });
     }
 

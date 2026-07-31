@@ -613,6 +613,141 @@ export async function consentedEmails(
   }));
 }
 
+export type ReceiptClaim = {
+  applicationNo: string;
+  donorName: string;
+  donorEmail: string;
+  offeredAmount: number;
+  chargedTotal: number;
+  currency: string;
+  paidConfirmedAt: Date;
+  dedication: string | null;
+  attempt: number;
+};
+
+/** How long a claimed send is owned before another caller may retry it. */
+const RECEIPT_CLAIM_MINUTES = 10;
+/** Bounded so a permanently bad address is not retried forever. */
+const RECEIPT_MAX_ATTEMPTS = 5;
+
+/**
+ * Claim the right to send one payment's acknowledgement receipt.
+ *
+ * Returns the data needed to compose the email if this caller now owns the attempt,
+ * or null if there is nothing to do — already sent, not paid, out of attempts, or
+ * another caller holds a live claim.
+ *
+ * This is the whole concurrency story. The status poll and the reconciliation sweep
+ * both try to send, so the claim has to be atomic: the UPDATE's WHERE clause is the
+ * lock. Only a confirmed send sets receipt_email_sent_at (see markReceiptSent), so a
+ * crash mid-send costs a delay of RECEIPT_CLAIM_MINUTES rather than a lost receipt or
+ * a duplicate.
+ */
+export async function claimReceiptSend(
+  applicationNo: string,
+): Promise<ReceiptClaim | null> {
+  if (!pool) return null;
+  const r = await pool.query(
+    `UPDATE p108_payments
+        SET receipt_attempts        = receipt_attempts + 1,
+            receipt_last_attempt_at = now()
+      WHERE application_no = $1
+        AND status = 'paid'
+        AND receipt_email_sent_at IS NULL
+        AND receipt_attempts < $2
+        AND (
+              receipt_last_attempt_at IS NULL
+           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+        )
+      RETURNING application_no, donor_name, donor_email, offered_amount, amount,
+                charged_total, currency, paid_confirmed_at, message, receipt_attempts`,
+    [applicationNo, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+  );
+  if (r.rowCount === 0) return null;
+  const x = r.rows[0];
+  return {
+    applicationNo: x.application_no,
+    donorName: x.donor_name,
+    donorEmail: x.donor_email,
+    // offered_amount is null on rows created before migration 006; the base we sent
+    // is the best available stand-in for what they offered.
+    offeredAmount: Number(x.offered_amount ?? x.amount),
+    chargedTotal: Number(x.charged_total ?? x.amount),
+    currency: x.currency || "usd",
+    paidConfirmedAt: x.paid_confirmed_at,
+    dedication: x.message,
+    attempt: x.receipt_attempts,
+  };
+}
+
+/** Confirm a receipt actually went out. Only called after the relay accepted it. */
+export async function markReceiptSent(
+  applicationNo: string,
+  messageId: string,
+): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE p108_payments
+        SET receipt_email_sent_at = now(), receipt_last_error = NULL
+      WHERE application_no = $1`,
+    [applicationNo],
+  );
+  await addEvent(applicationNo, "receipt_email_sent", {
+    actor: "system",
+    detail: { messageId },
+  });
+}
+
+/**
+ * Record why a send failed, so "this donor never got their receipt" is answerable
+ * from the row. Deliberately does NOT set receipt_email_sent_at — the claim simply
+ * expires and the sweep tries again.
+ */
+export async function markReceiptFailed(
+  applicationNo: string,
+  error: string,
+): Promise<void> {
+  if (!pool) return;
+  try {
+    await pool.query(
+      `UPDATE p108_payments SET receipt_last_error = $2 WHERE application_no = $1`,
+      [applicationNo, error.slice(0, 500)],
+    );
+    await addEvent(applicationNo, "receipt_email_failed", {
+      actor: "system",
+      detail: { error: error.slice(0, 500) },
+    });
+  } catch (e) {
+    console.error("[db] markReceiptFailed failed", e);
+  }
+}
+
+/**
+ * Paid payments still awaiting a receipt, for the sweep to pick up.
+ *
+ * This is what back-fills anything the status poll missed — a payment confirmed by
+ * the sweep rather than the browser, a relay outage, or a payment that completed
+ * before the sender existed at all.
+ */
+export async function findPaidWithoutReceipt(limit = 20): Promise<string[]> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `SELECT application_no
+       FROM p108_payments
+      WHERE status = 'paid'
+        AND receipt_email_sent_at IS NULL
+        AND receipt_attempts < $2
+        AND (
+              receipt_last_attempt_at IS NULL
+           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+        )
+      ORDER BY paid_confirmed_at NULLS LAST
+      LIMIT $1`,
+    [limit, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+  );
+  return r.rows.map((x) => x.application_no);
+}
+
 /** Record a status poll against DK (last_polled_at + poll_count). Best-effort. */
 export async function bumpPoll(applicationNo: string): Promise<void> {
   if (!pool) return;
