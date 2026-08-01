@@ -28,6 +28,9 @@ const {
 } = await import("../dk.ts");
 const { mintGrant, verifyGrant } = await import("../paymentGrant.ts");
 const { rateLimit, clientIp } = await import("../rateLimit.ts");
+const { validateSubmission, filterUpstreamFieldErrors } = await import(
+  "../submitValidation.ts"
+);
 
 describe("computeFees — money maths", () => {
   test("matches DK's own worked example from the spec ($100 -> $105.45)", () => {
@@ -297,14 +300,159 @@ describe("rateLimit", () => {
     assert.equal(rateLimit(key, 1, 1), null, "allowed again after the window");
   });
 
-  test("clientIp prefers the first X-Forwarded-For hop", () => {
+  /**
+   * This test used to assert the OPPOSITE — that clientIp returns the first
+   * X-Forwarded-For hop — and passed, because it encoded the very behaviour BtCIRT
+   * later reported as 5.1. nginx APPENDS the real address, so the first hop is
+   * whatever the caller sent. Keeping the assertion inverted here is the point: it
+   * fails loudly if anyone restores the old logic.
+   */
+  test("clientIp takes the LAST X-Forwarded-For hop, never the first", () => {
     const req = new Request("https://example.test", {
-      headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" },
+      headers: { "x-forwarded-for": "203.0.113.9, 198.51.100.20" },
     });
-    assert.equal(clientIp(req), "203.0.113.9");
+    assert.equal(clientIp(req), "198.51.100.20");
+    assert.notEqual(clientIp(req), "203.0.113.9", "the client-supplied hop was trusted");
   });
 
   test("clientIp falls back rather than throwing when unproxied", () => {
-    assert.equal(clientIp(new Request("https://example.test")), "unknown");
+    assert.equal(clientIp(new Request("https://example.test")), "unattributed");
+  });
+});
+
+/**
+ * BtCIRT penetration test, 31 July 2026. Each test names the finding it pins so a
+ * later refactor cannot quietly reopen one.
+ */
+describe("BtCIRT 5.1 — rate-limit key cannot be forged", () => {
+  const req = (h: Record<string, string>) =>
+    new Request("https://x/", { headers: h });
+
+  test("a spoofed X-Forwarded-For does not change the key", () => {
+    // nginx appends, so the LEFT-most entry is attacker-supplied. The old code took
+    // exactly that, giving a fresh bucket per request.
+    const real = clientIp(req({ "x-real-ip": "1.2.3.4" }));
+    for (const spoof of [
+      "203.0.113.9",
+      "203.0.113.9, 1.2.3.4",
+      "10.0.0.1, 203.0.113.9, 1.2.3.4",
+    ]) {
+      assert.equal(
+        clientIp(req({ "x-real-ip": "1.2.3.4", "x-forwarded-for": spoof })),
+        real,
+        `X-Forwarded-For: ${spoof} changed the rate-limit key`,
+      );
+    }
+  });
+
+  test("Forwarded and True-Client-IP are ignored entirely", () => {
+    // nginx sets neither, so both would be purely client-supplied.
+    assert.equal(
+      clientIp(req({ "x-real-ip": "1.2.3.4", forwarded: "for=198.51.100.7" })),
+      "1.2.3.4",
+    );
+    assert.equal(
+      clientIp(req({ "x-real-ip": "1.2.3.4", "true-client-ip": "198.51.100.7" })),
+      "1.2.3.4",
+    );
+  });
+
+  test("private, reserved and malformed values collapse to one shared bucket", () => {
+    // Otherwise 10/8 alone is 17 million free buckets.
+    for (const v of ["10.0.0.1", "127.0.0.1", "192.168.1.1", "172.16.0.1", "::1", "fe80::1", "not-an-ip", "999.1.1.1"]) {
+      assert.equal(
+        clientIp(req({ "x-forwarded-for": v })),
+        "unattributed",
+        `${v} was accepted as a rate-limit key`,
+      );
+    }
+  });
+
+  test("a genuine public address is still keyed individually", () => {
+    assert.equal(clientIp(req({ "x-real-ip": "203.0.113.50" })), "203.0.113.50");
+    assert.notEqual(
+      clientIp(req({ "x-real-ip": "203.0.113.50" })),
+      clientIp(req({ "x-real-ip": "203.0.113.51" })),
+    );
+  });
+});
+
+describe("BtCIRT 5.4/5.5/5.6 — submissions are validated before forwarding", () => {
+  const valid = {
+    nationality: "non-bhutanese",
+    name: "Test User",
+    email: "v@example.com",
+    phone: "5551234567",
+    countryCode: "+1",
+    country: "BT",
+  };
+  const send = (over: Record<string, unknown>) =>
+    validateSubmission(JSON.stringify({ ...valid, ...over }));
+
+  test("a normal submission still passes", () => {
+    assert.equal(send({}).ok, true);
+    assert.equal(send({ message: "two\n\nparagraphs" }).ok, true);
+    assert.equal(send({ name: "Jean-Baptiste de la Fontaine-Rousseau" }).ok, true);
+  });
+
+  test("5.4 — every countryCode crash shape is rejected", () => {
+    for (const cc of ["+" + "9".repeat(220), "+1\r\nX", "+1\u0000", "http://x.io"]) {
+      assert.equal(send({ countryCode: cc }).ok, false, `countryCode ${JSON.stringify(cc)} was accepted`);
+    }
+    // The values the report confirmed still work must keep working.
+    for (const cc of ["+975", "+1", "+9"]) {
+      assert.equal(send({ countryCode: cc }).ok, true, `countryCode ${cc} was wrongly rejected`);
+    }
+  });
+
+  test("5.5 — NUL bytes and oversized strings are rejected", () => {
+    assert.equal(send({ name: "abc\u0000def" }).ok, false);
+    assert.equal(send({ name: "A".repeat(5000) }).ok, false);
+    assert.equal(send({ message: "a\u0000b" }).ok, false);
+    assert.equal(send({ email: "a".repeat(300) + "@b.co" }).ok, false);
+  });
+
+  test("5.6 — volunteerCount cannot be smuggled as a string or an absurd number", () => {
+    assert.equal(send({ volunteerCount: "999999999999999999999" }).ok, false);
+    assert.equal(send({ volunteerCount: 1e21 }).ok, false);
+    assert.equal(send({ volunteerCount: 2.5 }).ok, false);
+    assert.equal(send({ volunteerCount: 0 }).ok, false);
+    assert.equal(send({ volunteerCount: 5 }).ok, true);
+  });
+
+  test("privileged fields are stripped, not forwarded", () => {
+    const r = send({ verified: true, role: "admin", adminNote: "x", id: 1 });
+    assert.equal(r.ok, true);
+    if (r.ok) {
+      for (const k of ["verified", "role", "adminNote", '"id"']) {
+        assert.ok(!r.body.includes(k), `${k} reached the upstream body`);
+      }
+    }
+  });
+});
+
+describe("BtCIRT 5.7 — upstream schema names are not disclosed", () => {
+  test("internal field names are dropped, public ones kept", () => {
+    const upstream = JSON.stringify({
+      success: false,
+      error: "Validation failed",
+      details: {
+        fieldErrors: {
+          volunteerCountMale: ["Required"],
+          volunteerCountFemale: ["Required"],
+          email: ["Invalid email"],
+        },
+      },
+    });
+    const out = filterUpstreamFieldErrors(upstream);
+    assert.ok(!out.includes("volunteerCountMale"), "internal field name leaked");
+    assert.ok(!out.includes("volunteerCountFemale"), "internal field name leaked");
+    assert.ok(out.includes("email"), "public field error should survive for UX");
+  });
+
+  test("an unparseable upstream body still yields a safe generic message", () => {
+    const out = filterUpstreamFieldErrors("<html>500 oops</html>");
+    assert.ok(!out.includes("html"));
+    assert.ok(out.includes("Please check the form"));
   });
 });
