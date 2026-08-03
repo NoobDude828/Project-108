@@ -96,9 +96,9 @@ export default function SceneInvitation() {
                   one, or all sentient beings. A plaque provides permanent
                   recognition.
                 </p>
-                <button type="button" className="btn" data-open-form="patron">
-                  Begin the conversation
-                </button>
+                <a href="/contribute" className="btn">
+                  Make an offering
+                </a>
               </div>
             </div>
             <p className="inv-meta">
