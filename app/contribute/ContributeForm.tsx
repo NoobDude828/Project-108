@@ -78,7 +78,7 @@ const initialForm = {
   donorEmail: "",
   phoneCountryCode: "+975",
   donorPhone: "",
-  country: "BT",
+  country: "",
   addressLine1: "",
   addressLine2: "",
   city: "",
@@ -174,8 +174,22 @@ export default function ContributeForm({ grant }: { grant: string }) {
     if (!form.donorName.trim()) return "Please enter your full name.";
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.donorEmail.trim()))
       return "Please enter a valid email address.";
-    // Phone and address are not required: Stripe asks for billing details on its
-    // own page anyway, so requiring them here is the same question twice.
+    /**
+     * Address is required again, and country now has no default.
+     *
+     * It was made optional on the reasoning that "Stripe asks for billing details
+     * anyway, so this asks twice". Stripe does ask — but DK's API returns only a
+     * boolean, never the charge object, so what Stripe collects never reaches us.
+     * Optional here therefore meant the address existed nowhere Project 108 could
+     * see: the first real contribution came through with no street and no region.
+     *
+     * Phone stays optional. Nothing downstream needs it, and donors reasonably
+     * decline to give a number for a donation.
+     */
+    if (!form.country) return "Please select your country.";
+    if (!form.addressLine1.trim()) return "Please enter your street address.";
+    if (!form.city.trim()) return "Please enter your city or town.";
+    if (!form.postalCode.trim()) return "Please enter your postal or ZIP code.";
     return null;
   }
 
@@ -392,8 +406,16 @@ export default function ContributeForm({ grant }: { grant: string }) {
               </label>
             </div>
 
+            {/* Saying why lifts completion and answers the objection that this
+                duplicates Stripe — it does not, because DK never returns what
+                Stripe collects. */}
+            <p className="contribute-why">
+              We ask for your address so your offering can be properly recorded and
+              acknowledged.
+            </p>
+
             <label className="field">
-              <span className="field__lbl">Address <span className="field__opt">(optional)</span></span>
+              <span className="field__lbl">Address</span>
               <input
                 type="text"
                 value={form.addressLine1}
@@ -417,7 +439,7 @@ export default function ContributeForm({ grant }: { grant: string }) {
 
             <div className="form-row form-row--double">
               <label className="field">
-                <span className="field__lbl">City / town <span className="field__opt">(optional)</span></span>
+                <span className="field__lbl">City / town</span>
                 <input
                   type="text"
                   value={form.city}
@@ -441,7 +463,7 @@ export default function ContributeForm({ grant }: { grant: string }) {
             <div className="form-row form-row--double">
               <label className="field">
                 <span className="field__lbl">
-                  Postal code <span className="field__opt">(optional)</span>
+                  Postal code
                 </span>
                 <input
                   type="text"
@@ -457,6 +479,11 @@ export default function ContributeForm({ grant }: { grant: string }) {
                   onChange={(e) => update("country", e.target.value)}
                   required
                 >
+                  {/* No pre-selection: defaulting to Bhutan silently recorded every
+                      international donor as Bhutanese. */}
+                  <option value="" disabled>
+                    Select your country
+                  </option>
                   {COUNTRIES.map(([name, iso]) => (
                     <option key={iso} value={iso}>
                       {name}
