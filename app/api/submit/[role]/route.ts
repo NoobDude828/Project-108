@@ -13,7 +13,15 @@
  *  1. Per-IP rate limiting. The endpoints previously accepted unlimited traffic
  *     (10 parallel POSTs in 330ms all succeeded), which is what made bulk CID /
  *     email enumeration and record-flooding practical.
- *  2. The upstream 409 body is replaced with a single generic message. Upstream
+ *  2. Server-side validation before anything is forwarded (BtCIRT 5.4/5.5/5.6).
+ *     Malformed input used to reach upstream unread and produce HTTP 500s, and a
+ *     numeric STRING bypassed the volunteerCount bounds. See lib/submitValidation.ts.
+ *  3. Upstream error bodies are no longer passed through verbatim (BtCIRT 5.7).
+ *     Their Zod fieldErrors disclosed internal schema names the browser never sends.
+ *  4. A short replay guard rejects byte-identical resubmissions (BtCIRT 5.2). Real
+ *     deduplication by email/CID belongs upstream, which owns the records; this only
+ *     stops the trivial "POST the same body three times" case the report demonstrated.
+ *  5. The upstream 409 body is replaced with a single generic message. Upstream
  *     returns distinct strings ("A submission with this CID already exists" vs
  *     "...this email already exists" vs "An organization registration with this
  *     contact email already exists"), which told an attacker *which* identifier
@@ -27,7 +35,12 @@
  * email/CID uniqueness) to be worth doing.
  */
 
+import crypto from "node:crypto";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
+import {
+  validateSubmission,
+  filterUpstreamFieldErrors,
+} from "@/lib/submitValidation";
 
 const UPSTREAM = "https://gmc.bt/api";
 const ALLOWED_ROLES = new Set(["patrons", "volunteers"]);
@@ -56,7 +69,39 @@ export async function POST(
   );
   if (limited) return limited;
 
-  const body = await req.text();
+  const raw = await req.text();
+
+  // Validate BEFORE forwarding. A malformed request must cost upstream nothing —
+  // the crash surface the report exercised is not merely handled here, it is never
+  // reached. `checked` is re-serialised from inspected values only.
+  const checked = validateSubmission(raw);
+  if (!checked.ok) {
+    return Response.json(
+      {
+        success: false,
+        error: checked.message,
+        ...(checked.field
+          ? { details: { fieldErrors: { [checked.field]: [checked.message] } } }
+          : {}),
+      },
+      { status: 400 },
+    );
+  }
+  const body = checked.body;
+
+  // Replay guard: the same body from the same client twice is a retry or a flood,
+  // never two different people. Keyed on the normalised body so a cosmetic
+  // whitespace change cannot slip past it.
+  const replayKey = `submit-replay:${role}:${crypto
+    .createHash("sha256")
+    .update(body)
+    .digest("hex")}`;
+  if (recentlySeen(replayKey)) {
+    return Response.json(
+      { success: false, error: "This submission has already been received." },
+      { status: 409 },
+    );
+  }
 
   let upstream: Response;
   try {
@@ -88,6 +133,28 @@ export async function POST(
   }
 
   const text = await upstream.text();
+
+  // Upstream validation errors are filtered, not forwarded: their Zod fieldErrors
+  // named internal fields (volunteerCountMale/Female) that the browser never sends,
+  // handing an attacker the server-side schema (BtCIRT 5.7).
+  if (upstream.status === 400 || upstream.status === 422) {
+    console.warn(`[/api/submit/${role}] upstream rejected a submission`, text.slice(0, 300));
+    return new Response(filterUpstreamFieldErrors(text), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Never relay an upstream 5xx body. It is not ours to characterise, and a crash
+  // message is exactly the kind of detail that should stay server-side.
+  if (upstream.status >= 500) {
+    console.error(`[/api/submit/${role}] upstream ${upstream.status}`, text.slice(0, 500));
+    return Response.json(
+      { success: false, error: "Couldn't submit just now. Please try again." },
+      { status: 502 },
+    );
+  }
+
   return new Response(text, {
     status: upstream.status,
     headers: {
@@ -95,4 +162,27 @@ export async function POST(
         upstream.headers.get("content-type") || "application/json",
     },
   });
+}
+
+/**
+ * Byte-identical submissions seen in the last few minutes.
+ *
+ * Per-process and in-memory, like the rate limiter, which is correct for the single
+ * PM2 fork this runs as. Not a substitute for upstream deduplication by email/CID —
+ * that is the real remedy and it belongs where the records live.
+ */
+const REPLAY_WINDOW_MS = 10 * 60_000;
+const gr = globalThis as unknown as { __p108Replay?: Map<string, number> };
+const replays: Map<string, number> =
+  gr.__p108Replay ?? (gr.__p108Replay = new Map());
+
+function recentlySeen(key: string): boolean {
+  const now = Date.now();
+  if (replays.size > 5_000) {
+    for (const [k, at] of replays) if (now - at > REPLAY_WINDOW_MS) replays.delete(k);
+  }
+  const seen = replays.get(key);
+  if (seen !== undefined && now - seen < REPLAY_WINDOW_MS) return true;
+  replays.set(key, now);
+  return false;
 }

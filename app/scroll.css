@@ -4919,3 +4919,391 @@ body.scrolled .status .brand {
   width: 100%;
   text-align: center;
 }
+
+/* ---------------------------------------------------------------------------
+   Check-box — the processing-fee choice and the mailing-list consent.
+   The native input IS the box: `appearance: none` strips the platform control and
+   leaves an element that still focuses, still toggles on label click, still
+   reports state to assistive tech. An earlier version hid the input off-flow and
+   drew a decorative span beside it — an invisible, absolutely-positioned control
+   that escaped its own label's box and got toggled by clicks meant for the amount
+   field. Styling the real element cannot drift from it.
+   The tick is two borders of an empty box, rotated: a shape, not an icon.
+--------------------------------------------------------------------------- */
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  cursor: pointer;
+  /* The box itself is 17px, but the whole label toggles it, so the label is the
+     real target and it has to clear 44px on touch. `align-items: start` keeps the
+     text where it was — the extra height only extends the tappable area. */
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(242, 233, 216, 0.82);
+}
+.check input[type="checkbox"] {
+  position: relative;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0.18rem 0 0;
+  padding: 0;
+  flex: 0 0 auto;
+  border: 1px solid var(--gold-faint);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+.check:hover input[type="checkbox"] {
+  border-color: var(--gold);
+}
+.check input[type="checkbox"]:checked {
+  border-color: var(--gold-bright);
+  background: rgba(200, 166, 99, 0.14);
+}
+.check input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 0.24rem;
+  top: 0.02rem;
+  width: 0.32rem;
+  height: 0.58rem;
+  border-right: 1.5px solid var(--gold-bright);
+  border-bottom: 1.5px solid var(--gold-bright);
+  transform: rotate(42deg);
+}
+.check input[type="checkbox"]:focus-visible {
+  outline: 1px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+.check__txt {
+  min-width: 0;
+}
+/* Sits inside the amount block, tight to the figure it changes. */
+.check--fee {
+  margin-top: 1.1rem;
+}
+/* Quieter than the fee choice: this one asks nothing of the transaction. */
+.check--consent {
+  margin-top: 0.3rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--gold-faint-2);
+  font-size: 0.82rem;
+  color: rgba(242, 233, 216, 0.74);
+}
+
+/* ---------------------------------------------------------------------------
+   Contribute page — responsive.
+   The shared .form-modal styles turn into a bottom sheet below 600px: full-bleed,
+   squared-off at the bottom, with a drag handle. Correct for a modal that slides
+   up over the scroll page; wrong here, where this is a standalone page that was
+   never dragged open and has nothing behind it. So the card is restored on small
+   screens and only its padding tightens.
+--------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .contribute-page {
+    padding: 1.25rem 0.75rem 2.5rem;
+  }
+  .contribute-modal .form-modal__sheet {
+    width: 100%;
+    max-height: none;
+    border: 1px solid rgba(200, 166, 99, 0.18);
+    border-top: 2px solid var(--gold);
+    border-radius: 6px;
+    padding-bottom: 0;
+  }
+  /* The drag handle is an affordance for a gesture this page does not have. */
+  .contribute-modal .form-modal__sheet::before {
+    content: none;
+  }
+  .contribute-modal .form-modal__lbl {
+    padding-top: 1.6rem;
+  }
+}
+
+/* Very narrow phones (320–360px): the amount can still lead, but the gap between
+   "USD" and the figure is what breaks first, so it closes before the type does. */
+@media (max-width: 360px) {
+  .contribute-page {
+    padding: 1rem 0.5rem 2rem;
+  }
+  .contribute-modal .form-modal__sheet > * {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+  .contribute-amount__row {
+    gap: 0.45rem;
+  }
+  .contribute-amount__input {
+    font-size: clamp(2.1rem, 11vw, 3rem);
+  }
+  .check {
+    gap: 0.55rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* From tablet up the sheet is a fixed-width card centred in the page, and the
+   amount gets room to breathe. */
+@media (min-width: 601px) {
+  .contribute-page {
+    padding: 4rem 1.5rem 5rem;
+  }
+  .contribute-amount {
+    padding-bottom: 1.9rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Sign-up page (/sign-up) — an invitation, not a form.
+   No sheet, no card, no border. The earlier version reused .form-modal__sheet and
+   read as a modal nobody had closed. Page-level composition on the site's own
+   ground instead, left-aligned like a letter rather than centred like a poster.
+--------------------------------------------------------------------------- */
+.su-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  /* One faint radial, the same ground the rest of the site stands on — this page
+     has to feel like part of it, not a bare utility screen. Nothing more. */
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(200, 166, 99, 0.05) 0%, transparent 62%),
+    var(--maroon-night);
+  padding: 4.5rem 1.5rem;
+}
+.su-col {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.su-eyebrow {
+  margin: 0 0 1.9rem;
+  font-family: var(--font-utility);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* The hero: the day. Oldstyle figures, as the site sets every other numeral. */
+.su-hero {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-feature-settings: "onum";
+  font-size: clamp(2.35rem, 8.5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--cream);
+}
+.su-hero em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+
+/* The site's established ceremonial divider. One instance, marking the turn from
+   the moment to the act. */
+.su-rule {
+  width: 2.25rem;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+  margin: 2rem 0;
+}
+
+.su-lede {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  /* 11.9:1 on this ground — comfortably past AA for body text. */
+  color: rgba(242, 233, 216, 0.86);
+}
+
+/* --- the single field --------------------------------------------------- */
+.su-form {
+  margin-top: 3.25rem;
+}
+/* Borrows the amount input's language: no box, one gold underline. */
+.su-field {
+  border-bottom: 1px solid var(--gold-faint);
+  transition: border-color 0.18s ease;
+}
+.su-field:focus-within {
+  border-bottom-color: var(--gold-bright);
+}
+.su-input {
+  width: 100%;
+  padding: 0.55rem 0 0.7rem;
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1.4;
+  color: var(--cream);
+  background: none;
+  border: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.su-input::placeholder {
+  color: rgba(242, 233, 216, 0.38);
+}
+.su-input:focus {
+  outline: none;
+}
+
+/* Visually hidden but present for assistive tech — a placeholder is not a label. */
+.su-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Honeypot: off-screen rather than display:none, which some bots detect. */
+.su-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* The permission. Quieter than the lede but still body-weight and 8.5:1 — it is
+   the thing being agreed to, not decorative small print. */
+.su-consent {
+  margin: 1.5rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: rgba(242, 233, 216, 0.72);
+}
+
+.su-error {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #e8a0a0;
+}
+.su-error[hidden] {
+  display: none;
+}
+
+/* Defined outright rather than borrowing .btn, which only exists nested inside
+   .form-actions and carries that container's flex assumptions. Same visual
+   language as the site's primary action: gold pill, wide-tracked utility caps. */
+.su-btn {
+  display: block;
+  width: 100%;
+  margin-top: 1.9rem;
+  padding: 0.95rem 1.6rem;
+  font-family: var(--font-utility);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--maroon-deep);
+  background: var(--gold);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease;
+}
+.su-btn:hover:not(:disabled) {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+}
+.su-btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+/* Disabled must still be legible — a greyed-out gold on this ground fails contrast
+   badly, so it becomes an outline instead of a dimmed fill. */
+.su-btn:disabled {
+  background: transparent;
+  border-color: var(--gold-faint);
+  color: rgba(242, 233, 216, 0.72);
+  cursor: not-allowed;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .su-btn {
+    transition: none;
+  }
+  .su-btn:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+.su-micro {
+  margin: 1.2rem 0 0;
+  font-family: var(--font-utility);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  /* 6.5:1 — passes AA even at this size. */
+  color: rgba(242, 233, 216, 0.62);
+}
+
+/* --- confirmation ------------------------------------------------------- */
+/* The completed act is the one thing here that earns the centre. */
+.su-done {
+  margin-top: 3.25rem;
+  text-align: center;
+}
+.su-done .su-rule {
+  margin-inline: auto;
+}
+.su-done__ttl {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.6rem, 5.5vw, 2.15rem);
+  line-height: 1.2;
+  color: var(--cream);
+}
+.su-done__ttl em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+.su-done__body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  line-height: 1.75;
+  color: rgba(242, 233, 216, 0.8);
+}
+
+@media (max-width: 480px) {
+  .su-page {
+    padding: 3rem 1.25rem;
+    /* Top-aligned on a short screen: vertical centring pushes the hero under the
+       fold on a landscape phone. */
+    align-items: flex-start;
+  }
+  .su-form {
+    margin-top: 2.5rem;
+  }
+  .su-rule {
+    margin: 1.6rem 0;
+  }
+}

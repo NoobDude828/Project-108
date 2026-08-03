@@ -11,6 +11,7 @@
  * connections (same pattern as app/api/online).
  */
 
+import crypto from "node:crypto";
 import { Pool } from "pg";
 
 function makePool(): Pool | null {
@@ -45,6 +46,16 @@ export type PaymentInsert = {
   requestHash?: string;
   /** Client-supplied, stable per checkout intent. Unique when present. */
   idempotencyKey?: string;
+  /** What the donor typed, before any fee arithmetic. */
+  offeredAmount?: number;
+  /** Did they choose to cover the processing fee? */
+  coversFee?: boolean;
+  /** What the donor is actually charged. */
+  chargedTotal?: number;
+  /** Mailing-list permission, stored with the wording it was granted under. */
+  consentUpdates?: boolean;
+  consentText?: string;
+  consentVersion?: string;
   donorName: string;
   donorEmail: string;
   donorPhone?: string;
@@ -186,8 +197,12 @@ export async function insertPaymentCreated(p: PaymentInsert): Promise<void> {
        (application_no, amount, currency, status, fee_total, customer_pays, net_to_project,
         request_hash, idempotency_key, donor_name, donor_email, donor_phone, donor_country,
         donor_address_line1, donor_address_line2, donor_city, donor_state, donor_postal_code,
-        message, success_url, cancel_url, source)
-     VALUES ($1,$2,$3,'created',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,'project108')`,
+        message, success_url, cancel_url, source,
+        offered_amount, covers_fee, charged_total,
+        consent_updates, consent_text, consent_version, consent_at)
+     VALUES ($1,$2,$3,'created',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,'project108',
+             $21,$22,$23,$24,$25,$26,
+             CASE WHEN $24 THEN now() ELSE NULL END)`,
     [
       p.applicationNo,
       p.amount,
@@ -209,6 +224,12 @@ export async function insertPaymentCreated(p: PaymentInsert): Promise<void> {
       p.message ?? null,
       p.successUrl ?? null,
       p.cancelUrl ?? null,
+      p.offeredAmount ?? null,
+      p.coversFee ?? null,
+      p.chargedTotal ?? null,
+      p.consentUpdates ?? false,
+      p.consentText ?? null,
+      p.consentVersion ?? null,
     ],
   );
   // The audit event stays best-effort: the row is already safely recorded, and
@@ -474,6 +495,257 @@ export async function statusSummary(): Promise<
     baseTotal: x.base_total,
     chargedTotal: x.charged_total,
   }));
+}
+
+/**
+ * Record a sign-up from /sign-up (someone who is not necessarily a donor).
+ *
+ * Returns nothing about whether the address was already present. The route must not
+ * disclose that either: an endpoint that answers "already subscribed" differently
+ * from "newly subscribed" is an email-enumeration oracle.
+ *
+ * Signing up again refreshes the consent and revives a previously unsubscribed
+ * address — someone re-consenting is asking to be on the list.
+ */
+export async function addSubscriber(p: {
+  email: string;
+  name?: string;
+  source?: string;
+  consentText: string;
+  consentVersion: string;
+}): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `INSERT INTO p108_subscribers
+       (email, name, source, consent_text, consent_version, consent_at, updated_at)
+     VALUES ($1,$2,$3,$4,$5, now(), now())
+     ON CONFLICT (lower(email)) DO UPDATE
+        SET name            = COALESCE(EXCLUDED.name, p108_subscribers.name),
+            consent_text    = EXCLUDED.consent_text,
+            consent_version = EXCLUDED.consent_version,
+            consent_at      = now(),
+            unsubscribed_at = NULL,
+            updated_at      = now()`,
+    [p.email, p.name ?? null, p.source ?? "signup", p.consentText, p.consentVersion],
+  );
+}
+
+/**
+ * Take someone off the list. Idempotent, and deliberately silent about whether the
+ * address was ever on it.
+ */
+export async function unsubscribe(email: string): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE p108_subscribers
+        SET unsubscribed_at = now(), updated_at = now()
+      WHERE lower(email) = lower($1) AND unsubscribed_at IS NULL`,
+    [email],
+  );
+  // A donor's consent lives on their payment rows, which are an immutable financial
+  // record — so withdrawal is recorded by adding them to the subscribers table in an
+  // unsubscribed state, and consentedEmails() excludes them from then on.
+  await pool.query(
+    `INSERT INTO p108_subscribers
+       (email, source, consent_text, consent_version, unsubscribed_at, updated_at)
+     SELECT $1, 'unsubscribe', consent_text, consent_version, now(), now()
+       FROM p108_payments
+      WHERE lower(donor_email) = lower($1) AND consent_updates = true
+      ORDER BY consent_at DESC NULLS LAST
+      LIMIT 1
+     ON CONFLICT (lower(email)) DO UPDATE
+        SET unsubscribed_at = now(), updated_at = now()`,
+    [email],
+  );
+}
+
+export type ConsentedContact = {
+  email: string;
+  name: string | null;
+  consentAt: Date;
+  consentVersion: string;
+  source: string;
+};
+
+/**
+ * THE send list: everyone who has agreed to hear from Project 108, from either door.
+ *
+ * One list, two sources — consent captured at checkout lives on the payment row,
+ * consent captured on /sign-up lives in p108_subscribers. De-duplicated on
+ * lower(email), most recent consent winning, and anyone who has unsubscribed is
+ * excluded regardless of which door they came through.
+ *
+ * `version` pins the send to a specific wording, so revising it later cannot
+ * silently widen who counts as having agreed. Pass the version the send is
+ * authorised under.
+ */
+export async function consentedEmails(
+  opts: { version?: string } = {},
+): Promise<ConsentedContact[]> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `WITH granted AS (
+       SELECT donor_email AS email, donor_name AS name, consent_at,
+              consent_version, 'contribution' AS source
+         FROM p108_payments
+        WHERE consent_updates = true AND consent_at IS NOT NULL
+       UNION ALL
+       SELECT email, name, consent_at, consent_version, source
+         FROM p108_subscribers
+        WHERE unsubscribed_at IS NULL
+     )
+     SELECT DISTINCT ON (lower(email)) email, name, consent_at, consent_version, source
+       FROM granted
+      WHERE ($1::text IS NULL OR consent_version = $1)
+        -- Excluded from both sources, so unsubscribing works for donors too.
+        AND lower(email) NOT IN (
+              SELECT lower(email) FROM p108_subscribers WHERE unsubscribed_at IS NOT NULL
+            )
+      ORDER BY lower(email), consent_at DESC`,
+    [opts.version ?? null],
+  );
+  return r.rows.map((x) => ({
+    email: x.email,
+    name: x.name,
+    consentAt: x.consent_at,
+    consentVersion: x.consent_version,
+    source: x.source,
+  }));
+}
+
+export type ReceiptClaim = {
+  applicationNo: string;
+  donorName: string;
+  donorEmail: string;
+  offeredAmount: number;
+  chargedTotal: number;
+  currency: string;
+  paidConfirmedAt: Date;
+  dedication: string | null;
+  attempt: number;
+};
+
+/** How long a claimed send is owned before another caller may retry it. */
+const RECEIPT_CLAIM_MINUTES = 10;
+/** Bounded so a permanently bad address is not retried forever. */
+const RECEIPT_MAX_ATTEMPTS = 5;
+
+/**
+ * Claim the right to send one payment's acknowledgement receipt.
+ *
+ * Returns the data needed to compose the email if this caller now owns the attempt,
+ * or null if there is nothing to do — already sent, not paid, out of attempts, or
+ * another caller holds a live claim.
+ *
+ * This is the whole concurrency story. The status poll and the reconciliation sweep
+ * both try to send, so the claim has to be atomic: the UPDATE's WHERE clause is the
+ * lock. Only a confirmed send sets receipt_email_sent_at (see markReceiptSent), so a
+ * crash mid-send costs a delay of RECEIPT_CLAIM_MINUTES rather than a lost receipt or
+ * a duplicate.
+ */
+export async function claimReceiptSend(
+  applicationNo: string,
+): Promise<ReceiptClaim | null> {
+  if (!pool) return null;
+  const r = await pool.query(
+    `UPDATE p108_payments
+        SET receipt_attempts        = receipt_attempts + 1,
+            receipt_last_attempt_at = now()
+      WHERE application_no = $1
+        AND status = 'paid'
+        AND receipt_email_sent_at IS NULL
+        AND receipt_attempts < $2
+        AND (
+              receipt_last_attempt_at IS NULL
+           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+        )
+      RETURNING application_no, donor_name, donor_email, offered_amount, amount,
+                charged_total, currency, paid_confirmed_at, message, receipt_attempts`,
+    [applicationNo, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+  );
+  if (r.rowCount === 0) return null;
+  const x = r.rows[0];
+  return {
+    applicationNo: x.application_no,
+    donorName: x.donor_name,
+    donorEmail: x.donor_email,
+    // offered_amount is null on rows created before migration 006; the base we sent
+    // is the best available stand-in for what they offered.
+    offeredAmount: Number(x.offered_amount ?? x.amount),
+    chargedTotal: Number(x.charged_total ?? x.amount),
+    currency: x.currency || "usd",
+    paidConfirmedAt: x.paid_confirmed_at,
+    dedication: x.message,
+    attempt: x.receipt_attempts,
+  };
+}
+
+/** Confirm a receipt actually went out. Only called after the relay accepted it. */
+export async function markReceiptSent(
+  applicationNo: string,
+  messageId: string,
+): Promise<void> {
+  if (!pool) return;
+  await pool.query(
+    `UPDATE p108_payments
+        SET receipt_email_sent_at = now(), receipt_last_error = NULL
+      WHERE application_no = $1`,
+    [applicationNo],
+  );
+  await addEvent(applicationNo, "receipt_email_sent", {
+    actor: "system",
+    detail: { messageId },
+  });
+}
+
+/**
+ * Record why a send failed, so "this donor never got their receipt" is answerable
+ * from the row. Deliberately does NOT set receipt_email_sent_at — the claim simply
+ * expires and the sweep tries again.
+ */
+export async function markReceiptFailed(
+  applicationNo: string,
+  error: string,
+): Promise<void> {
+  if (!pool) return;
+  try {
+    await pool.query(
+      `UPDATE p108_payments SET receipt_last_error = $2 WHERE application_no = $1`,
+      [applicationNo, error.slice(0, 500)],
+    );
+    await addEvent(applicationNo, "receipt_email_failed", {
+      actor: "system",
+      detail: { error: error.slice(0, 500) },
+    });
+  } catch (e) {
+    console.error("[db] markReceiptFailed failed", e);
+  }
+}
+
+/**
+ * Paid payments still awaiting a receipt, for the sweep to pick up.
+ *
+ * This is what back-fills anything the status poll missed — a payment confirmed by
+ * the sweep rather than the browser, a relay outage, or a payment that completed
+ * before the sender existed at all.
+ */
+export async function findPaidWithoutReceipt(limit = 20): Promise<string[]> {
+  if (!pool) return [];
+  const r = await pool.query(
+    `SELECT application_no
+       FROM p108_payments
+      WHERE status = 'paid'
+        AND receipt_email_sent_at IS NULL
+        AND receipt_attempts < $2
+        AND (
+              receipt_last_attempt_at IS NULL
+           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+        )
+      ORDER BY paid_confirmed_at NULLS LAST
+      LIMIT $1`,
+    [limit, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+  );
+  return r.rows.map((x) => x.application_no);
 }
 
 /** Record a status poll against DK (last_polled_at + poll_count). Best-effort. */
