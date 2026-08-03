@@ -46,11 +46,33 @@ function assertDkConfig(): void {
 // ROUND_HALF_UP to 2dp, ADDED ON TOP — the customer pays base + fees. We know
 // the formula, so we compute/store it; DK never returns the settled fee.
 export const FEE_FORMULA_VERSION = "v2_4.85pct_plus_0.60";
-const FEE_PCT = 0.0485;
-const FEE_FIXED = 0.6;
 
-function round2HalfUp(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
+/**
+ * All fee arithmetic runs in INTEGER CENTS, never in floating-point dollars.
+ *
+ * 4.85% of $10.00 is exactly $0.485, which must round half-up to $0.49. In binary
+ * floating point that product is 0.48499999999999998…, so the obvious
+ * `Math.round(x * 100) / 100` rounds it DOWN and undercharges by a cent — and $10
+ * is not a contrived example, it is a figure people actually give. Ties land on
+ * every base of $10.00, $30.00, $50.00 and so on. Integers make the tie exact and
+ * the rounding decision explicit, which is the only defensible way to compute
+ * money that someone is charged.
+ *
+ * 485/10000 is 4.85% expressed exactly; +5000 before the integer division is the
+ * half-up bias.
+ */
+const FEE_PCT_NUM = 485; // 4.85% as a fraction of 10000
+const FEE_PCT_DEN = 10000;
+const FEE_FIXED_CENTS = 60;
+
+const toCents = (dollars: number) => Math.round(dollars * 100);
+const toDollars = (cents: number) => cents / 100;
+
+function feeCents(baseCents: number): number {
+  // ROUND_HALF_UP on the percentage component, then add the fixed component,
+  // which is already whole cents and needs no rounding.
+  const pct = Math.floor((baseCents * FEE_PCT_NUM + FEE_PCT_DEN / 2) / FEE_PCT_DEN);
+  return pct + FEE_FIXED_CENTS;
 }
 
 export function computeFees(base: number): {
@@ -58,14 +80,90 @@ export function computeFees(base: number): {
   customerPays: number;
   netToProject: number;
 } {
-  const feeTotal = round2HalfUp(base * FEE_PCT + FEE_FIXED);
+  const baseCents = toCents(base);
+  const fee = feeCents(baseCents);
   return {
-    feeTotal,
-    customerPays: round2HalfUp(base + feeTotal),
+    feeTotal: toDollars(fee),
+    customerPays: toDollars(baseCents + fee),
     // Fees are added on top, so the project is made whole at the base amount.
     // Flagged computed_unconfirmed until DK confirms the net in writing.
-    netToProject: round2HalfUp(base),
+    netToProject: toDollars(baseCents),
   };
+}
+
+/**
+ * Inverse of computeFees: the base amount to send DK so the donor is charged
+ * exactly `total`.
+ *
+ * Needed because covering the processing fee is the donor's choice. DK always
+ * grosses up whatever `amount` we send, so there are two cases:
+ *
+ *   covering the fee     -> send the offer itself; DK charges offer + fee, and
+ *                           the project receives the full offer.
+ *   NOT covering the fee -> the donor should be charged exactly what they
+ *                           offered, so we must send a SMALLER base that grosses
+ *                           up to it. The project then receives that smaller
+ *                           figure and absorbs the difference.
+ *
+ * Not every total is exactly reachable. Because the fee is itself rounded to
+ * cents, the achievable totals step unevenly: for a $10 target, base 8.96 charges
+ * $9.99 and base 8.97 charges $10.01 — $10.00 does not exist. So this returns the
+ * largest base whose total does NOT exceed the target.
+ *
+ * Erring under is deliberate. Charging even a cent more than the figure the donor
+ * chose is the precise thing that reads as a penalty, and this is the last screen
+ * before payment; a cent less is harmless.
+ */
+export function baseForTotal(total: number): number {
+  const totalCents = toCents(total);
+  // Closed-form estimate, then verified against the forward calculation — the
+  // inverse of a rounded function cannot be trusted analytically.
+  const estimate = Math.round(
+    ((totalCents - FEE_FIXED_CENTS) * FEE_PCT_DEN) / (FEE_PCT_DEN + FEE_PCT_NUM),
+  );
+
+  // Walk out from the estimate and keep the largest base that stays within the
+  // target. A handful of cents either side is far more than enough — the estimate
+  // is never more than a cent or two off.
+  let best: number | null = null;
+  for (let c = estimate - 5; c <= estimate + 5; c++) {
+    if (c <= 0) continue;
+    if (c + feeCents(c) <= totalCents && (best === null || c > best)) best = c;
+  }
+
+  // Below DK's $1.00 minimum nothing is chargeable anyway; return the estimate
+  // and let the route's own validation reject it.
+  return toDollars(best ?? estimate);
+}
+
+/**
+ * DK will not process a base below $1.00, and p108_payments enforces the same floor
+ * (CHECK amount >= 1). Both apply to the amount we SEND, which is not the amount the
+ * donor typed.
+ */
+export const MIN_BASE_USD = 1;
+const MIN_BASE_CENTS = 100;
+
+/**
+ * The smallest offer we can actually accept, given the donor's fee choice.
+ *
+ *   covering     -> the offer IS the base, so the floor is simply $1.00.
+ *   NOT covering -> the base is grossed DOWN from the offer, so a $1.00 offer sends
+ *                   a base of $0.38 — under DK's minimum and under the table's CHECK
+ *                   constraint. The offer has to be large enough that what remains
+ *                   after the fee still clears $1.00, which is $1.65.
+ *
+ * This existed as a live bug: validation checked the offer against $1.00 and never
+ * the derived base, so declining the fee on a $1.00 offer got all the way to the
+ * INSERT and failed there with a constraint violation the donor saw as
+ * "Couldn't start the payment".
+ *
+ * Derived from the fee formula rather than hardcoded, so it follows if DK's rates
+ * ever change.
+ */
+export function minOfferUsd(coversFee: boolean): number {
+  if (coversFee) return MIN_BASE_USD;
+  return (MIN_BASE_CENTS + feeCents(MIN_BASE_CENTS)) / 100;
 }
 
 /**

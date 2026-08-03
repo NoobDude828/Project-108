@@ -17,10 +17,20 @@ import nodeCrypto from "node:crypto";
 // The grant module reads PAYMENT_ACCESS_TOKEN at call time, so set it before import.
 process.env.PAYMENT_ACCESS_TOKEN = "test-secret-for-grants";
 
-const { computeFees, makeApplicationNo, dkErrorStatus, FEE_FORMULA_VERSION } =
-  await import("../dk.ts");
+const {
+  computeFees,
+  baseForTotal,
+  minOfferUsd,
+  MIN_BASE_USD,
+  makeApplicationNo,
+  dkErrorStatus,
+  FEE_FORMULA_VERSION,
+} = await import("../dk.ts");
 const { mintGrant, verifyGrant } = await import("../paymentGrant.ts");
 const { rateLimit, clientIp } = await import("../rateLimit.ts");
+const { validateSubmission, filterUpstreamFieldErrors } = await import(
+  "../submitValidation.ts"
+);
 
 describe("computeFees — money maths", () => {
   test("matches DK's own worked example from the spec ($100 -> $105.45)", () => {
@@ -75,6 +85,119 @@ describe("computeFees — money maths", () => {
 
   test("fee formula version is recorded, so a DK change cannot rewrite history", () => {
     assert.match(FEE_FORMULA_VERSION, /4\.85/);
+  });
+});
+
+describe("baseForTotal — donor declines to cover the fee", () => {
+  test("grosses down so the donor is charged what they offered", () => {
+    // DK always adds its fee on top, so to charge $108 we must send a smaller
+    // base that grosses up to it.
+    const base = baseForTotal(108);
+    assert.equal(computeFees(base).customerPays, 108);
+    assert.ok(base < 108, "base must be below the offer");
+  });
+
+  test("NEVER charges more than the donor chose", () => {
+    // The whole point of the choice is that the amount shown is the amount taken.
+    // Not every total is exactly reachable (the fee is itself rounded to cents),
+    // so where it is not, we must land under rather than over.
+    for (const total of [
+      1, 1.65, 2, 5, 7.77, 10, 19.99, 25, 50, 99.99, 100, 108, 250, 500,
+      1000, 1234.56, 5000, 200000,
+    ]) {
+      const charged = computeFees(baseForTotal(total)).customerPays;
+      assert.ok(
+        charged <= total,
+        `offer ${total} would be charged ${charged} — must never exceed the offer`,
+      );
+      // And it must be within a couple of cents, not merely "under".
+      assert.ok(
+        total - charged <= 0.02,
+        `offer ${total} charged ${charged} — drifted too far below`,
+      );
+    }
+  });
+
+  test("$10 is a known-unreachable total and lands just under", () => {
+    // base 8.96 -> 9.99, base 8.97 -> 10.01, so 10.00 does not exist.
+    const charged = computeFees(baseForTotal(10)).customerPays;
+    assert.equal(charged, 9.99);
+  });
+
+  test("the two paths differ by roughly the fee, and both are self-consistent", () => {
+    const offer = 108;
+    // Covering: project gets the full offer, donor pays more.
+    const covered = computeFees(offer);
+    assert.equal(covered.netToProject, 108);
+    assert.equal(covered.customerPays, 113.84);
+    // Not covering: donor pays the offer, project absorbs the fee.
+    const base = baseForTotal(offer);
+    const notCovered = computeFees(base);
+    assert.equal(notCovered.customerPays, 108);
+    // The exact figure quoted in the product feedback that prompted the choice.
+    // Pinned, because both the form and the receipt state it to the donor.
+    assert.equal(notCovered.netToProject, 102.43);
+  });
+
+  /**
+   * Regression: a $1.00 offer with the fee NOT covered derived a base of $0.38,
+   * which is under DK's minimum and under p108_payments' CHECK (amount >= 1). The
+   * old validation only checked the OFFER against $1.00, so this reached the INSERT
+   * and failed there — the donor saw "Couldn't start the payment".
+   */
+  test("the derived base never falls below the floor at the minimum offer", () => {
+    const min = minOfferUsd(false);
+    assert.equal(min, 1.65, "the uncovered minimum is $1.00 plus its own fee");
+    assert.ok(
+      baseForTotal(min) >= MIN_BASE_USD,
+      `offer ${min} derives base ${baseForTotal(min)}, below the floor`,
+    );
+  });
+
+  test("just under the uncovered minimum really is unusable", () => {
+    // Proves the boundary is where we claim, not one cent out either way.
+    assert.ok(baseForTotal(1.64) < MIN_BASE_USD, "1.64 must be below the floor");
+    assert.equal(baseForTotal(1.65), 1);
+  });
+
+  test("covering the fee keeps the plain $1.00 floor", () => {
+    assert.equal(minOfferUsd(true), MIN_BASE_USD);
+  });
+
+  test("every offer at or above the minimum derives a usable base", () => {
+    const min = Math.round(minOfferUsd(false) * 100);
+    for (let cents = min; cents <= min + 400; cents++) {
+      const base = baseForTotal(cents / 100);
+      assert.ok(
+        base >= MIN_BASE_USD,
+        `offer ${(cents / 100).toFixed(2)} derived base ${base.toFixed(2)}`,
+      );
+    }
+  });
+
+  test("never produces sub-cent precision", () => {
+    for (const total of [1, 3.33, 19.99, 108, 1234.56]) {
+      const base = baseForTotal(total);
+      assert.equal(Number(base.toFixed(2)), base, `${base} has sub-cent precision`);
+    }
+  });
+});
+
+describe("consent wording — one list, one permission", () => {
+  test("scope extends beyond the single event, so the list survives 1 November", async () => {
+    const { CONSENT_TEXT, CONSENT_VERSION, consentRecord } = await import(
+      "../consent.ts"
+    );
+    assert.match(CONSENT_TEXT, /livestream/i);
+    // The crucial part: if it only mentioned November, the addresses would be
+    // spent the day after.
+    assert.match(CONSENT_TEXT, /Gelephu Mindfulness City/i);
+    assert.ok(CONSENT_VERSION.length > 0);
+    // The wording is stored with each opt-in, so scope is provable later.
+    const r = consentRecord(true);
+    assert.equal(r.granted, true);
+    assert.equal(r.text, CONSENT_TEXT);
+    assert.equal(r.version, CONSENT_VERSION);
   });
 });
 
@@ -177,14 +300,159 @@ describe("rateLimit", () => {
     assert.equal(rateLimit(key, 1, 1), null, "allowed again after the window");
   });
 
-  test("clientIp prefers the first X-Forwarded-For hop", () => {
+  /**
+   * This test used to assert the OPPOSITE — that clientIp returns the first
+   * X-Forwarded-For hop — and passed, because it encoded the very behaviour BtCIRT
+   * later reported as 5.1. nginx APPENDS the real address, so the first hop is
+   * whatever the caller sent. Keeping the assertion inverted here is the point: it
+   * fails loudly if anyone restores the old logic.
+   */
+  test("clientIp takes the LAST X-Forwarded-For hop, never the first", () => {
     const req = new Request("https://example.test", {
-      headers: { "x-forwarded-for": "203.0.113.9, 10.0.0.1" },
+      headers: { "x-forwarded-for": "203.0.113.9, 198.51.100.20" },
     });
-    assert.equal(clientIp(req), "203.0.113.9");
+    assert.equal(clientIp(req), "198.51.100.20");
+    assert.notEqual(clientIp(req), "203.0.113.9", "the client-supplied hop was trusted");
   });
 
   test("clientIp falls back rather than throwing when unproxied", () => {
-    assert.equal(clientIp(new Request("https://example.test")), "unknown");
+    assert.equal(clientIp(new Request("https://example.test")), "unattributed");
+  });
+});
+
+/**
+ * BtCIRT penetration test, 31 July 2026. Each test names the finding it pins so a
+ * later refactor cannot quietly reopen one.
+ */
+describe("BtCIRT 5.1 — rate-limit key cannot be forged", () => {
+  const req = (h: Record<string, string>) =>
+    new Request("https://x/", { headers: h });
+
+  test("a spoofed X-Forwarded-For does not change the key", () => {
+    // nginx appends, so the LEFT-most entry is attacker-supplied. The old code took
+    // exactly that, giving a fresh bucket per request.
+    const real = clientIp(req({ "x-real-ip": "1.2.3.4" }));
+    for (const spoof of [
+      "203.0.113.9",
+      "203.0.113.9, 1.2.3.4",
+      "10.0.0.1, 203.0.113.9, 1.2.3.4",
+    ]) {
+      assert.equal(
+        clientIp(req({ "x-real-ip": "1.2.3.4", "x-forwarded-for": spoof })),
+        real,
+        `X-Forwarded-For: ${spoof} changed the rate-limit key`,
+      );
+    }
+  });
+
+  test("Forwarded and True-Client-IP are ignored entirely", () => {
+    // nginx sets neither, so both would be purely client-supplied.
+    assert.equal(
+      clientIp(req({ "x-real-ip": "1.2.3.4", forwarded: "for=198.51.100.7" })),
+      "1.2.3.4",
+    );
+    assert.equal(
+      clientIp(req({ "x-real-ip": "1.2.3.4", "true-client-ip": "198.51.100.7" })),
+      "1.2.3.4",
+    );
+  });
+
+  test("private, reserved and malformed values collapse to one shared bucket", () => {
+    // Otherwise 10/8 alone is 17 million free buckets.
+    for (const v of ["10.0.0.1", "127.0.0.1", "192.168.1.1", "172.16.0.1", "::1", "fe80::1", "not-an-ip", "999.1.1.1"]) {
+      assert.equal(
+        clientIp(req({ "x-forwarded-for": v })),
+        "unattributed",
+        `${v} was accepted as a rate-limit key`,
+      );
+    }
+  });
+
+  test("a genuine public address is still keyed individually", () => {
+    assert.equal(clientIp(req({ "x-real-ip": "203.0.113.50" })), "203.0.113.50");
+    assert.notEqual(
+      clientIp(req({ "x-real-ip": "203.0.113.50" })),
+      clientIp(req({ "x-real-ip": "203.0.113.51" })),
+    );
+  });
+});
+
+describe("BtCIRT 5.4/5.5/5.6 — submissions are validated before forwarding", () => {
+  const valid = {
+    nationality: "non-bhutanese",
+    name: "Test User",
+    email: "v@example.com",
+    phone: "5551234567",
+    countryCode: "+1",
+    country: "BT",
+  };
+  const send = (over: Record<string, unknown>) =>
+    validateSubmission(JSON.stringify({ ...valid, ...over }));
+
+  test("a normal submission still passes", () => {
+    assert.equal(send({}).ok, true);
+    assert.equal(send({ message: "two\n\nparagraphs" }).ok, true);
+    assert.equal(send({ name: "Jean-Baptiste de la Fontaine-Rousseau" }).ok, true);
+  });
+
+  test("5.4 — every countryCode crash shape is rejected", () => {
+    for (const cc of ["+" + "9".repeat(220), "+1\r\nX", "+1\u0000", "http://x.io"]) {
+      assert.equal(send({ countryCode: cc }).ok, false, `countryCode ${JSON.stringify(cc)} was accepted`);
+    }
+    // The values the report confirmed still work must keep working.
+    for (const cc of ["+975", "+1", "+9"]) {
+      assert.equal(send({ countryCode: cc }).ok, true, `countryCode ${cc} was wrongly rejected`);
+    }
+  });
+
+  test("5.5 — NUL bytes and oversized strings are rejected", () => {
+    assert.equal(send({ name: "abc\u0000def" }).ok, false);
+    assert.equal(send({ name: "A".repeat(5000) }).ok, false);
+    assert.equal(send({ message: "a\u0000b" }).ok, false);
+    assert.equal(send({ email: "a".repeat(300) + "@b.co" }).ok, false);
+  });
+
+  test("5.6 — volunteerCount cannot be smuggled as a string or an absurd number", () => {
+    assert.equal(send({ volunteerCount: "999999999999999999999" }).ok, false);
+    assert.equal(send({ volunteerCount: 1e21 }).ok, false);
+    assert.equal(send({ volunteerCount: 2.5 }).ok, false);
+    assert.equal(send({ volunteerCount: 0 }).ok, false);
+    assert.equal(send({ volunteerCount: 5 }).ok, true);
+  });
+
+  test("privileged fields are stripped, not forwarded", () => {
+    const r = send({ verified: true, role: "admin", adminNote: "x", id: 1 });
+    assert.equal(r.ok, true);
+    if (r.ok) {
+      for (const k of ["verified", "role", "adminNote", '"id"']) {
+        assert.ok(!r.body.includes(k), `${k} reached the upstream body`);
+      }
+    }
+  });
+});
+
+describe("BtCIRT 5.7 — upstream schema names are not disclosed", () => {
+  test("internal field names are dropped, public ones kept", () => {
+    const upstream = JSON.stringify({
+      success: false,
+      error: "Validation failed",
+      details: {
+        fieldErrors: {
+          volunteerCountMale: ["Required"],
+          volunteerCountFemale: ["Required"],
+          email: ["Invalid email"],
+        },
+      },
+    });
+    const out = filterUpstreamFieldErrors(upstream);
+    assert.ok(!out.includes("volunteerCountMale"), "internal field name leaked");
+    assert.ok(!out.includes("volunteerCountFemale"), "internal field name leaked");
+    assert.ok(out.includes("email"), "public field error should survive for UX");
+  });
+
+  test("an unparseable upstream body still yields a safe generic message", () => {
+    const out = filterUpstreamFieldErrors("<html>500 oops</html>");
+    assert.ok(!out.includes("html"));
+    assert.ok(out.includes("Please check the form"));
   });
 });

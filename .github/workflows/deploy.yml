@@ -21,6 +21,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PAYMENT_ACCESS_TOKEN: ${{ secrets.PAYMENT_ACCESS_TOKEN }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SUBSCRIBE_SECRET: ${{ secrets.SUBSCRIBE_SECRET }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -40,6 +41,9 @@ jobs:
             : "${DATABASE_URL:?missing GitHub secret DATABASE_URL}"
             : "${PAYMENT_ACCESS_TOKEN:?missing GitHub secret PAYMENT_ACCESS_TOKEN}"
             : "${CRON_SECRET:?missing GitHub secret CRON_SECRET}"
+            # Deliberately NOT asserted. Without it the export and unsubscribe
+            # routes 404 (fail closed) and the sign-up page still works, so a
+            # deploy before the secret exists degrades rather than breaks.
 
             git fetch origin && git reset --hard origin/main
 
@@ -62,6 +66,7 @@ jobs:
             DATABASE_URL=${DATABASE_URL}
             PAYMENT_ACCESS_TOKEN=${PAYMENT_ACCESS_TOKEN}
             CRON_SECRET=${CRON_SECRET}
+            SUBSCRIBE_SECRET=${SUBSCRIBE_SECRET:-}
             EOF
             chmod 600 .env
 

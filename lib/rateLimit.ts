@@ -21,11 +21,76 @@ const g = globalThis as unknown as {
 const buckets: Map<string, Bucket> =
   g.__p108RateBuckets ?? (g.__p108RateBuckets = new Map());
 
-/** Best-effort client IP from the proxy headers nginx sets, else a shared key. */
+/**
+ * A usable rate-limit key: a well-formed PUBLIC IP literal.
+ *
+ * Private and reserved ranges are refused deliberately. Behind our own nginx the real
+ * client is always a public address, so a private one can only have arrived by
+ * injection — and the report noted the old code "accepts unrestricted rotation
+ * values, including private/reserved ranges", which is 17 million free buckets in
+ * 10/8 alone. Anything refused here collapses into the single shared bucket.
+ */
+function usableIpKey(v: string): boolean {
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(v)) {
+    const o = v.split(".").map(Number);
+    if (o.some((n) => n > 255)) return false;
+    if (o[0] === 10) return false; // 10/8
+    if (o[0] === 127) return false; // loopback
+    if (o[0] === 0) return false; // "this network"
+    if (o[0] === 172 && o[1]! >= 16 && o[1]! <= 31) return false; // 172.16/12
+    if (o[0] === 192 && o[1] === 168) return false; // 192.168/16
+    if (o[0] === 169 && o[1] === 254) return false; // link-local
+    if (o[0] === 100 && o[1]! >= 64 && o[1]! <= 127) return false; // CGNAT
+    if (o[0]! >= 224) return false; // multicast + reserved
+    return true;
+  }
+  if (!/^[0-9a-fA-F:]+$/.test(v) || !v.includes(":")) return false;
+  const lower = v.toLowerCase();
+  if (lower === "::1" || lower === "::") return false; // loopback / unspecified
+  if (/^f[cd]/.test(lower)) return false; // unique-local fc00::/7
+  if (/^fe[89ab]/.test(lower)) return false; // link-local fe80::/10
+  return true;
+}
+
+/**
+ * The client IP, taken only from a source the client cannot forge.
+ *
+ * BtCIRT finding 5.1: this used to return the LEFT-MOST X-Forwarded-For entry.
+ * nginx is configured with `$proxy_add_x_forwarded_for`, which APPENDS the real
+ * address to whatever the client sent — so the left-most entry is attacker-supplied,
+ * and rotating it gave a fresh rate-limit bucket per request. That defeated the only
+ * application-layer control on the public submission endpoints.
+ *
+ * X-Real-IP is used instead because nginx sets it with
+ * `proxy_set_header X-Real-IP $remote_addr`, which REPLACES any client value. It is
+ * therefore the socket peer address as observed by our own trusted hop, which is what
+ * the finding asks us to key on. Taking `req.socket.remoteAddress` directly — the
+ * report's first suggestion — would be wrong here: the app sits behind nginx on the
+ * same host, so every request would present as 127.0.0.1 and the limiter would become
+ * one global bucket for the whole internet.
+ *
+ * X-Forwarded-For remains a fallback, but the RIGHT-MOST entry only, since that is the
+ * one our nginx appended. Values that are not well-formed IPs are discarded rather
+ * than used as keys, so a crafted header cannot mint buckets.
+ *
+ * Anything unrecognised collapses to a single shared bucket. That is deliberate: an
+ * unattributable request should contend with every other unattributable request rather
+ * than receive a private allowance.
+ *
+ * Deliberately NOT consulted: `Forwarded` (RFC 7239) and `True-Client-IP`. nginx does
+ * not set either, so both would be purely client-supplied.
+ */
 export function clientIp(req: Request): string {
+  const real = req.headers.get("x-real-ip")?.trim();
+  if (real && usableIpKey(real)) return real;
+
   const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0]!.trim();
-  return req.headers.get("x-real-ip")?.trim() || "unknown";
+  if (xff) {
+    const parts = xff.split(",").map((v) => v.trim());
+    const rightmost = parts[parts.length - 1];
+    if (rightmost && usableIpKey(rightmost)) return rightmost;
+  }
+  return "unattributed";
 }
 
 /**

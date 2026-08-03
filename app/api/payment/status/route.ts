@@ -7,7 +7,12 @@
  */
 
 import { dkCheckStatus } from "@/lib/dk";
-import { markPaymentStatus, bumpPoll } from "@/lib/db";
+import {
+  markPaymentStatus,
+  bumpPoll,
+  markCancelledIfPending,
+} from "@/lib/db";
+import { sendReceiptFor } from "@/lib/sendReceipt";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 // The return page polls this every ~3s for up to ~10 tries, so the ceiling is
@@ -35,15 +40,41 @@ export async function GET(req: Request) {
   // Record the poll (last_polled_at + poll_count); no-op when no DB is configured.
   await bumpPoll(ref);
 
+  // Stripe sends the donor to cancel_url (…&result=cancel) when they leave
+  // without paying, and the return page echoes that back here. `final=1` marks
+  // the last poll of its cycle.
+  const params = new URL(req.url).searchParams;
+  const wasCancelled = params.get("result") === "cancel";
+  const isFinalPoll = params.get("final") === "1";
+
   try {
     const r = await dkCheckStatus(ref);
-    // Persist the confirmation once payment is complete.
+
+    // Persist the confirmation once payment is complete. DK is the only thing
+    // that can put a payment into `paid`.
     if (r.status === "paid") {
       await markPaymentStatus(ref, "paid", {
         eventType: "status_poll",
         dkResponseCode: r.code,
       });
+      // Send the acknowledgement now that the payment is confirmed. Awaited so the
+      // common case delivers immediately, but it can never fail this response:
+      // sendReceiptFor swallows everything and the sweep retries what did not go.
+      await sendReceiptFor(ref);
+      return Response.json({ status: "paid", code: r.code });
     }
+
+    // Record an abandoned checkout, but only on the final poll — deliberately
+    // conservative, because `cancelled` is terminal and the sweep stops checking
+    // a terminal row. Marking it on the first poll would risk writing off a
+    // payment that DK simply had not confirmed yet, which is the expensive
+    // mistake; leaving it `redirected` for the sweep to expire is the cheap one.
+    // The check above means we only get here with DK still saying "not paid".
+    if (wasCancelled && isFinalPoll) {
+      await markCancelledIfPending(ref);
+      return Response.json({ status: "cancelled", code: r.code });
+    }
+
     return Response.json({ status: r.status, code: r.code });
   } catch (err) {
     console.error("[/api/payment/status] DK request failed", err);

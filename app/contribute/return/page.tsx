@@ -48,7 +48,10 @@ export default function ContributeReturnPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const result = params.get("result");
+    // DK builds the return URL with a second "?" instead of "&", so this arrives
+    // as "success?session_id=cs_live_…" rather than "success". Take the leading
+    // token so the value is a clean "success" | "cancel".
+    const result = (params.get("result") || "").split("?")[0];
     let payRef = params.get("ref");
     if (!payRef) {
       try {
@@ -74,9 +77,19 @@ export default function ContributeReturnPage() {
 
     async function poll() {
       pollsRef.current += 1;
+      // Tell the server what Stripe told us, and flag the last attempt of the
+      // cycle. The server only records an abandoned checkout on that final poll,
+      // once DK has had the whole cycle to report a payment instead — writing
+      // `cancelled` (a terminal status) too early would stop reconciliation from
+      // ever checking a payment that had in fact gone through.
+      const isFinal = pollsRef.current >= MAX_POLLS;
+      const qs = new URLSearchParams({ ref: payRef! });
+      if (result) qs.set("result", result);
+      if (isFinal) qs.set("final", "1");
+
       try {
         const res = await fetch(
-          `${basePath}/api/payment/status?ref=${encodeURIComponent(payRef!)}`,
+          `${basePath}/api/payment/status?${qs.toString()}`,
           { cache: "no-store" },
         );
         const data: { status?: string; response_data?: boolean } = await res
