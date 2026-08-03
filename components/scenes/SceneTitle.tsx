@@ -1,4 +1,16 @@
+"use client";
+
+declare function gtag(...args: unknown[]): void;
+
 export default function SceneTitle() {
+  function scrollToInvitation(e: React.MouseEvent) {
+    e.preventDefault();
+    if (typeof gtag === "function") gtag("event", "title_take_part");
+    document
+      .getElementById("scene-invitation")
+      ?.scrollIntoView({ behavior: "smooth" });
+  }
+
   return (
     <section className="scene scene-title" id="scene-title" data-scene="title">
       <div className="stage">
@@ -18,6 +30,13 @@ export default function SceneTitle() {
             <br />
             completed together in a single day.
           </p>
+          <a
+            href="#scene-invitation"
+            className="title-cta"
+            onClick={scrollToInvitation}
+          >
+            Take Part
+          </a>
           <div className="title-meta">
             <span>Gelephu Mindfulness City</span>
             <span>Bhutan</span>

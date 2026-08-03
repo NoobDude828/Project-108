@@ -541,6 +541,30 @@ body.scrolled .status .brand {
   opacity: 0;
   animation: fadeUp 1.2s 1.7s ease-out forwards;
 }
+.title-cta {
+  margin-top: 2.2rem;
+  font-family: var(--font-utility);
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--gold-bright);
+  border: 1px solid var(--gold-bright);
+  padding: 0.75rem 1.8rem;
+  border-radius: 999px;
+  background: rgba(10, 3, 7, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.18s;
+  opacity: 0;
+  animation: fadeUp 1.2s 2s ease-out forwards;
+}
+.title-cta:hover {
+  background: rgba(200, 166, 99, 0.14);
+  transform: translateY(-1px);
+}
 .title-meta {
   margin-top: 3rem;
   font-family: var(--font-utility);
@@ -3400,6 +3424,18 @@ body.scrolled .status .brand {
   border-bottom: 1px solid rgba(200, 166, 99, 0.18);
   padding: 1rem 0;
 }
+.inv-card .subtitle {
+  margin: 0 0 1.4rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid rgba(200, 166, 99, 0.18);
+  border-bottom: 1px solid rgba(200, 166, 99, 0.18);
+  font-family: var(--font-utility);
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  color: rgba(242, 233, 216, 0.5);
+}
 .inv-card .amt .from,
 .inv-card .amt .per {
   font-family: var(--font-utility);
@@ -4506,6 +4542,9 @@ body.scrolled .status .brand {
     font-size: clamp(1rem, 4vw, 1.3rem);
   }
   .inv-card .body {
+    font-size: clamp(0.7rem, 3vw, 0.85rem);
+  }
+  .inv-card .subtitle {
     font-size: clamp(0.7rem, 3vw, 0.85rem);
   }
   .inv-meta-grid {
