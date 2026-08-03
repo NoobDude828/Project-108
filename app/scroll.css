@@ -3093,7 +3093,7 @@ body.scrolled .status .brand {
 }
 .inv-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   margin: 1.2rem 0 1rem;
   text-align: left;
@@ -3120,6 +3120,7 @@ body.scrolled .status .brand {
   color: var(--cream);
   line-height: 1.2;
   margin: 0 0 1rem;
+  min-height: calc(1.2em * 3);
 }
 .inv-card .ttl em {
   color: var(--gold-bright);
@@ -3134,14 +3135,15 @@ body.scrolled .status .brand {
 }
 .inv-card .btn {
   font-family: var(--font-utility);
-  font-size: 0.68rem;
-  letter-spacing: 0.24em;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   text-decoration: none;
   display: inline-block;
   appearance: none;
   -webkit-appearance: none;
-  padding: 0.85rem 1.4rem;
+  white-space: nowrap;
+  padding: 0.85rem 1.1rem;
   border-radius: 999px;
   border: 1px solid transparent;
   background: var(--gold);
@@ -3178,6 +3180,11 @@ body.scrolled .status .brand {
 }
 .inv-meta a:hover {
   color: var(--gold-bright);
+}
+@media (max-width: 1000px) {
+  .inv-cards {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 @media (max-width: 720px) {
   .inv-cards {

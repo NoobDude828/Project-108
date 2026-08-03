@@ -45,8 +45,35 @@ export default function SceneInvitation() {
                 </a>
               </div>
               <div className="inv-card ghost">
+                <p className="lbl">Stay connected</p>
+                <p className="ttl">
+                  Join us from wherever you are in the <em>World</em>.
+                </p>
+                <p className="subtitle">
+                  Sign up to receive the live webcast link for November 1,
+                  prayers and practices for the day, and ways to stay part of
+                  what unfolds next.
+                </p>
+                <p className="body">
+                  Every gathering, prayer, and milestone will be shared with
+                  our global community through live broadcasts and thoughtful
+                  updates, inviting you to witness each sacred moment wherever
+                  you are.
+                </p>
+                <p className="body">
+                  Whether you join from home or across the world, your
+                  presence remains part of the collective offering. Together,
+                  we celebrate, reflect, and dedicate merit beyond borders.
+                </p>
+                <a href="#" className="btn">
+                  Sign up to join
+                </a>
+              </div>
+              <div className="inv-card ghost">
                 <p className="lbl">Patronage</p>
-                <p className="ttl">Support the project</p>
+                <p className="ttl">
+                  Support the <em>Project</em>.
+                </p>
                 <p className="subtitle">
                   Make an offering of any size toward the raising of the 108
                   chortens—every offering becomes part of the whole.
