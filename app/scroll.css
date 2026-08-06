@@ -22,6 +22,8 @@
   --font-body: "Lora", Georgia, "Times New Roman", serif;
   --font-utility:
     "Inter Tight", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --reg-marquee-h: 2.8rem;
 }
 
 *,
@@ -59,12 +61,97 @@ a {
 }
 
 /* ─────────────────────── Chrome (status, caption, rail) ─────────────────────── */
+
+/* ── Volunteer registration update marquee ── */
+.reg-marquee {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 120;
+  height: var(--reg-marquee-h);
+  background: var(--maroon-deeper);
+  border-bottom: 1px solid var(--gold-faint-2);
+  overflow: hidden;
+}
+.reg-marquee__track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: reg-marquee-scroll 260s linear infinite;
+}
+.reg-marquee:hover .reg-marquee__track,
+.reg-marquee:focus-within .reg-marquee__track {
+  animation-play-state: paused;
+}
+.reg-marquee__group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.reg-marquee__msg {
+  display: inline-block;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  color: rgba(242, 233, 216, 0.85);
+}
+.reg-marquee__link {
+  text-decoration: none;
+  color: inherit;
+}
+.reg-marquee__link em {
+  color: var(--gold-bright);
+  font-style: italic;
+  text-decoration: none;
+  text-underline-offset: 2px;
+  transition: color 0.18s;
+}
+.reg-marquee__link:hover em {
+  color: var(--cream-light);
+  text-decoration: underline;
+}
+.reg-marquee__glyph {
+  display: inline-block;
+  height: 1.3rem;
+  width: auto;
+  margin: 0 1.6rem;
+  vertical-align: -0.3em;
+  opacity: 0.9;
+}
+@keyframes reg-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reg-marquee__track {
+    animation: none;
+  }
+  .reg-marquee__msg[aria-hidden="true"] {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .reg-marquee__msg {
+    font-size: 0.78rem;
+  }
+  .reg-marquee__glyph {
+    height: 1.05rem;
+    margin: 0 1.1rem;
+  }
+}
+
 .status {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
+  transition: top 0.25s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -76,6 +163,9 @@ a {
   color: rgba(242, 233, 216, 0.55);
   pointer-events: none;
   mix-blend-mode: difference;
+}
+body.has-reg-notice .status {
+  top: var(--reg-marquee-h);
 }
 .status .brand {
   color: var(--gold-bright);

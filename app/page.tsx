@@ -3,6 +3,7 @@
 import Script from "next/script";
 import "./scroll.css";
 
+import RegistrationNotice from "@/components/ui/RegistrationNotice";
 import StatusBar from "@/components/ui/StatusBar";
 import FormModal from "@/components/ui/FormModal";
 import OrgFormModal from "@/components/ui/OrgFormModal";
@@ -27,6 +28,7 @@ import SceneGesture from "@/components/scenes/SceneGesture";
 export default function ScrollPage() {
   return (
     <>
+      <RegistrationNotice />
       <StatusBar />
 
       <div className="rail" aria-hidden="true">
