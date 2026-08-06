@@ -557,7 +557,9 @@ body.scrolled .status .brand {
   -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.18s, transform 0.18s;
+  transition:
+    background 0.18s,
+    transform 0.18s;
   opacity: 0;
   animation: fadeUp 1.2s 2s ease-out forwards;
 }
@@ -3081,7 +3083,7 @@ body.scrolled .status .brand {
 .inv-block h2 {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+  font-size: clamp(1.25rem, 2.45vw, 1.9rem);
   line-height: 1.15;
   color: var(--cream);
   margin: 0 0 0.8rem;
@@ -3095,7 +3097,7 @@ body.scrolled .status .brand {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
-  margin: 1.2rem 0 1rem;
+  margin: 1.8rem 0 1rem;
   text-align: left;
 }
 .inv-card {
@@ -3116,10 +3118,10 @@ body.scrolled .status .brand {
 .inv-card .ttl {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-size: clamp(1.25rem, 2.1vw, 1.55rem);
   color: var(--cream);
   line-height: 1.2;
-  margin: 0 0 1rem;
+  margin: 0 0 0.2rem;
   min-height: calc(1.2em * 3);
 }
 .inv-card .ttl em {
@@ -4529,7 +4531,7 @@ body.scrolled .status .brand {
     font-size: clamp(0.6rem, 3vw, 0.85rem);
   }
   .inv-block h2 {
-    font-size: clamp(1.2rem, 5.5vw, 1.6rem);
+    font-size: clamp(1.05rem, 4.8vw, 1.4rem);
   }
   .inv-lede {
     font-size: clamp(0.75rem, 3.5vw, 0.9rem);
@@ -4543,7 +4545,7 @@ body.scrolled .status .brand {
     font-size: 0.55rem;
   }
   .inv-card .ttl {
-    font-size: clamp(1rem, 4.5vw, 1.3rem);
+    font-size: clamp(0.9rem, 4vw, 1.13rem);
   }
   .inv-card .amt strong {
     font-size: clamp(1rem, 4vw, 1.3rem);
@@ -4825,7 +4827,11 @@ body.scrolled .status .brand {
   min-height: 100vh;
   min-height: 100dvh;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(200, 166, 99, 0.06) 0%, transparent 60%),
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(200, 166, 99, 0.06) 0%,
+      transparent 60%
+    ),
     var(--maroon-night);
   padding: 3rem 1rem 4rem;
 }
@@ -5083,7 +5089,11 @@ body.scrolled .status .brand {
   /* One faint radial, the same ground the rest of the site stands on — this page
      has to feel like part of it, not a bare utility screen. Nothing more. */
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(200, 166, 99, 0.05) 0%, transparent 62%),
+    radial-gradient(
+      ellipse at 50% 0%,
+      rgba(200, 166, 99, 0.05) 0%,
+      transparent 62%
+    ),
     var(--maroon-night);
   padding: 4.5rem 1.5rem;
 }

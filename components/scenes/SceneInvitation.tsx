@@ -5,12 +5,12 @@ export default function SceneInvitation() {
         <div className="stage__inner">
           <div className="inv-block">
             <h2>
-              Two ways to <em>take part</em>.
+              Three ways to <em>take part</em>.
             </h2>
             <p className="inv-lede">
-              Project 108 is shaped by two forces: those who <em>offer</em> the
-              chortens, and those who <em>build</em> them. Both are acts of
-              merit. Both are needed.
+              Project 108 is shaped by three forces: those who <em>offer</em>{" "}
+              the chortens, those who <em>build</em> them, and those who{" "}
+              <em>witness</em> their rising.
             </p>
             <div className="inv-cards">
               <div className="inv-card">
@@ -55,15 +55,15 @@ export default function SceneInvitation() {
                   what unfolds next.
                 </p>
                 <p className="body">
-                  Every gathering, prayer, and milestone will be shared with
-                  our global community through live broadcasts and thoughtful
+                  Every gathering, prayer, and milestone will be shared with our
+                  global community through live broadcasts and thoughtful
                   updates, inviting you to witness each sacred moment wherever
                   you are.
                 </p>
                 <p className="body">
-                  Whether you join from home or across the world, your
-                  presence remains part of the collective offering. Together,
-                  we celebrate, reflect, and dedicate merit beyond borders.
+                  Whether you join from home or across the world, your presence
+                  remains part of the collective offering. Together, we
+                  celebrate, reflect, and dedicate merit beyond borders.
                 </p>
                 <a href="#" className="btn">
                   Sign up to join
