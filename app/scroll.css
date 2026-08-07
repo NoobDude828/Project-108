@@ -162,13 +162,18 @@ a {
   text-transform: uppercase;
   color: rgba(242, 233, 216, 0.55);
   pointer-events: none;
-  mix-blend-mode: difference;
 }
 body.has-reg-notice .status {
   top: var(--reg-marquee-h);
 }
+/* Only the brand label needs to auto-invert for contrast against
+   whatever scene is scrolling behind the fixed header — scoped here
+   instead of on .status as a whole, since grouping the whole header
+   into one diff-blended layer was distorting the buttons' real colours
+   (e.g. the gold glow no longer matching .title-cta's identical values). */
 .status .brand {
   color: var(--gold-bright);
+  mix-blend-mode: difference;
   transition: opacity 0.5s;
 }
 body.scrolled .status .brand {
@@ -266,6 +271,59 @@ body.scrolled .status .brand {
 }
 .status-split__btn:hover {
   background: rgba(200, 166, 99, 0.14);
+}
+
+/* Borderless variant matching .title-cta's treatment — transparent at
+   rest, warm colour + lift + spotlight glow on hover. Scaled down to
+   this button's smaller size. */
+.status-split__btn--glow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition:
+    transform 0.18s,
+    color 0.18s;
+}
+.status-split__btn--glow::before {
+  content: "";
+  position: absolute;
+  inset: -16px -28px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 166, 99, 0.55) 0%,
+    rgba(200, 166, 99, 0.28) 27%,
+    rgba(200, 166, 99, 0.12) 47%,
+    rgba(200, 166, 99, 0.04) 67%,
+    transparent 100%
+  );
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.status-split__btn--glow:hover {
+  background: transparent;
+  color: var(--gold-warm);
+}
+.status-split__btn--glow:hover::before {
+  opacity: 1;
+}
+.status-split__icon {
+  width: 1.2em;
+  height: 1.2em;
+  flex-shrink: 0;
+  transform: translateY(-3px);
+  transition: transform 0.18s ease;
+}
+.status-split__btn--glow:hover .status-split__icon {
+  transform: translateY(-1px);
 }
 
 /* ── Mobile hamburger toggle ── */
@@ -632,6 +690,8 @@ body.scrolled .status .brand {
   animation: fadeUp 1.2s 1.7s ease-out forwards;
 }
 .title-cta {
+  position: relative;
+  display: inline-block;
   margin-top: 2.2rem;
   font-family: var(--font-utility);
   font-size: 0.7rem;
@@ -639,23 +699,52 @@ body.scrolled .status .brand {
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold-bright);
-  border: 1px solid var(--gold-bright);
   padding: 0.75rem 1.8rem;
   border-radius: 999px;
-  background: rgba(10, 3, 7, 0.55);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: transparent;
   cursor: pointer;
   white-space: nowrap;
   transition:
-    background 0.18s,
-    transform 0.18s;
+    transform 0.18s,
+    color 0.18s;
   opacity: 0;
   animation: fadeUp 1.2s 2s ease-out forwards;
 }
+/* Ambient spotlight — sized and feathered well past the button on every
+   side, so it reads as light flooding out from behind, not a bounded
+   shape sitting on the button. */
+.title-cta::before {
+  content: "";
+  position: absolute;
+  inset: -8px -13px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 166, 99, 0.55) 0%,
+    rgba(200, 166, 99, 0.28) 27%,
+    rgba(200, 166, 99, 0.12) 47%,
+    rgba(200, 166, 99, 0.04) 67%,
+    transparent 100%
+  );
+  filter: blur(11px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
 .title-cta:hover {
-  background: rgba(200, 166, 99, 0.14);
-  transform: translateY(-1px);
+  color: var(--gold-warm);
+  transform: translateY(-1px) scale(1.03);
+}
+.title-cta:hover::before {
+  opacity: 1;
+}
+.title-cta__arrow {
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+.title-cta:hover .title-cta__arrow {
+  transform: translateX(4px);
 }
 .title-meta {
   margin-top: 3rem;

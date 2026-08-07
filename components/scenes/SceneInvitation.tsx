@@ -70,7 +70,7 @@ export default function SceneInvitation() {
                 </a>
               </div>
               <div className="inv-card ghost">
-                <p className="lbl">Patronage</p>
+                <p className="lbl">Offering</p>
                 <p className="ttl">
                   Support the <em>Project</em>.
                 </p>
@@ -91,6 +91,7 @@ export default function SceneInvitation() {
                   construction, sacred materials, and consecration by Buddhist
                   masters.
                 </p>
+
                 <p className="body">
                   Each chorten may be dedicated in honour of a patron, a loved
                   one, or all sentient beings. A plaque provides permanent

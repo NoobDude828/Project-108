@@ -12,14 +12,16 @@ function trackEvent(name: string, params?: Record<string, string>) {
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  function scrollToInvitation(e: React.MouseEvent) {
-    e.preventDefault();
-    setMenuOpen(false);
-    trackEvent("nav_take_part");
-    document
-      .getElementById("scene-invitation")
-      ?.scrollIntoView({ behavior: "smooth" });
-  }
+  // Unused while the "Take Part" CTA below is commented out — re-enable
+  // together when the button comes back.
+  // function scrollToInvitation(e: React.MouseEvent) {
+  //   e.preventDefault();
+  //   setMenuOpen(false);
+  //   trackEvent("nav_take_part");
+  //   document
+  //     .getElementById("scene-invitation")
+  //     ?.scrollIntoView({ behavior: "smooth" });
+  // }
 
   return (
     <>
@@ -32,13 +34,28 @@ export default function StatusBar() {
             href={BROCHURE_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="status-split__btn"
+            className="status-split__btn status-split__btn--glow"
             onClick={() =>
               trackEvent("pdf_download", { location: "nav_desktop" })
             }
           >
             Download Brochure
+            <svg
+              className="status-split__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 15V3" />
+              <path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4" />
+              <path d="m7 10 5 5 5-5" />
+            </svg>
           </a>
+          {/* Take Part CTA — temporarily disabled
           <a
             href="#scene-invitation"
             className="status-split__btn"
@@ -46,6 +63,7 @@ export default function StatusBar() {
           >
             Take Part →
           </a>
+          */}
         </div>
 
         {/* ── Mobile: hamburger toggle ── */}
@@ -91,6 +109,7 @@ export default function StatusBar() {
           >
             Download Brochure
           </a>
+          {/* Take Part CTA — temporarily disabled
           <a
             href="#scene-invitation"
             className="status-drawer__btn"
@@ -99,6 +118,7 @@ export default function StatusBar() {
           >
             Take Part →
           </a>
+          */}
         </nav>
       </div>
     </>

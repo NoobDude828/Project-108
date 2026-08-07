@@ -35,7 +35,7 @@ export default function SceneTitle() {
             className="title-cta"
             onClick={scrollToInvitation}
           >
-            Take Part
+            Take Part <span className="title-cta__arrow" aria-hidden="true">→</span>
           </a>
           <div className="title-meta">
             <span>Gelephu Mindfulness City</span>
