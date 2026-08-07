@@ -70,7 +70,7 @@ export default function SceneInvitation() {
                 </a>
               </div>
               <div className="inv-card ghost">
-                <p className="lbl">Offering</p>
+                <p className="lbl">Make an offer</p>
                 <p className="ttl">
                   Support the <em>Project</em>.
                 </p>
