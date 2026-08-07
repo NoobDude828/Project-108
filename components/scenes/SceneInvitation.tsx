@@ -5,7 +5,7 @@ export default function SceneInvitation() {
         <div className="stage__inner">
           <div className="inv-block">
             <h2>
-              Two ways to <em>take part</em>.
+              Three ways to <em>take part</em>.
             </h2>
             <p className="inv-lede">
               Project 108 is shaped by two forces: those who <em>offer</em> the
@@ -70,7 +70,7 @@ export default function SceneInvitation() {
                 </a>
               </div>
               <div className="inv-card ghost">
-                <p className="lbl">Patronage</p>
+                <p className="lbl">Offering</p>
                 <p className="ttl">
                   Support the <em>Project</em>.
                 </p>
