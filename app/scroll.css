@@ -256,7 +256,7 @@ body.scrolled .status .brand {
   text-decoration: none;
   color: var(--gold-bright);
   border: 1px solid var(--gold-bright);
-  padding: 0.55rem 1.2rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 999px;
   background: rgba(10, 3, 7, 0.55);
   backdrop-filter: blur(8px);
@@ -272,10 +272,17 @@ body.scrolled .status .brand {
 .status-split__btn:hover {
   background: rgba(200, 166, 99, 0.14);
 }
+.status-split__btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
 
 /* Borderless variant matching .title-cta's treatment — transparent at
-   rest, warm colour + lift + spotlight glow on hover. Scaled down to
-   this button's smaller size. */
+   rest, spotlight glow on hover. Scaled down to this button's smaller
+   size, and deliberately de-emphasised (dim cream at rest, a hover
+   ceiling that only reaches .title-cta's *resting* gold) so this
+   secondary, informational link never competes with the hero's primary
+   "Take Part" CTA. */
 .status-split__btn--glow {
   position: relative;
   display: inline-flex;
@@ -285,9 +292,14 @@ body.scrolled .status .brand {
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  color: rgba(242, 233, 216, 0.55);
   transition:
     transform 0.18s,
     color 0.18s;
+}
+.status-split__btn--glow:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
 }
 .status-split__btn--glow::before {
   content: "";
@@ -310,10 +322,10 @@ body.scrolled .status .brand {
 }
 .status-split__btn--glow:hover {
   background: transparent;
-  color: var(--gold-warm);
+  color: var(--gold-bright);
 }
 .status-split__btn--glow:hover::before {
-  opacity: 1;
+  opacity: 0.55;
 }
 .status-split__icon {
   width: 1.2em;
@@ -437,13 +449,15 @@ body.scrolled .status .brand {
   .status-drawer__close:hover {
     color: var(--gold-bright);
   }
-  /* Drawer buttons — underline style */
+  /* Drawer buttons — underline style. De-emphasised to match the desktop
+     glow variant: dim at rest, warming only as far as .title-cta's own
+     resting gold, so it reads as secondary next to Take Part. */
   .status-drawer__btn {
     text-decoration: none;
-    color: var(--gold-bright);
+    color: rgba(242, 233, 216, 0.55);
     border: none;
     border-bottom: 1px solid rgba(200, 166, 99, 0.4);
-    padding: 0.85rem 0;
+    padding: 1rem 0;
     border-radius: 0;
     font-family: var(--font-utility);
     font-size: 0.65rem;
@@ -453,12 +467,24 @@ body.scrolled .status .brand {
     transition:
       border-color 0.18s,
       color 0.18s;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
   }
   .status-drawer__btn:hover,
   .status-drawer__btn:active {
     border-color: var(--gold-bright);
-    color: var(--cream);
+    color: var(--gold-bright);
+  }
+  .status-drawer__btn:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
+  }
+  .status-drawer__icon {
+    width: 1.5em;
+    height: 1.5em;
+    flex-shrink: 0;
   }
 }
 
@@ -694,12 +720,13 @@ body.scrolled .status .brand {
   display: inline-block;
   margin-top: 2.2rem;
   font-family: var(--font-utility);
-  font-size: 0.7rem;
+  font-weight: 600;
+  font-size: 0.82rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--gold-bright);
-  padding: 0.75rem 1.8rem;
+  padding: 0.9rem 2.2rem;
   border-radius: 999px;
   background: transparent;
   cursor: pointer;
@@ -712,7 +739,9 @@ body.scrolled .status .brand {
 }
 /* Ambient spotlight — sized and feathered well past the button on every
    side, so it reads as light flooding out from behind, not a bounded
-   shape sitting on the button. */
+   shape sitting on the button. Left faintly visible at rest (rather than
+   fully off) so the button reads as an actionable glow among the
+   surrounding static microtext, then blooms full-strength on hover. */
 .title-cta::before {
   content: "";
   position: absolute;
@@ -727,10 +756,26 @@ body.scrolled .status .brand {
     transparent 100%
   );
   filter: blur(11px);
-  opacity: 0;
+  opacity: 0.35;
   transition: opacity 0.3s ease;
   pointer-events: none;
   z-index: -1;
+}
+/* Idle pulse — while un-hovered, the resting glow breathes continuously
+   between faint and a touch brighter, so it catches the eye without ever
+   reading as the full hover bloom. Runs on the same duration and
+   keyframe offsets as the arrow's idle nudge below, staying in phase so
+   the two read as one unified breathing gesture rather than two
+   independently-timed loops drifting apart. Uses a plain 0%/50%/100%
+   sine-like curve (no held plateau) so the motion never visibly stalls
+   between iterations. Scoped to :not(:hover) so hover keeps its own
+   snap to full opacity via the rule below. */
+.title-cta:not(:hover)::before {
+  animation: ctaGlowPulse 1.8s ease-in-out infinite;
+}
+.title-cta:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
 }
 .title-cta:hover {
   color: var(--gold-warm);
@@ -739,12 +784,38 @@ body.scrolled .status .brand {
 .title-cta:hover::before {
   opacity: 1;
 }
+@keyframes ctaGlowPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.78;
+  }
+}
 .title-cta__arrow {
   display: inline-block;
   transition: transform 0.18s ease;
 }
+/* Idle nudge — while un-hovered, continuously prod the arrow rightward
+   and back in step with the glow pulse above (same duration and
+   offsets, no held plateau), so the two never stall mid-loop and the
+   button reads as one steady, unbroken breathing motion. Scoped to
+   :not(:hover) so hover keeps its own snappier, one-shot transform. */
+.title-cta:not(:hover) .title-cta__arrow {
+  animation: ctaArrowNudge 1.8s ease-in-out infinite;
+}
 .title-cta:hover .title-cta__arrow {
   transform: translateX(4px);
+}
+@keyframes ctaArrowNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
 }
 .title-meta {
   margin-top: 3rem;

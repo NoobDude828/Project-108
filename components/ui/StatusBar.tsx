@@ -108,6 +108,20 @@ export default function StatusBar() {
             }}
           >
             Download Brochure
+            <svg
+              className="status-drawer__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 15V3" />
+              <path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4" />
+              <path d="m7 10 5 5 5-5" />
+            </svg>
           </a>
           {/* Take Part CTA — temporarily disabled
           <a
