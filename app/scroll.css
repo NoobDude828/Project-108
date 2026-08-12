@@ -244,7 +244,7 @@ body.scrolled .status .brand {
 .status-split {
   pointer-events: auto;
   display: flex;
-  gap: 1.5rem;
+  gap: 0.75rem;
   align-items: center;
   font-family: var(--font-utility);
   font-size: 0.625rem;
@@ -256,7 +256,7 @@ body.scrolled .status .brand {
   text-decoration: none;
   color: var(--gold-bright);
   border: 1px solid var(--gold-bright);
-  padding: 0.75rem 1.5rem;
+  padding: 0.55rem 1.1rem;
   border-radius: 999px;
   background: rgba(10, 3, 7, 0.55);
   backdrop-filter: blur(8px);
@@ -277,25 +277,20 @@ body.scrolled .status .brand {
   outline-offset: 2px;
 }
 
-/* Borderless variant matching .title-cta's treatment — transparent at
-   rest, spotlight glow on hover. Scaled down to this button's smaller
-   size, and deliberately de-emphasised (dim cream at rest, a hover
-   ceiling that only reaches .title-cta's *resting* gold) so this
-   secondary, informational link never competes with the hero's primary
-   "Take Part" CTA. */
+/* Glow variant matching .title-cta's treatment — outlined at rest (same
+   border colour as the text), spotlight glow on hover. Scaled down to
+   this button's smaller size. Both status-bar buttons (Take Part and
+   Download Brochure) share this variant so they read as one pair. */
 .status-split__btn--glow {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  border: none;
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  color: rgba(242, 233, 216, 0.55);
-  transition:
-    transform 0.18s,
-    color 0.18s;
+  color: var(--gold-bright);
+  transition: transform 0.18s;
 }
 .status-split__btn--glow:focus-visible {
   outline: 2px solid var(--gold-bright);
@@ -304,7 +299,7 @@ body.scrolled .status .brand {
 .status-split__btn--glow::before {
   content: "";
   position: absolute;
-  inset: -16px -28px;
+  inset: -6px -10px;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
@@ -314,15 +309,11 @@ body.scrolled .status .brand {
     rgba(200, 166, 99, 0.04) 67%,
     transparent 100%
   );
-  filter: blur(10px);
+  filter: blur(6px);
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
   z-index: -1;
-}
-.status-split__btn--glow:hover {
-  background: transparent;
-  color: var(--gold-bright);
 }
 .status-split__btn--glow:hover::before {
   opacity: 0.55;
@@ -336,6 +327,13 @@ body.scrolled .status .brand {
 }
 .status-split__btn--glow:hover .status-split__icon {
   transform: translateY(-1px);
+}
+.status-split__arrow {
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+.status-split__btn--glow:hover .status-split__arrow {
+  transform: translateX(3px);
 }
 
 /* ── Mobile hamburger toggle ── */
@@ -449,12 +447,11 @@ body.scrolled .status .brand {
   .status-drawer__close:hover {
     color: var(--gold-bright);
   }
-  /* Drawer buttons — underline style. De-emphasised to match the desktop
-     glow variant: dim at rest, warming only as far as .title-cta's own
-     resting gold, so it reads as secondary next to Take Part. */
+  /* Drawer buttons — underline style, matching the desktop glow variant's
+     gold-bright text so Take Part and Download Brochure read as one pair. */
   .status-drawer__btn {
     text-decoration: none;
-    color: rgba(242, 233, 216, 0.55);
+    color: var(--gold-bright);
     border: none;
     border-bottom: 1px solid rgba(200, 166, 99, 0.4);
     padding: 1rem 0;
@@ -464,18 +461,19 @@ body.scrolled .status .brand {
     letter-spacing: 0.28em;
     text-transform: uppercase;
     text-align: left;
-    transition:
-      border-color 0.18s,
-      color 0.18s;
+    transition: border-color 0.18s;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    /* Fixed regardless of content — the SVG icon (1.5em box) and the
+       plain-text arrow glyph would otherwise set different line heights,
+       leaving the two rows visibly unequal. */
+    min-height: 1.5em;
   }
   .status-drawer__btn:hover,
   .status-drawer__btn:active {
     border-color: var(--gold-bright);
-    color: var(--gold-bright);
   }
   .status-drawer__btn:focus-visible {
     outline: 2px solid var(--gold-bright);
@@ -484,6 +482,9 @@ body.scrolled .status .brand {
   .status-drawer__icon {
     width: 1.5em;
     height: 1.5em;
+    flex-shrink: 0;
+  }
+  .status-drawer__arrow {
     flex-shrink: 0;
   }
 }

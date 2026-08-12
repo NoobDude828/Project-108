@@ -12,16 +12,14 @@ function trackEvent(name: string, params?: Record<string, string>) {
 export default function StatusBar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Unused while the "Take Part" CTA below is commented out — re-enable
-  // together when the button comes back.
-  // function scrollToInvitation(e: React.MouseEvent) {
-  //   e.preventDefault();
-  //   setMenuOpen(false);
-  //   trackEvent("nav_take_part");
-  //   document
-  //     .getElementById("scene-invitation")
-  //     ?.scrollIntoView({ behavior: "smooth" });
-  // }
+  function scrollToInvitation(e: React.MouseEvent) {
+    e.preventDefault();
+    setMenuOpen(false);
+    trackEvent("nav_take_part");
+    document
+      .getElementById("scene-invitation")
+      ?.scrollIntoView({ behavior: "smooth" });
+  }
 
   return (
     <>
@@ -55,15 +53,16 @@ export default function StatusBar() {
               <path d="m7 10 5 5 5-5" />
             </svg>
           </a>
-          {/* Take Part CTA — temporarily disabled
           <a
             href="#scene-invitation"
-            className="status-split__btn"
+            className="status-split__btn status-split__btn--glow"
             onClick={scrollToInvitation}
           >
-            Take Part →
+            Take Part
+            <span className="status-split__arrow" aria-hidden="true">
+              →
+            </span>
           </a>
-          */}
         </div>
 
         {/* ── Mobile: hamburger toggle ── */}
@@ -123,16 +122,17 @@ export default function StatusBar() {
               <path d="m7 10 5 5 5-5" />
             </svg>
           </a>
-          {/* Take Part CTA — temporarily disabled
           <a
             href="#scene-invitation"
             className="status-drawer__btn"
             role="menuitem"
             onClick={scrollToInvitation}
           >
-            Take Part →
+            Take Part
+            <span className="status-drawer__arrow" aria-hidden="true">
+              →
+            </span>
           </a>
-          */}
         </nav>
       </div>
     </>
