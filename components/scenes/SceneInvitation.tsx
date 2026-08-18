@@ -19,11 +19,9 @@ export default function SceneInvitation() {
                   Become a <em>Volunteer</em>.
                 </p>
                 <p className="amt">
-                  <span className="from">A workforce of</span>
+                  <span className="from">An estimated</span>
                   <strong>40,000</strong>
-                  <span className="per">
-                    trained volunteers · across 108 sites
-                  </span>
+                  <span className="per">volunteers · across 108 sites</span>
                 </p>
                 <p className="body">
                   Tens of thousands are already at work along the Mao Chhu,
@@ -35,6 +33,7 @@ export default function SceneInvitation() {
                   No specialist skills are required. What matters is
                   willingness, discipline, and shared purpose.
                 </p> */}
+
                 <a
                   href="https://sites.google.com/view/gmc-project108"
                   target="_blank"
