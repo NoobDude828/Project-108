@@ -3679,7 +3679,9 @@ body.scrolled .status .brand {
   margin: 0 0 1.4rem;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0.2rem;
+  min-height: 8rem;
   border-top: 1px solid rgba(200, 166, 99, 0.18);
   border-bottom: 1px solid rgba(200, 166, 99, 0.18);
   padding: 1rem 0;
@@ -3687,6 +3689,9 @@ body.scrolled .status .brand {
 .inv-card .subtitle {
   margin: 0 0 1.4rem;
   padding: 1.5rem 0;
+  min-height: 8rem;
+  display: flex;
+  align-items: center;
   border-top: 1px solid rgba(200, 166, 99, 0.18);
   border-bottom: 1px solid rgba(200, 166, 99, 0.18);
   font-family: var(--font-utility);
@@ -4798,6 +4803,9 @@ body.scrolled .status .brand {
   .inv-card .ttl {
     font-size: clamp(0.9rem, 4vw, 1.13rem);
   }
+  .inv-card .amt {
+    min-height: 0;
+  }
   .inv-card .amt strong {
     font-size: clamp(1rem, 4vw, 1.3rem);
   }
@@ -4805,6 +4813,7 @@ body.scrolled .status .brand {
     font-size: clamp(0.7rem, 3vw, 0.85rem);
   }
   .inv-card .subtitle {
+    min-height: 0;
     font-size: clamp(0.7rem, 3vw, 0.85rem);
   }
   .inv-meta-grid {
