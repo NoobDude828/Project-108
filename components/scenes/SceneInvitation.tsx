@@ -66,9 +66,13 @@ export default function SceneInvitation() {
                   remains part of the collective offering. Together, we
                   celebrate, reflect, and dedicate merit beyond borders.
                 </p> */}
-                <a href="#" className="btn">
+                <button
+                  type="button"
+                  className="btn"
+                  data-open-signup
+                >
                   Sign up to join
-                </a>
+                </button>
               </div>
               <div className="inv-card ghost">
                 <p className="lbl">Offering</p>

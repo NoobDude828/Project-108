@@ -238,6 +238,15 @@
   }
 
   /* -------- Wire up triggers -------- */
+  /* "Stay connected" card -> the React-mounted SignUpModal. It also binds its own
+     click listener, so the button works even if this file has not run yet. */
+  document.querySelectorAll("[data-open-signup]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent("p108:open-signup"));
+    });
+  });
+
   document.querySelectorAll("[data-open-form]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();

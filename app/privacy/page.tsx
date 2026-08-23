@@ -119,6 +119,41 @@ export default function PrivacyPage() {
           </p>
         </Section> */}
 
+        {/* The note the sign-up form links to. The form promises "how we hold it,
+            and how to come off the list", so both have to actually be answered
+            here, in plain terms. */}
+        <Section heading="The livestream and updates list">
+          <p>
+            If you tick the box on a sign-up form, or at checkout when making an
+            offering, we hold your email address — and your name if you gave one —
+            so that we can send you the livestream link for November 1 and keep you
+            connected to Project 108 and the wider Gelephu Mindfulness City vision.
+            That wording is the whole of the permission: we do not use your address
+            for anything else, and we do not sell, rent or share it.
+          </p>
+          <p>
+            We record the date you ticked the box and the exact wording you saw at
+            the time. If that wording is ever revised, your record keeps the version
+            you agreed to rather than being reinterpreted under new wording.
+          </p>
+          <p>
+            The list is held by Gelephu Mindfulness City Authority in our own
+            database in the European Union, reachable only by the staff who need it.
+            We keep your address until you ask to come off the list, and we review
+            the list periodically so that addresses we no longer have a reason to
+            hold are removed.
+          </p>
+          <p>
+            <strong style={{ fontWeight: 500 }}>Coming off the list.</strong> Every
+            email we send carries an unsubscribe link, and one click is enough — you
+            do not need to give a reason or sign in. You can also write to{" "}
+            <a href="mailto:108@gmc.bt">108@gmc.bt</a> and we will remove you by
+            hand. Removal stops all further updates; where you have also made an
+            offering, the record of that payment is kept as a financial record, but
+            it is no longer used to write to you.
+          </p>
+        </Section>
+
         <Section heading="Contact">
           Questions about this notice or your data may be directed to{" "}
           <a href="mailto:108@gmc.bt" style={linkStyle}>

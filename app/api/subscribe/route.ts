@@ -53,6 +53,11 @@ export async function POST(req: Request) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   // Bots fill every field they find; the real form keeps this one empty and hidden.
   const honeypot = typeof body.website === "string" ? body.website.trim() : "";
+  // Provenance only, never used for scoping: every door grants the same permission.
+  // Constrained to a known set so it cannot become a free-text sink.
+  const KNOWN_SOURCES = new Set(["card", "signup-page", "signup", "email-link"]);
+  const rawSource = typeof body.source === "string" ? body.source.trim() : "";
+  const source = KNOWN_SOURCES.has(rawSource) ? rawSource : "signup";
 
   if (honeypot) {
     // Answer exactly as success, so a bot learns nothing and stops retrying.
@@ -77,7 +82,7 @@ export async function POST(req: Request) {
     await addSubscriber({
       email,
       name: name || undefined,
-      source: "signup",
+      source,
       consentText: consent.text,
       consentVersion: consent.version,
     });

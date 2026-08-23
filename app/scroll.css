@@ -5594,3 +5594,128 @@ body.scrolled .status .brand {
   line-height: 1.6;
   color: rgba(242, 233, 216, 0.7);
 }
+
+/* Who is collecting the address, and where to read how it is held. Stated on the
+   form itself, because a person is entitled to know before they hand it over. Body
+   size and 0.72 alpha (8.5:1 here) — this is a disclosure, not decorative micro-text. */
+.su-controller {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: rgba(242, 233, 216, 0.72);
+}
+.su-controller a {
+  color: var(--gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.su-controller a:hover {
+  color: var(--gold-warm);
+}
+/* Inside the modal the shared form sits on the sheet, which already has padding. */
+.form-modal .su-form {
+  margin-top: 0.2rem;
+}
+.form-modal .su-form .check--consent {
+  margin-top: 1.2rem;
+}
+
+/* The shared sign-up form inside a modal sheet.
+   .form-modal__sheet > * supplies side padding only; the other modals happen to end
+   with .form-modal__small, which carries the bottom room. This form is the sheet's
+   last child, so without this the submit button sat 1px from the sheet's edge. */
+.form-modal .su-form {
+  padding-bottom: 2.4rem;
+}
+.form-modal .su-form .su-micro {
+  margin-top: 1rem;
+}
+@media (max-width: 600px) {
+  .form-modal .su-form {
+    padding-bottom: 1.6rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Sign-up modal on small screens.
+   At 320px the sheet overflowed by ~191px, which put the submit button below the
+   fold on the single highest-traffic form on the site. Everything was reachable by
+   scrolling, but a CTA you have to hunt for costs sign-ups. Tightened here rather
+   than globally, so the patron and organisation modals keep their own rhythm.
+--------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .signup-modal .form-modal__ttl {
+    font-size: clamp(1.5rem, 7vw, 1.9rem);
+    line-height: 1.15;
+  }
+  .signup-modal .form-modal__lede {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .signup-modal .su-form .field {
+    margin-bottom: 0.7rem;
+  }
+  .signup-modal .su-form .check--consent {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    font-size: 0.8rem;
+  }
+  .signup-modal .su-controller {
+    margin-top: 0.8rem;
+    font-size: 0.76rem;
+    line-height: 1.55;
+  }
+  .signup-modal .su-btn {
+    margin-top: 1.2rem;
+  }
+  .signup-modal .su-micro {
+    margin-top: 0.8rem;
+    font-size: 0.55rem;
+  }
+}
+/* Landscape phones: a 92dvh sheet is only ~330px tall, so the sheet must be free to
+   use nearly the whole screen and scroll within it. */
+@media (max-height: 460px) and (max-width: 900px) {
+  .signup-modal .form-modal__sheet {
+    max-height: 98dvh;
+  }
+  .signup-modal .form-modal__lede {
+    display: none;
+  }
+}
+
+/* The content genuinely does not fit a 320x568 screen — the consent wording alone is
+   three lines, and every part of it is required. Tightening the spacing only bought
+   15px, so instead the sheet scrolls and the submit button STAYS PUT at the bottom of
+   it. Standard mobile pattern, and it means the action is never something the reader
+   has to go looking for. */
+@media (max-width: 600px) {
+  .signup-modal .su-btn {
+    position: sticky;
+    /* Sticky offsets are measured from the scrollport, not from the form's padding,
+       so bottom:0 pinned the button flush to the screen edge — under the home
+       indicator on a real phone. Lift it clear, respecting the safe area. */
+    bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+    /* Deliberately NO z-index. `position: sticky` alone does not create a stacking
+       context, which is what lets the ::before fade below paint BEHIND the button's
+       gold. Setting z-index here created one, and the fade covered the button. The
+       button still paints above the fields, because it comes after them in the DOM. */
+  }
+  /* The button is a pill on a scrolling surface, so it needs its own ground:
+     without this, text scrolls visibly through the gaps beside the rounded ends. */
+  .signup-modal .su-btn::before {
+    content: "";
+    position: absolute;
+    inset: -2.2rem -2rem -1.5rem;
+    background: linear-gradient(
+      to bottom,
+      rgba(22, 6, 16, 0) 0%,
+      rgba(22, 6, 16, 0.85) 38%,
+      rgba(22, 6, 16, 0.97) 62%,
+      rgba(22, 6, 16, 1) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
+  }
+}
