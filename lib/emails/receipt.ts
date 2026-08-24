@@ -55,7 +55,20 @@ function esc(s: string): string {
 const money = (n: number) =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function layout(body: string): string {
+/**
+ * Postal address for the email footer.
+ *
+ * Required by the client, and by the anti-spam rules of most jurisdictions the
+ * campaign will reach: a commercial or campaign email must carry a physical address
+ * someone could actually write to. Constructed from what GMCA supplied (postcode
+ * 31101, Gelephu) — if a street or PO box exists it belongs here, since a postcode
+ * alone is not somewhere post can be delivered.
+ */
+const POSTAL_ADDRESS =
+  process.env.ORG_POSTAL_ADDRESS?.trim() ||
+  "Gelephu Mindfulness City Authority, Gelephu 31101, Bhutan";
+
+function layout(body: string, unsubscribeUrl?: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,9 +98,19 @@ function layout(body: string): string {
         <tr><td style="background:#ffffff;padding:0 36px 28px;border-left:1px solid ${C.ruleLight};border-right:1px solid ${C.ruleLight};border-bottom:1px solid ${C.ruleLight};border-radius:0 0 4px 4px;">
           <div style="width:36px;height:1px;background:${C.gold};opacity:0.5;margin:0 auto 20px;"></div>
           <div style="text-align:center;font-family:${FONTS.utility};font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:${C.inkSoft};line-height:2;">
-            108 Jangchub Chortens Initiative<br />
-            Gelephu Mindfulness City Authority &middot; Bhutan
+            108 Jangchub Chortens Initiative
           </div>
+          <div style="text-align:center;font-family:${FONTS.body};font-size:11px;color:${C.inkSoft};line-height:1.7;margin-top:8px;">
+            ${POSTAL_ADDRESS}
+          </div>
+          ${
+            unsubscribeUrl
+              ? `<div style="text-align:center;font-family:${FONTS.body};font-size:11px;color:${C.inkSoft};line-height:1.7;margin-top:6px;">
+            You are receiving updates because you asked to stay connected.
+            <a href="${unsubscribeUrl}" style="color:${C.inkSoft};text-decoration:underline;">Unsubscribe</a>.
+          </div>`
+              : ""
+          }
         </td></tr>
       </table>
     </td></tr>
@@ -118,6 +141,14 @@ export type ReceiptData = {
   signupUrl: string;
   /** OPTIONAL ADDITION — only rendered when the donor actually wrote one. */
   dedication?: string;
+  /**
+   * Signed unsubscribe link, supplied only when this person opted in to updates.
+   *
+   * Absent for a donor who did not tick the box: they are receiving a receipt for a
+   * payment they made, which is transactional, and offering to unsubscribe from a
+   * list they never joined is confusing rather than helpful.
+   */
+  unsubscribeUrl?: string;
 };
 
 export function contributionReceiptEmail(d: ReceiptData): {
@@ -158,7 +189,8 @@ export function contributionReceiptEmail(d: ReceiptData): {
 
   return {
     subject: "Thank you for your offering — Project 108",
-    html: layout(`
+    html: layout(
+      `
       <div style="text-align:center;padding:8px 0 28px;">
         <div style="width:36px;height:1px;background:${C.gold};opacity:0.5;margin:0 auto 24px;"></div>
         <h2 style="font-family:${FONTS.display};font-size:28px;font-weight:300;font-style:italic;color:${C.ink};margin:0 0 8px;letter-spacing:0.01em;">
@@ -209,7 +241,9 @@ export function contributionReceiptEmail(d: ReceiptData): {
         <span style="font-family:${FONTS.display};font-size:17px;font-style:italic;">The 108 Project Team</span><br />
         <span style="font-family:${FONTS.utility};font-size:9px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:${C.inkSoft};">Gelephu Mindfulness City</span>
       </p>
-    `),
+    `,
+      d.unsubscribeUrl,
+    ),
     // Plain-text alternative. Not optional: a receipt that renders as a blank page
     // in a text-only client is not a receipt.
     text: [

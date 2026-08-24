@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SignUpForm from "./SignUpForm";
+import SignUpFields from "@/components/ui/SignUpFields";
 
 // Same per-page import as app/contribute — scroll.css is not global.
 import "../scroll.css";
@@ -10,6 +10,11 @@ import "../scroll.css";
  * The third door (the link in the acknowledgement email) points here, and the
  * checkout tick-box grants the same permission with the same wording. Three doors,
  * one list.
+ *
+ * The form is the SHARED SignUpFields component — the identical one the "Stay
+ * connected" card opens in a modal. Sharing the component is what makes "the same
+ * form everywhere" a fact rather than an intention: the wording, the fields and the
+ * unticked tick-box exist once.
  *
  * The hero is the DAY, not the field. An earlier version reused the contribute
  * page's modal sheet, which made this look like a dialogue box nobody had closed and
@@ -23,12 +28,12 @@ import "../scroll.css";
  */
 
 export const metadata: Metadata = {
-  title: "Be with us on November 1st — Project 108",
+  title: "Be with us on November 1 — Project 108",
   description:
-    "On November 1st, all 108 Jangchub Chortens will be raised together in a single day at Gelephu Mindfulness City, Bhutan. Leave your email to receive the livestream link and the prayers for the day.",
+    "On November 1, all 108 Jangchub Chortens will be raised together in a single day at Gelephu Mindfulness City, Bhutan. Leave your email to receive the livestream link and the prayers for the day.",
   alternates: { canonical: "https://108.gmc.bt/sign-up" },
   openGraph: {
-    title: "Be with us on November 1st — Project 108",
+    title: "Be with us on November 1 — Project 108",
     description:
       "All 108 Jangchub Chortens raised together in a single day, at Gelephu Mindfulness City, Bhutan.",
     url: "https://108.gmc.bt/sign-up",
@@ -43,7 +48,7 @@ export default function SignUpPage() {
         <p className="su-eyebrow">Project 108 · Bhutan</p>
 
         <h1 className="su-hero">
-          Be with us on <em>November 1st</em>
+          Be with us on <em>November&nbsp;1</em>
         </h1>
 
         <div className="su-rule" aria-hidden="true" />
@@ -53,7 +58,7 @@ export default function SignUpPage() {
           Gelephu Mindfulness City.
         </p>
 
-        <SignUpForm />
+        <SignUpFields source="signup-page" autoFocus />
       </div>
     </main>
   );

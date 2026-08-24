@@ -137,10 +137,20 @@ export async function POST(req: Request) {
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(donorEmail)) {
     fieldErrors.donorEmail = ["Please enter a valid email address."];
   }
-  // Phone and address are deliberately OPTIONAL. Stripe collects billing details
-  // on its own checkout page for card verification, so requiring them here asks
-  // the donor for the same thing twice — and Western donors are frequently
-  // reluctant to hand over a phone number for a donation at all.
+  /**
+   * Address and country are REQUIRED; phone is not.
+   *
+   * They were briefly optional on the reasoning that Stripe collects billing details
+   * anyway. Stripe does — but DK returns only a boolean, never the charge object, so
+   * what Stripe collects never reaches us. Optional therefore meant no address
+   * existed anywhere we could read, which is what happened to the first real
+   * contribution. Enforced here and not only in the form, because the form is not the
+   * authority.
+   */
+  if (!country) fieldErrors.country = ["Please select your country."];
+  if (!addressLine1) fieldErrors.addressLine1 = ["Please enter your street address."];
+  if (!city) fieldErrors.city = ["Please enter your city or town."];
+  if (!postalCode) fieldErrors.postalCode = ["Please enter your postal or ZIP code."];
   if (Object.keys(fieldErrors).length > 0) {
     return Response.json(
       { success: false, error: "Please check the form.", details: { fieldErrors } },

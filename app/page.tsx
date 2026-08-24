@@ -7,6 +7,7 @@ import RegistrationNotice from "@/components/ui/RegistrationNotice";
 import StatusBar from "@/components/ui/StatusBar";
 import FormModal from "@/components/ui/FormModal";
 import OrgFormModal from "@/components/ui/OrgFormModal";
+import SignUpModal from "@/components/ui/SignUpModal";
 import FloatTopButton from "@/components/ui/FloatTopButton";
 
 import SceneTitle from "@/components/scenes/SceneTitle";
@@ -54,6 +55,7 @@ export default function ScrollPage() {
       <FloatTopButton />
       <FormModal />
       <OrgFormModal />
+      <SignUpModal />
 
       <Script
         src="/scroll/scrollytelling.js?v=28"
