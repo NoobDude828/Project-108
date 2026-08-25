@@ -279,8 +279,9 @@ body.scrolled .status .brand {
 
 /* Glow variant matching .title-cta's treatment — outlined at rest (same
    border colour as the text), spotlight glow on hover. Scaled down to
-   this button's smaller size. Both status-bar buttons (Take Part and
-   Download Brochure) share this variant so they read as one pair. */
+   this button's smaller size. Download Brochure — the secondary action —
+   uses this variant; Take Part uses .status-split__btn--primary below so
+   the two no longer read as one interchangeable pair. */
 .status-split__btn--glow {
   position: relative;
   display: inline-flex;
@@ -333,6 +334,36 @@ body.scrolled .status .brand {
   transition: transform 0.18s ease;
 }
 .status-split__btn--glow:hover .status-split__arrow {
+  transform: translateX(3px);
+}
+
+/* Primary variant — Take Part, the one action of the two the nav actually
+   wants taken. Same solid gold-fill-on-maroon treatment as .su-btn and
+   .form-modal__thanks .btn (the site's one "primary" button language)
+   rather than the outlined glow the two nav buttons used to share, so it
+   reads as the ask and Download Brochure reads as the reference material. */
+.status-split__btn--primary {
+  background: var(--gold);
+  border-color: transparent;
+  color: var(--maroon-deep);
+  font-weight: 600;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition:
+    background 0.2s ease,
+    transform 0.18s ease,
+    box-shadow 0.25s ease;
+}
+.status-split__btn--primary:hover {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(200, 166, 99, 0.28);
+}
+.status-split__btn--primary:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+.status-split__btn--primary:hover .status-split__arrow {
   transform: translateX(3px);
 }
 
@@ -448,7 +479,9 @@ body.scrolled .status .brand {
     color: var(--gold-bright);
   }
   /* Drawer buttons — underline style, matching the desktop glow variant's
-     gold-bright text so Take Part and Download Brochure read as one pair. */
+     gold-bright text. Take Part overrides to a solid pill below (mirroring
+     the desktop split), so it doesn't read as an equal-weight row alongside
+     Download Brochure here either. */
   .status-drawer__btn {
     text-decoration: none;
     color: var(--gold-bright);
@@ -486,6 +519,28 @@ body.scrolled .status .brand {
   }
   .status-drawer__arrow {
     flex-shrink: 0;
+  }
+
+  /* Take Part, primary: same solid gold-fill treatment as the desktop
+     .status-split__btn--primary, so the drawer's one action is unmistakable
+     rather than another underlined row. */
+  .status-drawer__btn--primary {
+    color: var(--maroon-deep);
+    background: var(--gold);
+    border: none;
+    border-radius: 999px;
+    padding: 0.9rem 1.3rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
+  .status-drawer__btn--primary:hover,
+  .status-drawer__btn--primary:active {
+    background: var(--gold-bright);
+    border-color: transparent;
+  }
+  .status-drawer__btn--primary:focus-visible {
+    outline: 2px solid var(--gold-bright);
+    outline-offset: 2px;
   }
 }
 
@@ -5078,35 +5133,80 @@ body.scrolled .status .brand {
 }
 
 /* ── Unlisted /contribute page ──────────────────────────────────────────
-   Presented as the Patronage modal (same .form-modal classes) so there is no
-   visual drift when it is eventually surfaced from the invitation scene.
+   A plain page, same as /sign-up and /privacy — not a modal. It used to reuse
+   .form-modal/.form-modal__sheet (the Patronage dialog's markup) with a long
+   list of overrides to undo the card/dialog-sizing/dialog-type-scale that
+   markup carries; that fought itself every time the three pages needed to
+   match. ContributeForm.tsx now renders plain markup instead: .contribute-page
+   → .contribute-content → .su-eyebrow/.su-hero/.su-lede (the same classes
+   /sign-up defines and /privacy also reuses), so the header can't drift
+   between pages again. The .form-modal__form/__error/__small classes below
+   are unrelated to any of that — they're the actual form fields, still
+   genuinely shared with the real modals.
    The additions below exist for one reason: make the amount the hero. In the
    first draft all ten fields carried identical weight, so the amount looked
    exactly like the postcode field. */
-.contribute-page {
+/* Shared by every top-aligned "plain page" — currently /contribute and
+   /privacy. (/sign-up is deliberately NOT part of this: .su-page is
+   vertically centred, a different layout model entirely, not just a
+   variation on this one — see its own comment further down.) Background and
+   responsive padding live here, once, so neither page can end up with its own
+   breakpoints (or, as happened, no breakpoints at all). */
+.static-page {
+  /* Positions .home-link (see its own comment) — otherwise it'd anchor to the
+     document instead of this page. */
+  position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(200, 166, 99, 0.06) 0%,
-      transparent 60%
-    ),
-    var(--maroon-night);
+  /* Same ground as .scene-title .stage__inner — see .su-page. */
+  background: radial-gradient(
+    ellipse at center top,
+    #5a2236 0%,
+    var(--maroon-deep) 55%,
+    var(--maroon-deeper) 100%
+  );
   padding: 3rem 1rem 4rem;
 }
-/* Static, not an overlay: no backdrop, no entry transform. */
-.contribute-modal {
-  position: static;
-  display: block;
-  background: none;
-  opacity: 1;
-  pointer-events: auto;
+@media (max-width: 600px) {
+  .static-page {
+    /* Top padding was 1.25rem — barely clearing .home-link's own fixed
+       position (top: 1rem, ~1.2rem tall), so the eyebrow sat right under it.
+       3rem matches /sign-up's mobile top padding, giving the same clearance. */
+    padding: 3rem 0.75rem 2.5rem;
+  }
 }
-.contribute-modal .form-modal__sheet {
+@media (max-width: 360px) {
+  .static-page {
+    /* Top padding stays at the 3rem set above — same reasoning, clearing
+       .home-link — only the sides and bottom tighten further here. */
+    padding: 3rem 0.5rem 2rem;
+  }
+}
+@media (min-width: 601px) {
+  .static-page {
+    padding: 6rem 1.5rem 5rem;
+  }
+}
+
+.contribute-page {
+  /* Nothing of its own left — background/padding come from .static-page.
+     Kept as a class so contribute-specific selectors (.contribute-amount
+     etc.) have a page-scoped hook if one's ever needed again. */
+}
+/* Same pattern as /privacy's .privacy-article: max-width off an already-padded
+   parent, no viewport-relative calc. */
+.contribute-content {
+  width: 100%;
+  max-width: 720px;
   margin: 0 auto;
-  max-height: none;
-  transform: none;
+}
+/* .su-lede supplies the font styling; this reproduces the divider that used to
+   sit under .form-modal__lede, separating the intro sentence from the amount
+   block below it. */
+.contribute-lede {
+  margin: 0.6rem 0 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(200, 166, 99, 0.1);
 }
 
 /* The amount block — the one element allowed to dominate. */
@@ -5275,43 +5375,12 @@ body.scrolled .status .brand {
 
 /* ---------------------------------------------------------------------------
    Contribute page — responsive.
-   The shared .form-modal styles turn into a bottom sheet below 600px: full-bleed,
-   squared-off at the bottom, with a drag handle. Correct for a modal that slides
-   up over the scroll page; wrong here, where this is a standalone page that was
-   never dragged open and has nothing behind it. So the card is restored on small
-   screens and only its padding tightens.
+   Page padding now comes from .static-page (above). What's left here is
+   content-specific: the amount block needs more room from tablet up, and the
+   very narrowest phones need the amount row and checkboxes to give a little
+   more ground before the type itself has to shrink.
 --------------------------------------------------------------------------- */
-@media (max-width: 600px) {
-  .contribute-page {
-    padding: 1.25rem 0.75rem 2.5rem;
-  }
-  .contribute-modal .form-modal__sheet {
-    width: 100%;
-    max-height: none;
-    border: 1px solid rgba(200, 166, 99, 0.18);
-    border-top: 2px solid var(--gold);
-    border-radius: 6px;
-    padding-bottom: 0;
-  }
-  /* The drag handle is an affordance for a gesture this page does not have. */
-  .contribute-modal .form-modal__sheet::before {
-    content: none;
-  }
-  .contribute-modal .form-modal__lbl {
-    padding-top: 1.6rem;
-  }
-}
-
-/* Very narrow phones (320–360px): the amount can still lead, but the gap between
-   "USD" and the figure is what breaks first, so it closes before the type does. */
 @media (max-width: 360px) {
-  .contribute-page {
-    padding: 1rem 0.5rem 2rem;
-  }
-  .contribute-modal .form-modal__sheet > * {
-    padding-left: 1.1rem;
-    padding-right: 1.1rem;
-  }
   .contribute-amount__row {
     gap: 0.45rem;
   }
@@ -5323,13 +5392,7 @@ body.scrolled .status .brand {
     font-size: 0.8rem;
   }
 }
-
-/* From tablet up the sheet is a fixed-width card centred in the page, and the
-   amount gets room to breathe. */
 @media (min-width: 601px) {
-  .contribute-page {
-    padding: 4rem 1.5rem 5rem;
-  }
   .contribute-amount {
     padding-bottom: 1.9rem;
   }
@@ -5342,19 +5405,21 @@ body.scrolled .status .brand {
    ground instead, left-aligned like a letter rather than centred like a poster.
 --------------------------------------------------------------------------- */
 .su-page {
+  /* Positions .home-link — otherwise it'd anchor to the document instead of
+     this page. */
+  position: relative;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   align-items: center;
-  /* One faint radial, the same ground the rest of the site stands on — this page
-     has to feel like part of it, not a bare utility screen. Nothing more. */
-  background:
-    radial-gradient(
-      ellipse at 50% 0%,
-      rgba(200, 166, 99, 0.05) 0%,
-      transparent 62%
-    ),
-    var(--maroon-night);
+  /* The same ground as .scene-title .stage__inner, the opening section of the
+     homepage — this page has to feel like part of it, not a bare utility screen. */
+  background: radial-gradient(
+    ellipse at center top,
+    #5a2236 0%,
+    var(--maroon-deep) 55%,
+    var(--maroon-deeper) 100%
+  );
   padding: 4.5rem 1.5rem;
 }
 .su-col {
@@ -5613,6 +5678,66 @@ body.scrolled .status .brand {
 .su-controller a:hover {
   color: var(--gold-warm);
 }
+/* Background/padding come from .static-page now (this page used to hard-code
+   a fixed 6rem/1.5rem/4rem padding with no breakpoints at all — the one thing
+   that never actually got fixed when /contribute got real ones, which is why
+   /privacy alone had a huge, un-shrinking gap on mobile). Kept as a class for
+   privacy-specific text colour/font below. */
+.privacy-page {
+  color: #f2e9d8;
+  font-family: var(--font-body, Georgia, serif);
+}
+/* Same width/rhythm as .contribute-content — max-width off an already-padded
+   parent, no viewport-relative calc. Font-size/line-height match .su-lede's
+   values (that class itself is scoped to a single sentence, not a whole
+   article, so this stays its own declaration rather than the shared class). */
+.privacy-article {
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+
+/* --- HomeLink: the way back, on pages outside the main scrollytelling flow -- */
+.home-link {
+  /* Absolute, not fixed — it scrolls away with the page instead of staying
+     pinned over whatever content scrolls underneath it. Positioned relative
+     to .static-page/.su-page (both position: relative), so top/left place it
+     the same as before, just no longer viewport-locked. */
+  position: absolute;
+  top: 1.4rem;
+  left: 1.5rem;
+  z-index: 210;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-utility);
+  /* Matches .status .brand — same size/tracking as the nav's own brand label. */
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(242, 233, 216, 0.68);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.home-link:hover {
+  color: var(--gold-bright);
+}
+.home-link:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+.home-link__arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+@media (max-width: 480px) {
+  .home-link {
+    top: 1rem;
+    left: 1.1rem;
+  }
+}
+
 /* Inside the modal the shared form sits on the sheet, which already has padding. */
 .form-modal .su-form {
   margin-top: 0.2rem;

@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+import HomeLink from "@/components/ui/HomeLink";
+
+// Same per-page import as app/sign-up and app/contribute — scroll.css is not
+// global. .static-page (shared with /contribute) supplies the ground and the
+// responsive padding; .privacy-page adds this page's own text colour/font.
+// The rest of the page body still uses inline styles for its own prose
+// styling (Section headings, links), left alone deliberately.
+import "../scroll.css";
 
 export const metadata: Metadata = {
   title: "Privacy Notice — Project 108",
@@ -9,46 +17,18 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main
-      style={{
-        background: "#160610",
-        minHeight: "100vh",
-        padding: "6rem 1.5rem 4rem",
-        color: "#F2E9D8",
-        fontFamily: "var(--font-body, Georgia, serif)",
-      }}
-    >
-      <article
-        style={{
-          maxWidth: "720px",
-          margin: "0 auto",
-          lineHeight: 1.75,
-          fontSize: "1.05rem",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-utility, sans-serif)",
-            fontSize: "0.62rem",
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: "rgba(200,166,99,0.7)",
-            marginBottom: "1.2rem",
-          }}
-        >
-          Project 108 · Gelephu Mindfulness City
-        </p>
+    <main className="static-page privacy-page">
+      <HomeLink />
+      {/* .su-eyebrow/.su-hero — the same classes /sign-up defines and
+          /contribute now reuses too — rather than this page matching their
+          size/weight/spacing by hand with its own numbers. .privacy-article
+          only adds the width/layout .su-lede doesn't carry (it's meant for a
+          single sentence, not a multi-section article), keeping its font-size
+          and line-height in step by reusing the same values. */}
+      <article className="privacy-article">
+        <p className="su-eyebrow">Project 108 · Gelephu Mindfulness City</p>
 
-        <h1
-          style={{
-            fontFamily: "var(--font-display, Georgia, serif)",
-            fontWeight: 300,
-            fontSize: "clamp(2rem, 5vw, 3rem)",
-            lineHeight: 1.15,
-            color: "#F2E9D8",
-            marginBottom: "2.5rem",
-          }}
-        >
+        <h1 className="su-hero" style={{ marginBottom: "2.5rem" }}>
           Privacy Notice
         </h1>
 
@@ -125,32 +105,34 @@ export default function PrivacyPage() {
         <Section heading="The livestream and updates list">
           <p>
             If you tick the box on a sign-up form, or at checkout when making an
-            offering, we hold your email address — and your name if you gave one —
-            so that we can send you the livestream link for November 1 and keep you
-            connected to Project 108 and the wider Gelephu Mindfulness City vision.
-            That wording is the whole of the permission: we do not use your address
-            for anything else, and we do not sell, rent or share it.
+            offering, we hold your email address — and your name if you gave one
+            — so that we can send you the livestream link for November 1 and
+            keep you connected to Project 108 and the wider Gelephu Mindfulness
+            City vision. That wording is the whole of the permission: we do not
+            use your address for anything else, and we do not sell, rent or
+            share it.
           </p>
           <p>
-            We record the date you ticked the box and the exact wording you saw at
-            the time. If that wording is ever revised, your record keeps the version
-            you agreed to rather than being reinterpreted under new wording.
+            We record the date you ticked the box and the exact wording you saw
+            at the time. If that wording is ever revised, your record keeps the
+            version you agreed to rather than being reinterpreted under new
+            wording.
           </p>
           <p>
             The list is held by Gelephu Mindfulness City Authority in our own
-            database in the European Union, reachable only by the staff who need it.
-            We keep your address until you ask to come off the list, and we review
-            the list periodically so that addresses we no longer have a reason to
-            hold are removed.
+            database in the European Union, reachable only by the staff who need
+            it. We keep your address until you ask to come off the list, and we
+            review the list periodically so that addresses we no longer have a
+            reason to hold are removed.
           </p>
           <p>
-            <strong style={{ fontWeight: 500 }}>Coming off the list.</strong> Every
-            email we send carries an unsubscribe link, and one click is enough — you
-            do not need to give a reason or sign in. You can also write to{" "}
-            <a href="mailto:108@gmc.bt">108@gmc.bt</a> and we will remove you by
-            hand. Removal stops all further updates; where you have also made an
-            offering, the record of that payment is kept as a financial record, but
-            it is no longer used to write to you.
+            <strong style={{ fontWeight: 500 }}>Coming off the list.</strong>{" "}
+            Every email we send carries an unsubscribe link, and one click is
+            enough — you do not need to give a reason or sign in. You can also
+            write to <a href="mailto:108@gmc.bt">108@gmc.bt</a> and we will
+            remove you by hand. Removal stops all further updates; where you
+            have also made an offering, the record of that payment is kept as a
+            financial record, but it is no longer used to write to you.
           </p>
         </Section>
 

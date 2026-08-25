@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { COUNTRIES, dialCodeOptions } from "./countries";
 import { CONSENT_TEXT } from "@/lib/consent";
+import HomeLink from "@/components/ui/HomeLink";
 
 /**
  * Contribution form, presented as the Patronage modal is (same .form-modal
@@ -48,7 +49,10 @@ const feeCents = (baseCents: number) =>
   FEE_FIXED_CENTS;
 
 const money = (n: number) =>
-  n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 const minOfferCents = (coversFee: boolean) =>
   coversFee ? MIN_BASE_CENTS : MIN_BASE_CENTS + feeCents(MIN_BASE_CENTS);
@@ -60,7 +64,8 @@ const minOfferCents = (coversFee: boolean) =>
  */
 function baseCentsForTotal(totalCents: number): number {
   const estimate = Math.round(
-    ((totalCents - FEE_FIXED_CENTS) * FEE_PCT_DEN) / (FEE_PCT_DEN + FEE_PCT_NUM),
+    ((totalCents - FEE_FIXED_CENTS) * FEE_PCT_DEN) /
+      (FEE_PCT_DEN + FEE_PCT_NUM),
   );
   let best: number | null = null;
   for (let c = estimate - 5; c <= estimate + 5; c++) {
@@ -135,7 +140,12 @@ export default function ContributeForm({ grant }: { grant: string }) {
     let v = raw.replace(/[^\d.]/g, "");
     const dot = v.indexOf(".");
     if (dot !== -1) {
-      v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, "").slice(0, 2);
+      v =
+        v.slice(0, dot + 1) +
+        v
+          .slice(dot + 1)
+          .replace(/\./g, "")
+          .slice(0, 2);
     }
     update("amount", v);
   }
@@ -212,7 +222,9 @@ export default function ContributeForm({ grant }: { grant: string }) {
       consentUpdates: form.consentUpdates,
       donorName: form.donorName.trim(),
       donorEmail: form.donorEmail.trim(),
-      ...(phone ? { phoneCountryCode: form.phoneCountryCode, donorPhone: phone } : {}),
+      ...(phone
+        ? { phoneCountryCode: form.phoneCountryCode, donorPhone: phone }
+        : {}),
       country: form.country,
       addressLine1: form.addressLine1.trim(),
       addressLine2: form.addressLine2.trim() || undefined,
@@ -257,7 +269,9 @@ export default function ContributeForm({ grant }: { grant: string }) {
           ? "Too many attempts just now. Please wait a moment and try again."
           : res.status === 404
             ? "This contribution page has expired. Please reload and try again."
-            : firstField || data.error || "Something went wrong. Please try again.",
+            : firstField ||
+              data.error ||
+              "Something went wrong. Please try again.",
       );
     } catch {
       setStatus("error");
@@ -270,279 +284,276 @@ export default function ContributeForm({ grant }: { grant: string }) {
   const busy = status === "submitting" || status === "redirecting";
 
   return (
-    <main className="contribute-page">
-      <div className="form-modal is-open contribute-modal" aria-hidden="false">
-        <div className="form-modal__sheet">
-          <p className="form-modal__lbl">Project 108 · Bhutan</p>
-          <h1 className="form-modal__ttl">
-            Offer a <em>contribution</em>.
-          </h1>
-          <p className="form-modal__lede">
-            Every offering supports the construction, sacred materials, and
-            consecration of the 108 Jangchub Chortens. Contributions are received
-            in US dollars through a secure checkout.
-          </p>
+    <main className="static-page contribute-page">
+      <HomeLink />
+      <div className="contribute-content">
+        <p className="su-eyebrow">Project 108 · Gelephu Mindfulness City</p>
+        <h1 className="su-hero">
+          Offer a <em>contribution</em>.
+        </h1>
+        <p className="su-lede contribute-lede">
+          Every offering supports the construction, sacred materials, and
+          consecration of the 108 Jangchub Chortens. Contributions are
+          received in US dollars through a secure checkout.
+        </p>
 
-          <form className="form-modal__form" onSubmit={handleSubmit} noValidate>
-            {/* The hero: the amount, at display scale. */}
-            <div className="contribute-amount">
-              <label className="contribute-amount__lbl" htmlFor="amount">
-                Contribution amount
-              </label>
-              <div className="contribute-amount__row">
-                <span className="contribute-amount__cur" aria-hidden="true">
-                  USD
-                </span>
-                <input
-                  id="amount"
-                  ref={amountRef}
-                  className="contribute-amount__input"
-                  type="text"
-                  inputMode="decimal"
-                  value={form.amount}
-                  onChange={(e) => onAmountChange(e.target.value)}
-                  placeholder="0.00"
-                  aria-describedby="amount-fee"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              {/* The choice sits with the amount, because it changes the amount.
-                  Pre-ticked, so the generous path is the effortless one. */}
-              <label className="check check--fee">
-                <input
-                  type="checkbox"
-                  checked={form.coversFee}
-                  onChange={(e) => toggle("coversFee", e.target.checked)}
-                />
-                  <span className="check__txt">
-                  I would like to cover the processing fee, so the full amount
-                  reaches the project.
-                </span>
-              </label>
-
-              <p id="amount-fee" className="contribute-fee" aria-live="polite">
-                {amountValid ? (
-                  form.coversFee ? (
-                    <>
-                      You will be charged{" "}
-                      <strong className="contribute-fee__total">
-                        ${money(total)}
-                      </strong>{" "}
-                      — your contribution of ${money(amountNum)} plus $
-                      {money(fee)} in processing. Project 108 receives the full{" "}
-                      <strong>${money(netToProject)}</strong>.
-                    </>
-                  ) : (
-                    <>
-                      You will be charged{" "}
-                      <strong className="contribute-fee__total">
-                        ${money(total)}
-                      </strong>
-                      . After ${money(fee)} in processing, Project 108 receives{" "}
-                      <strong>${money(netToProject)}</strong>.
-                    </>
-                  )
-                ) : (
-                  <>
-                    Card processing costs 4.85% plus $0.60. Cover it and the whole
-                    of your contribution reaches the project; leave it and it is
-                    taken from your contribution instead. Minimum $
-                    {money(minOffer)}.
-                  </>
-                )}
-              </p>
-            </div>
-
-            <label className="field">
-              <span className="field__lbl">Full name</span>
-              <input
-                type="text"
-                value={form.donorName}
-                onChange={(e) => update("donorName", e.target.value)}
-                autoComplete="name"
-                required
-              />
+        <form className="form-modal__form" onSubmit={handleSubmit} noValidate>
+          {/* The hero: the amount, at display scale. */}
+          <div className="contribute-amount">
+            <label className="contribute-amount__lbl" htmlFor="amount">
+              Contribution amount
             </label>
-
-            <label className="field">
-              <span className="field__lbl">Email</span>
-              <input
-                type="email"
-                value={form.donorEmail}
-                onChange={(e) => update("donorEmail", e.target.value)}
-                autoComplete="email"
-                required
-              />
-            </label>
-
-            <div className="form-row form-row--phone">
-              <label className="field field--cc">
-                <span className="field__lbl">Country code</span>
-                <select
-                  value={form.phoneCountryCode}
-                  onChange={(e) => update("phoneCountryCode", e.target.value)}
-                  required
-                >
-                  {ccOptions.map(([name, iso, d]) => (
-                    <option key={iso + d} value={d}>
-                      {d} &nbsp;{name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span className="field__lbl">
-                  Phone number <span className="field__opt">(optional)</span>
-                </span>
-                <input
-                  type="tel"
-                  value={form.donorPhone}
-                  onChange={(e) => update("donorPhone", e.target.value)}
-                  inputMode="numeric"
-                  autoComplete="tel-national"
-                />
-              </label>
-            </div>
-
-            {/* Saying why lifts completion and answers the objection that this
-                duplicates Stripe — it does not, because DK never returns what
-                Stripe collects. */}
-            <p className="contribute-why">
-              We ask for your address so your offering can be properly recorded and
-              acknowledged.
-            </p>
-
-            <label className="field">
-              <span className="field__lbl">Address</span>
-              <input
-                type="text"
-                value={form.addressLine1}
-                onChange={(e) => update("addressLine1", e.target.value)}
-                placeholder="Street address"
-                autoComplete="address-line1"
-              />
-            </label>
-
-            <label className="field">
-              <span className="field__lbl">
-                Address line 2 <span className="field__opt">(optional)</span>
+            <div className="contribute-amount__row">
+              <span className="contribute-amount__cur" aria-hidden="true">
+                USD
               </span>
               <input
+                id="amount"
+                ref={amountRef}
+                className="contribute-amount__input"
                 type="text"
-                value={form.addressLine2}
-                onChange={(e) => update("addressLine2", e.target.value)}
-                autoComplete="address-line2"
+                inputMode="decimal"
+                value={form.amount}
+                onChange={(e) => onAmountChange(e.target.value)}
+                placeholder="0.00"
+                aria-describedby="amount-fee"
+                autoFocus
+                required
               />
-            </label>
-
-            <div className="form-row form-row--double">
-              <label className="field">
-                <span className="field__lbl">City / town</span>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => update("city", e.target.value)}
-                  autoComplete="address-level2"
-                />
-              </label>
-              <label className="field">
-                <span className="field__lbl">
-                  State / region <span className="field__opt">(optional)</span>
-                </span>
-                <input
-                  type="text"
-                  value={form.state}
-                  onChange={(e) => update("state", e.target.value)}
-                  autoComplete="address-level1"
-                />
-              </label>
             </div>
 
-            <div className="form-row form-row--double">
-              <label className="field">
-                <span className="field__lbl">
-                  Postal code
-                </span>
-                <input
-                  type="text"
-                  value={form.postalCode}
-                  onChange={(e) => update("postalCode", e.target.value)}
-                  autoComplete="postal-code"
-                />
-              </label>
-              <label className="field">
-                <span className="field__lbl">Country</span>
-                <select
-                  value={form.country}
-                  onChange={(e) => update("country", e.target.value)}
-                  required
-                >
-                  {/* No pre-selection: defaulting to Bhutan silently recorded every
-                      international donor as Bhutanese. */}
-                  <option value="" disabled>
-                    Select your country
-                  </option>
-                  {COUNTRIES.map(([name, iso]) => (
-                    <option key={iso} value={iso}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className="field">
-              <span className="field__lbl">
-                Dedication <span className="field__opt">(optional)</span>
-              </span>
-              <textarea
-                value={form.message}
-                onChange={(e) => update("message", e.target.value)}
-                rows={2}
-                placeholder="In honour of a loved one, or all sentient beings."
-              />
-            </label>
-
-            {/* Unticked by design. One list, one permission — the wording is
-                imported, never restated, so the checkout box, the sign-up page and
-                the thank-you email cannot grant different things. */}
-            <label className="check check--consent">
+            {/* The choice sits with the amount, because it changes the amount.
+                Pre-ticked, so the generous path is the effortless one. */}
+            <label className="check check--fee">
               <input
                 type="checkbox"
-                checked={form.consentUpdates}
-                onChange={(e) => toggle("consentUpdates", e.target.checked)}
+                checked={form.coversFee}
+                onChange={(e) => toggle("coversFee", e.target.checked)}
               />
-              <span className="check__txt">{CONSENT_TEXT}</span>
+              <span className="check__txt">
+                I would like to cover the processing fee, so the full amount
+                reaches the project.
+              </span>
             </label>
 
-            <p
-              className="form-modal__error"
-              role="alert"
-              aria-live="polite"
-              hidden={!errorMsg}
-            >
-              {errorMsg}
+            <p id="amount-fee" className="contribute-fee" aria-live="polite">
+              {amountValid ? (
+                form.coversFee ? (
+                  <>
+                    You will be charged{" "}
+                    <strong className="contribute-fee__total">
+                      ${money(total)}
+                    </strong>{" "}
+                    — your contribution of ${money(amountNum)} plus $
+                    {money(fee)} in processing. Project 108 receives the full{" "}
+                    <strong>${money(netToProject)}</strong>.
+                  </>
+                ) : (
+                  <>
+                    You will be charged{" "}
+                    <strong className="contribute-fee__total">
+                      ${money(total)}
+                    </strong>
+                    . After ${money(fee)} in processing, Project 108 receives{" "}
+                    <strong>${money(netToProject)}</strong>.
+                  </>
+                )
+              ) : (
+                <>
+                  Card processing costs 4.85% plus $0.60. Cover it and the
+                  whole of your contribution reaches the project; leave it and
+                  it is taken from your contribution instead. Minimum $
+                  {money(minOffer)}.
+                </>
+              )}
             </p>
+          </div>
 
-            <div className="form-actions contribute-actions">
-              <button type="submit" className="btn" disabled={busy}>
-                {status === "submitting"
-                  ? "Preparing…"
-                  : status === "redirecting"
-                    ? "Redirecting…"
-                    : amountValid
-                      ? `Continue — pay $${money(total)}`
-                      : "Continue to secure checkout"}
-              </button>
-            </div>
-            <p className="form-modal__small">
-              You will be redirected to a secure Stripe checkout to complete your
-              payment. Project 108 never sees your card details.
-            </p>
-          </form>
-        </div>
+          <label className="field">
+            <span className="field__lbl">Full name</span>
+            <input
+              type="text"
+              value={form.donorName}
+              onChange={(e) => update("donorName", e.target.value)}
+              autoComplete="name"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <span className="field__lbl">Email</span>
+            <input
+              type="email"
+              value={form.donorEmail}
+              onChange={(e) => update("donorEmail", e.target.value)}
+              autoComplete="email"
+              required
+            />
+          </label>
+
+          <div className="form-row form-row--phone">
+            <label className="field field--cc">
+              <span className="field__lbl">Country code</span>
+              <select
+                value={form.phoneCountryCode}
+                onChange={(e) => update("phoneCountryCode", e.target.value)}
+                required
+              >
+                {ccOptions.map(([name, iso, d]) => (
+                  <option key={iso + d} value={d}>
+                    {d} &nbsp;{name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span className="field__lbl">
+                Phone number <span className="field__opt">(optional)</span>
+              </span>
+              <input
+                type="tel"
+                value={form.donorPhone}
+                onChange={(e) => update("donorPhone", e.target.value)}
+                inputMode="numeric"
+                autoComplete="tel-national"
+              />
+            </label>
+          </div>
+
+          {/* Saying why lifts completion and answers the objection that this
+              duplicates Stripe — it does not, because DK never returns what
+              Stripe collects. */}
+          <p className="contribute-why">
+            We ask for your address so your offering can be properly recorded
+            and acknowledged.
+          </p>
+
+          <label className="field">
+            <span className="field__lbl">Address</span>
+            <input
+              type="text"
+              value={form.addressLine1}
+              onChange={(e) => update("addressLine1", e.target.value)}
+              placeholder="Street address"
+              autoComplete="address-line1"
+            />
+          </label>
+
+          <label className="field">
+            <span className="field__lbl">
+              Address line 2 <span className="field__opt">(optional)</span>
+            </span>
+            <input
+              type="text"
+              value={form.addressLine2}
+              onChange={(e) => update("addressLine2", e.target.value)}
+              autoComplete="address-line2"
+            />
+          </label>
+
+          <div className="form-row form-row--double">
+            <label className="field">
+              <span className="field__lbl">City / town</span>
+              <input
+                type="text"
+                value={form.city}
+                onChange={(e) => update("city", e.target.value)}
+                autoComplete="address-level2"
+              />
+            </label>
+            <label className="field">
+              <span className="field__lbl">
+                State / region <span className="field__opt">(optional)</span>
+              </span>
+              <input
+                type="text"
+                value={form.state}
+                onChange={(e) => update("state", e.target.value)}
+                autoComplete="address-level1"
+              />
+            </label>
+          </div>
+
+          <div className="form-row form-row--double">
+            <label className="field">
+              <span className="field__lbl">Postal code</span>
+              <input
+                type="text"
+                value={form.postalCode}
+                onChange={(e) => update("postalCode", e.target.value)}
+                autoComplete="postal-code"
+              />
+            </label>
+            <label className="field">
+              <span className="field__lbl">Country</span>
+              <select
+                value={form.country}
+                onChange={(e) => update("country", e.target.value)}
+                required
+              >
+                {/* No pre-selection: defaulting to Bhutan silently recorded every
+                    international donor as Bhutanese. */}
+                <option value="" disabled>
+                  Select your country
+                </option>
+                {COUNTRIES.map(([name, iso]) => (
+                  <option key={iso} value={iso}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <label className="field">
+            <span className="field__lbl">
+              Dedication <span className="field__opt">(optional)</span>
+            </span>
+            <textarea
+              value={form.message}
+              onChange={(e) => update("message", e.target.value)}
+              rows={2}
+              placeholder="In honour of a loved one, or all sentient beings."
+            />
+          </label>
+
+          {/* Unticked by design. One list, one permission — the wording is
+              imported, never restated, so the checkout box, the sign-up page and
+              the thank-you email cannot grant different things. */}
+          <label className="check check--consent">
+            <input
+              type="checkbox"
+              checked={form.consentUpdates}
+              onChange={(e) => toggle("consentUpdates", e.target.checked)}
+            />
+            <span className="check__txt">{CONSENT_TEXT}</span>
+          </label>
+
+          <p
+            className="form-modal__error"
+            role="alert"
+            aria-live="polite"
+            hidden={!errorMsg}
+          >
+            {errorMsg}
+          </p>
+
+          <div className="form-actions contribute-actions">
+            <button type="submit" className="btn" disabled={busy}>
+              {status === "submitting"
+                ? "Preparing…"
+                : status === "redirecting"
+                  ? "Redirecting…"
+                  : amountValid
+                    ? `Continue — pay $${money(total)}`
+                    : "Continue to secure checkout"}
+            </button>
+          </div>
+          <p className="form-modal__small">
+            You will be redirected to a secure Stripe checkout to complete
+            your payment. Project 108 never sees your card details.
+          </p>
+        </form>
       </div>
     </main>
   );
