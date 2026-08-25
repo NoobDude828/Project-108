@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SignUpFields from "@/components/ui/SignUpFields";
+import HomeLink from "@/components/ui/HomeLink";
 
 // Same per-page import as app/contribute — scroll.css is not global.
 import "../scroll.css";
@@ -44,8 +45,9 @@ export const metadata: Metadata = {
 export default function SignUpPage() {
   return (
     <main className="su-page">
+      <HomeLink />
       <div className="su-col">
-        <p className="su-eyebrow">Project 108 · Bhutan</p>
+        <p className="su-eyebrow">Project 108 · Gelephu Mindfulness City</p>
 
         <h1 className="su-hero">
           Be with us on <em>November&nbsp;1</em>
