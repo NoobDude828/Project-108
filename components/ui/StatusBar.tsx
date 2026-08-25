@@ -55,7 +55,7 @@ export default function StatusBar() {
           </a>
           <a
             href="#scene-invitation"
-            className="status-split__btn status-split__btn--glow"
+            className="status-split__btn status-split__btn--primary"
             onClick={scrollToInvitation}
           >
             Take Part
@@ -124,7 +124,7 @@ export default function StatusBar() {
           </a>
           <a
             href="#scene-invitation"
-            className="status-drawer__btn"
+            className="status-drawer__btn status-drawer__btn--primary"
             role="menuitem"
             onClick={scrollToInvitation}
           >
