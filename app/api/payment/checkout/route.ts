@@ -36,6 +36,81 @@ import { consentRecord } from "@/lib/consent";
 const MAX_USD = 1_000_000; // sane upper cap
 
 /**
+ * Call DK to create a checkout session for `appNo`, record the outcome, and
+ * build the response. Shared by the normal path (a freshly inserted row) and
+ * the retry-after-terminal-failure path below — both are just "call DK,
+ * record what happened, respond," and must do it identically so a retry
+ * can't diverge from a first attempt.
+ */
+async function tryDkCheckout(
+  appNo: string,
+  amount: number,
+  successUrl: string,
+  cancelUrl: string,
+): Promise<Response> {
+  let result;
+  try {
+    result = await dkCreateCheckout({
+      amount,
+      applicationNo: appNo,
+      successUrl,
+      cancelUrl,
+    });
+  } catch (err) {
+    // Do NOT mark this failed. A timeout or network fault leaves it genuinely
+    // ambiguous: DK may already have created the session, and if the donor
+    // somehow reaches and pays it, a terminal `failed` would make the sweep skip
+    // the row and we would never record the payment. Leaving it non-terminal
+    // means reconciliation polls this application_no and resolves it properly —
+    // to paid if DK confirms, to expired if it was never completed.
+    console.error("[/api/payment/checkout] DK request failed", err);
+    await markPaymentStatus(appNo, "created", {
+      eventType: "dk_unreachable",
+      detail: {
+        error: String(err),
+        note: "left non-terminal for reconciliation",
+      },
+    });
+    return Response.json(
+      { success: false, error: "Couldn't reach the payment gateway. Please try again." },
+      { status: 502 },
+    );
+  }
+
+  if (result.ok) {
+    await markPaymentStatus(appNo, "redirected", {
+      dkSessionId: result.sessionId,
+      // Store the URL DK actually returned. An idempotent replay serves this
+      // verbatim rather than rebuilding it from the id, so we never depend on
+      // Stripe's URL format staying the same.
+      dkSessionUrl: result.sessionUrl,
+      eventType: "dk_checkout_response",
+      httpStatus: 201,
+    });
+    return Response.json(
+      { ref: appNo, sessionUrl: result.sessionUrl },
+      { status: 201 },
+    );
+  }
+
+  await markPaymentStatus(appNo, "failed", {
+    dkResponseCode: result.code,
+    dkResponseMessage: result.message,
+    dkResponseDescription: result.message,
+    eventType: "dk_checkout_response",
+    detail: { code: result.code, message: result.message },
+  });
+  return Response.json(
+    {
+      success: false,
+      error: result.message || "The payment gateway rejected the request.",
+      code: result.code,
+    },
+    { status: dkErrorStatus(result.code) },
+  );
+}
+
+/**
  * Pre-launch access gate.
  *
  * There is deliberately no payment UI on the site yet, but this route is
@@ -239,6 +314,18 @@ export async function POST(req: Request) {
         { status: 200 },
       );
     }
+    if (prior?.status === "failed") {
+      // A definite, terminal failure — not "another request still in
+      // progress." Inserting a new row here would only collide on
+      // idempotency_key again (that constraint doesn't care about status), so
+      // retry DK on the SAME application number instead of minting a new one.
+      return await tryDkCheckout(
+        prior.applicationNo,
+        roundedAmount,
+        `${returnBase}?ref=${encodeURIComponent(prior.applicationNo)}&result=success`,
+        `${returnBase}?ref=${encodeURIComponent(prior.applicationNo)}&result=cancel`,
+      );
+    }
   }
 
   const appNo = makeApplicationNo();
@@ -287,6 +374,17 @@ export async function POST(req: Request) {
           { status: 200 },
         );
       }
+      if (winner?.status === "failed") {
+        // Same terminal-failure case as above, just reached via the race
+        // window instead of the upfront lookup — retry DK rather than
+        // telling the donor to wait on something that will never resolve.
+        return await tryDkCheckout(
+          winner.applicationNo,
+          roundedAmount,
+          `${returnBase}?ref=${encodeURIComponent(winner.applicationNo)}&result=success`,
+          `${returnBase}?ref=${encodeURIComponent(winner.applicationNo)}&result=cancel`,
+        );
+      }
       // The winner exists but has not got its session yet — ask the client to
       // retry with the same key rather than racing it.
       return Response.json(
@@ -301,64 +399,5 @@ export async function POST(req: Request) {
     );
   }
 
-  let result;
-  try {
-    result = await dkCreateCheckout({
-      amount: roundedAmount,
-      applicationNo: appNo,
-      successUrl,
-      cancelUrl,
-    });
-  } catch (err) {
-    // Do NOT mark this failed. A timeout or network fault leaves it genuinely
-    // ambiguous: DK may already have created the session, and if the donor
-    // somehow reaches and pays it, a terminal `failed` would make the sweep skip
-    // the row and we would never record the payment. Leaving it non-terminal
-    // means reconciliation polls this application_no and resolves it properly —
-    // to paid if DK confirms, to expired if it was never completed.
-    console.error("[/api/payment/checkout] DK request failed", err);
-    await markPaymentStatus(appNo, "created", {
-      eventType: "dk_unreachable",
-      detail: {
-        error: String(err),
-        note: "left non-terminal for reconciliation",
-      },
-    });
-    return Response.json(
-      { success: false, error: "Couldn't reach the payment gateway. Please try again." },
-      { status: 502 },
-    );
-  }
-
-  if (result.ok) {
-    await markPaymentStatus(appNo, "redirected", {
-      dkSessionId: result.sessionId,
-      // Store the URL DK actually returned. An idempotent replay serves this
-      // verbatim rather than rebuilding it from the id, so we never depend on
-      // Stripe's URL format staying the same.
-      dkSessionUrl: result.sessionUrl,
-      eventType: "dk_checkout_response",
-      httpStatus: 201,
-    });
-    return Response.json(
-      { ref: appNo, sessionUrl: result.sessionUrl },
-      { status: 201 },
-    );
-  }
-
-  await markPaymentStatus(appNo, "failed", {
-    dkResponseCode: result.code,
-    dkResponseMessage: result.message,
-    dkResponseDescription: result.message,
-    eventType: "dk_checkout_response",
-    detail: { code: result.code, message: result.message },
-  });
-  return Response.json(
-    {
-      success: false,
-      error: result.message || "The payment gateway rejected the request.",
-      code: result.code,
-    },
-    { status: dkErrorStatus(result.code) },
-  );
+  return await tryDkCheckout(appNo, roundedAmount, successUrl, cancelUrl);
 }
