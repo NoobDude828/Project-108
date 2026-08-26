@@ -625,10 +625,37 @@ export type ReceiptClaim = {
   attempt: number;
 };
 
-/** How long a claimed send is owned before another caller may retry it. */
-const RECEIPT_CLAIM_MINUTES = 10;
-/** Bounded so a permanently bad address is not retried forever. */
-const RECEIPT_MAX_ATTEMPTS = 5;
+/**
+ * How long a claimed send is owned before another caller may retry it — indexed by
+ * the attempt number just made (after a 1st failure, wait 15 minutes before a 2nd
+ * try; after a 2nd, wait 1 hour before a 3rd; and so on), holding at the last value
+ * for any attempt beyond the schedule's length.
+ *
+ * A single fixed 10-minute gap used to govern every retry alike, which was too fast
+ * for what actually fails here: not a bad address, but the shared relay itself
+ * returning 421 4.7.0 at EHLO — a whole-IP rate/reputation throttle, not a
+ * per-message rejection. At a flat 10 minutes, all RECEIPT_MAX_ATTEMPTS tries land
+ * inside the same throttle window and exhaust together, permanently, before Google
+ * has had a chance to lift it. Spacing retries out — 15m, 1h, 4h, 12h, then a day —
+ * gives a throttle that clears within a day an actual chance to be retried into.
+ */
+const RECEIPT_BACKOFF_MINUTES = [15, 60, 240, 720, 1440];
+/**
+ * Bounded so a permanently bad address is not retried forever — but wide enough,
+ * paired with RECEIPT_BACKOFF_MINUTES, to comfortably outlast a worst-case relay
+ * throttle rather than exhausting inside it. At the schedule above, 9 attempts span
+ * roughly 15+60+240+720+1440*4 ≈ 4.7 days end to end.
+ */
+const RECEIPT_MAX_ATTEMPTS = 9;
+
+/**
+ * Backoff wait, in minutes, for the attempt just made — shared by claimReceiptSend
+ * and findPaidWithoutReceipt so their eligibility windows can never drift apart.
+ * Expects RECEIPT_BACKOFF_MINUTES bound as the query's $3.
+ */
+const BACKOFF_WAIT_MINUTES_SQL = `($3::int[])[
+                  LEAST(GREATEST(receipt_attempts, 1), array_length($3::int[], 1))
+                ]`;
 
 /**
  * Claim the right to send one payment's acknowledgement receipt.
@@ -640,8 +667,8 @@ const RECEIPT_MAX_ATTEMPTS = 5;
  * This is the whole concurrency story. The status poll and the reconciliation sweep
  * both try to send, so the claim has to be atomic: the UPDATE's WHERE clause is the
  * lock. Only a confirmed send sets receipt_email_sent_at (see markReceiptSent), so a
- * crash mid-send costs a delay of RECEIPT_CLAIM_MINUTES rather than a lost receipt or
- * a duplicate.
+ * crash mid-send costs a delay (per RECEIPT_BACKOFF_MINUTES) rather than a lost
+ * receipt or a duplicate.
  */
 export async function claimReceiptSend(
   applicationNo: string,
@@ -657,11 +684,11 @@ export async function claimReceiptSend(
         AND receipt_attempts < $2
         AND (
               receipt_last_attempt_at IS NULL
-           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+           OR receipt_last_attempt_at < now() - make_interval(mins => ${BACKOFF_WAIT_MINUTES_SQL})
         )
       RETURNING application_no, donor_name, donor_email, offered_amount, amount,
                 charged_total, currency, paid_confirmed_at, message, receipt_attempts`,
-    [applicationNo, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+    [applicationNo, RECEIPT_MAX_ATTEMPTS, RECEIPT_BACKOFF_MINUTES],
   );
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
@@ -739,11 +766,11 @@ export async function findPaidWithoutReceipt(limit = 20): Promise<string[]> {
         AND receipt_attempts < $2
         AND (
               receipt_last_attempt_at IS NULL
-           OR receipt_last_attempt_at < now() - make_interval(mins => $3::int)
+           OR receipt_last_attempt_at < now() - make_interval(mins => ${BACKOFF_WAIT_MINUTES_SQL})
         )
       ORDER BY paid_confirmed_at NULLS LAST
       LIMIT $1`,
-    [limit, RECEIPT_MAX_ATTEMPTS, RECEIPT_CLAIM_MINUTES],
+    [limit, RECEIPT_MAX_ATTEMPTS, RECEIPT_BACKOFF_MINUTES],
   );
   return r.rows.map((x) => x.application_no);
 }

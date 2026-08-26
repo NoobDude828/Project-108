@@ -17,7 +17,7 @@ import {
   markReceiptFailed,
   findPaidWithoutReceipt,
 } from "@/lib/db";
-import { sendMail } from "@/lib/mail";
+import { sendMail, classifyMailError, type MailErrorKind } from "@/lib/mail";
 import { contributionReceiptEmail } from "@/lib/emails/receipt";
 
 /**
@@ -41,21 +41,34 @@ function signupUrl(): string | null {
   }
 }
 
+/** "config" is ours, not the mailer's — SIGNUP_URL/PAYMENT_RETURN_URL missing.
+ *  Like a "relay" failure, it's batch-wide (every row fails identically), so it
+ *  drives the same circuit breaker in sendPendingReceipts below. */
+export type ReceiptFailureKind = MailErrorKind | "config";
+
+export type ReceiptSendResult = {
+  outcome: "sent" | "skipped" | "failed";
+  /** Only set when outcome === "failed". What kind of failure it was — see
+   *  classifyMailError. Drives sendPendingReceipts' circuit breaker below. */
+  errorKind?: ReceiptFailureKind;
+};
+
 /**
- * Attempt the receipt for one payment. Returns what happened, for logging only.
+ * Attempt the receipt for one payment. Returns what happened, for logging and for
+ * sendPendingReceipts' circuit breaker.
  *
  * "skipped" covers every legitimate no-op: already sent, not paid, out of attempts,
  * or another caller holds the claim.
  */
 export async function sendReceiptFor(
   applicationNo: string,
-): Promise<"sent" | "skipped" | "failed"> {
+): Promise<ReceiptSendResult> {
   const url = signupUrl();
   if (!url) {
     console.error(
       "[receipt] neither SIGNUP_URL nor PAYMENT_RETURN_URL is set — not sending",
     );
-    return "failed";
+    return { outcome: "failed", errorKind: "config" };
   }
 
   let claim;
@@ -63,9 +76,9 @@ export async function sendReceiptFor(
     claim = await claimReceiptSend(applicationNo);
   } catch (err) {
     console.error(`[receipt] ${applicationNo}: could not claim`, err);
-    return "failed";
+    return { outcome: "failed" };
   }
-  if (!claim) return "skipped";
+  if (!claim) return { outcome: "skipped" };
 
   try {
     const email = contributionReceiptEmail({
@@ -90,17 +103,32 @@ export async function sendReceiptFor(
     console.log(
       `[receipt] ${applicationNo}: sent to ${claim.donorEmail} (attempt ${claim.attempt})`,
     );
-    return "sent";
+    return { outcome: "sent" };
   } catch (err) {
     // The claim is left in place and simply expires, so the sweep retries. Recording
     // the reason on the row means "why did this donor get nothing?" is answerable
     // without trawling logs.
+    //
+    // Tagged with what kind of failure this was: "relay" means the connection/EHLO
+    // itself was refused (Gmail's 421 4.7.0 rate/reputation throttle) — nothing to
+    // do with this donor's address — vs "recipient", which means the address itself
+    // was rejected. Same backoff schedule applies to both today, but the tag makes
+    // "why did this donor not get their receipt" answerable from the row at a
+    // glance instead of by re-deriving it from the raw SMTP text.
+    const kind = classifyMailError(err);
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[receipt] ${applicationNo}: send failed (attempt ${claim.attempt})`, msg);
-    await markReceiptFailed(claim.applicationNo, msg);
-    return "failed";
+    console.error(
+      `[receipt] ${applicationNo}: send failed (attempt ${claim.attempt}, ${kind})`,
+      msg,
+    );
+    await markReceiptFailed(claim.applicationNo, `[${kind}] ${msg}`);
+    return { outcome: "failed", errorKind: kind };
   }
 }
+
+/** Pause between sends in a back-fill batch, so one sweep tick never fires `limit`
+ *  SMTP transactions at the shared relay back-to-back. */
+const SEND_PACING_MS = 500;
 
 /**
  * Back-fill: every paid payment still without a receipt.
@@ -121,8 +149,29 @@ export async function sendPendingReceipts(
     console.error("[receipt] back-fill query failed", err);
     return out;
   }
-  for (const ref of refs) {
-    out[await sendReceiptFor(ref)] += 1;
+  for (let i = 0; i < refs.length; i++) {
+    const result = await sendReceiptFor(refs[i]);
+    out[result.outcome] += 1;
+
+    // "relay" (the connection itself was refused) and "config" (SIGNUP_URL /
+    // PAYMENT_RETURN_URL missing) are both batch-wide: every other row would fail
+    // identically right now. Stop instead of burning through the rest of the batch
+    // (and each row's own limited attempt budget) on a failure that has nothing to
+    // do with which row is next; the next sweep run picks up where this one left off.
+    if (
+      result.outcome === "failed" &&
+      (result.errorKind === "relay" || result.errorKind === "config")
+    ) {
+      const remaining = refs.length - i - 1;
+      console.error(
+        `[receipt] stopping back-fill early: ${result.errorKind} failure (${remaining} row${remaining === 1 ? "" : "s"} left for the next run)`,
+      );
+      break;
+    }
+
+    if (i < refs.length - 1) {
+      await new Promise((r) => setTimeout(r, SEND_PACING_MS));
+    }
   }
   return out;
 }

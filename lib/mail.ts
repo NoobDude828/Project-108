@@ -88,3 +88,29 @@ export async function verifyMailTransport(): Promise<true> {
   await transporter().verify();
   return true;
 }
+
+/**
+ * What kind of thing sendMail() failed at, so a caller can tell "the relay itself
+ * is refusing us" from "this one recipient bounced".
+ *
+ * `relay` covers nodemailer's ECONNECTION/ETIMEDOUT/ESOCKET — errors raised before
+ * or during the connection/EHLO/AUTH handshake, i.e. before any recipient was even
+ * named. That is exactly the shape of Gmail's "421-4.7.0 ... closing connection.
+ * (EHLO)": a whole-IP rate/reputation throttle that will reject the next send too,
+ * regardless of who it's addressed to.
+ *
+ * `recipient` covers EENVELOPE/EMESSAGE — the connection was accepted and Gmail
+ * rejected the specific message (bad address, content, etc).
+ */
+export type MailErrorKind = "relay" | "recipient" | "other";
+
+export function classifyMailError(err: unknown): MailErrorKind {
+  const code = (err as { code?: string } | null)?.code;
+  if (code === "ECONNECTION" || code === "ETIMEDOUT" || code === "ESOCKET") {
+    return "relay";
+  }
+  if (code === "EENVELOPE" || code === "EMESSAGE") {
+    return "recipient";
+  }
+  return "other";
+}
