@@ -109,9 +109,8 @@ export default function SignUpModal() {
           Be with us on <em>November&nbsp;1</em>.
         </h2>
         <p className="form-modal__lede">
-          All 108 Jangchub Chortens will be raised together in a single day. Leave
-          your name and email and we will send you the livestream link and the
-          prayers for the day.
+          All 108 Jangchub Chortens will be raised together in a single day.
+          Leave your name and email and we will send you the livestream link.
         </p>
         {open ? <SignUpFields source="card" autoFocus /> : null}
       </div>

@@ -31,7 +31,7 @@ import "../scroll.css";
 export const metadata: Metadata = {
   title: "Be with us on November 1 — Project 108",
   description:
-    "On November 1, all 108 Jangchub Chortens will be raised together in a single day at Gelephu Mindfulness City, Bhutan. Leave your email to receive the livestream link and the prayers for the day.",
+    "On November 1, all 108 Jangchub Chortens will be raised together in a single day at Gelephu Mindfulness City, Bhutan. Leave your email to receive the livestream link.",
   alternates: { canonical: "https://108.gmc.bt/sign-up" },
   openGraph: {
     title: "Be with us on November 1 — Project 108",
